@@ -162,30 +162,44 @@ datasource db {
 }
 
 model User {
-  id              String          @id @default(auto()) @map("_id") @db.ObjectId
-  email           String          @unique
-  username        String          @unique
-  passwordHash    String
-  isEmailVerified Boolean         @default(false)
-  isAdmin         Boolean         @default(false)
-  
+  id                  String          @id @default(auto()) @map("_id") @db.ObjectId
+  email               String          @unique
+  username            String          @unique
+  passwordHash        String
+  isEmailVerified     Boolean         @default(false)
+  isAdmin             Boolean         @default(false)
+
+  // Security
+  failedLoginAttempts Int             @default(0)
+  lockedUntil         DateTime?
+
   // Relations
-  subscription    Subscription?
-  usage           Usage?
-  sessions        Session[]
-  parties         Party[]
-  encounters      Encounter[]
-  creatures       Creature[]
-  payments        Payment[]
-  
+  subscription        Subscription?
+  usage               Usage?
+  sessions            Session[]
+  parties             Party[]
+  encounters          Encounter[]
+  creatures           Creature[]
+  payments            Payment[]
+
   // Timestamps
-  lastLoginAt     DateTime?
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
-  
+  lastLoginAt         DateTime?
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+
   @@index([email])
   @@index([username])
   @@map("users")
+}
+
+model ProcessedEvent {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  eventId   String   @unique
+  source    String   // e.g., "stripe"
+  createdAt DateTime @default(now())
+
+  @@index([eventId])
+  @@map("processed_events")
 }
 
 model Session {
@@ -1051,12 +1065,64 @@ export class PasswordService {
 }
 ```
 
+### Account Lockout
+
+To prevent brute-force attacks, an account lockout mechanism will be implemented.
+
+```typescript
+// server/src/services/auth.service.ts (Conceptual)
+
+// In the login method:
+const user = await prisma.user.findUnique({ where: { email } });
+
+if (user?.lockedUntil && user.lockedUntil > new Date()) {
+  throw new Error('Account is locked. Please try again later.');
+}
+
+const isValidPassword = await PasswordService.verify(user.passwordHash, password);
+
+if (!isValidPassword) {
+  const updatedUser = await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      failedLoginAttempts: {
+        increment: 1,
+      },
+      // Lock account for 15 minutes after 5 failed attempts
+      lockedUntil: user.failedLoginAttempts + 1 >= 5 
+        ? new Date(Date.now() + 15 * 60 * 1000) 
+        : null,
+    },
+  });
+  throw new Error('Invalid credentials');
+}
+
+// On successful login, reset failed attempts
+await prisma.user.update({
+  where: { id: user.id },
+  data: {
+    failedLoginAttempts: 0,
+    lockedUntil: null,
+    lastLoginAt: new Date(),
+  },
+});
+```
+
 ### Advanced Rate Limiting
+
+**Note:** For production environments, Redis is a **mandatory dependency**. The application must be configured to fail on startup if a connection to Redis cannot be established. The in-memory fallback is suitable only for local development.
 
 ```typescript
 // server/src/middleware/rateLimiter.ts
 import { RateLimiterRedis, RateLimiterMemory } from 'rate-limiter-flexible';
 import { redis } from '../lib/redis';
+import { logger } from '../lib/logger';
+
+// At application startup
+if (process.env.NODE_ENV === 'production' && !redis) {
+  logger.error('Redis connection is not available. Application cannot start in production without Redis for rate limiting.');
+  process.exit(1);
+}
 
 interface RateLimiterConfig {
   points: number;
@@ -1481,6 +1547,16 @@ export class SubscriptionService {
   }
 
   static async handleWebhook(event: Stripe.Event) {
+    // Ensure webhook idempotency
+    const processedEvent = await prisma.processedEvent.findUnique({
+      where: { eventId: event.id },
+    });
+
+    if (processedEvent) {
+      logger.info(`Webhook event ${event.id} already processed.`);
+      return;
+    }
+
     switch (event.type) {
       case 'checkout.session.completed':
         await this.handleCheckoutComplete(event.data.object);
@@ -1498,6 +1574,14 @@ export class SubscriptionService {
         await this.handlePaymentFailed(event.data.object);
         break;
     }
+
+    // Mark event as processed
+    await prisma.processedEvent.create({
+      data: {
+        eventId: event.id,
+        source: 'stripe',
+      },
+    });
   }
 
   private static async handleCheckoutComplete(
@@ -2424,309 +2508,45 @@ test.describe('Combat Tracker E2E', () => {
 
 ## 12. Deployment & DevOps
 
-### Docker Configuration
+### Database Seeding
 
-```dockerfile
-# docker/Dockerfile.server
-FROM node:20-alpine AS dependencies
-WORKDIR /app
-COPY packages/server/package*.json ./
-RUN npm ci --only=production
+To ensure the application is valuable upon first launch, a database seeding mechanism will be implemented to pre-populate essential data, such as system-wide creature templates.
 
-FROM node:20-alpine AS build
-WORKDIR /app
-COPY packages/server/package*.json ./
-RUN npm ci
-COPY packages/server ./
-COPY packages/shared ../shared
-RUN npm run build
+-   **Script Location:** `packages/server/prisma/seed.ts`
+-   **Execution:** The script will be executed via a dedicated npm script (e.g., `npm run db:seed`) and integrated into the CI/CD pipeline to run after migrations during deployment.
+-   **Logic:** The script will upsert a predefined list of creatures into the `Creature` table where the `userId` is `null`, marking them as system templates.
 
-FROM node:20-alpine AS runtime
-RUN apk add --no-cache dumb-init
-WORKDIR /app
+```typescript
+// packages/server/prisma/seed.ts
+import { PrismaClient } from '@prisma/client';
+const prisma = new PrismaClient();
 
-# Create non-root user
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nodejs -u 1001
+const creatureTemplates = [
+  { name: 'Goblin', ac: 15, hp: 7, ... },
+  { name: 'Orc', ac: 13, hp: 15, ... },
+  // ... more creatures
+];
 
-# Copy dependencies and build
-COPY --from=dependencies --chown=nodejs:nodejs /app/node_modules ./node_modules
-COPY --from=build --chown=nodejs:nodejs /app/dist ./dist
-COPY --from=build --chown=nodejs:nodejs /app/prisma ./prisma
+async function main() {
+  console.log(`Start seeding ...`);
+  for (const creature of creatureTemplates) {
+    await prisma.creature.upsert({
+      where: { name: creature.name }, // Assuming name is unique for templates
+      update: creature,
+      create: { ...creature, isTemplate: true, userId: null },
+    });
+  }
+  console.log(`Seeding finished.`);
+}
 
-# Generate Prisma client
-RUN npx prisma generate
-
-USER nodejs
-EXPOSE 3001
-
-ENTRYPOINT ["dumb-init", "--"]
-CMD ["node", "dist/server.js"]
-```
-
-```dockerfile
-# docker/Dockerfile.client
-FROM node:20-alpine AS build
-WORKDIR /app
-
-# Copy package files
-COPY packages/client/package*.json ./
-RUN npm ci
-
-# Copy source and build
-COPY packages/client ./
-COPY packages/shared ../shared
-RUN npm run build
-
-FROM nginx:alpine
-# Copy custom nginx config
-COPY docker/nginx.conf /etc/nginx/nginx.conf
-# Copy built assets
-COPY --from=build /app/dist /usr/share/nginx/html
-# Add health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:80/health || exit 1
-
-EXPOSE 80
-```
-
-### Production Docker Compose
-
-```yaml
-# docker-compose.production.yml
-version: '3.8'
-
-services:
-  nginx:
-    image: nginx:alpine
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./docker/nginx.prod.conf:/etc/nginx/nginx.conf:ro
-      - ./docker/ssl:/etc/nginx/ssl:ro
-      - client_build:/usr/share/nginx/html:ro
-    depends_on:
-      - api
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "nginx", "-t"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  api:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.server
-    environment:
-      NODE_ENV: production
-      DATABASE_URL: ${DATABASE_URL}
-      REDIS_URL: ${REDIS_URL}
-      SESSION_SECRET: ${SESSION_SECRET}
-      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
-      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
-    deploy:
-      replicas: 3
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        max_attempts: 3
-      update_config:
-        parallelism: 1
-        delay: 10s
-        order: start-first
-    healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3001/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-    restart: unless-stopped
-
-  client:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.client
-      args:
-        VITE_API_URL: ${VITE_API_URL}
-        VITE_SENTRY_DSN: ${VITE_SENTRY_DSN}
-    volumes:
-      - client_build:/usr/share/nginx/html
-    restart: unless-stopped
-
-  redis:
-    image: redis:7-alpine
-    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
-    volumes:
-      - redis_data:/data
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  prisma-migrate:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.server
-    command: npx prisma migrate deploy
-    environment:
-      DATABASE_URL: ${DATABASE_URL}
-    depends_on:
-      - api
-    restart: on-failure
-
-volumes:
-  redis_data:
-  client_build:
-
-networks:
-  default:
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 172.20.0.0/16
-```
-
-### CI/CD Pipeline
-
-```yaml
-# .github/workflows/production.yml
-name: Production Deployment
-
-on:
-  push:
-    branches: [main]
-  workflow_dispatch:
-
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
-
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-      
-      - name: Install dependencies
-        run: npm ci
-      
-      - name: Run linters
-        run: npm run lint
-      
-      - name: Run type check
-        run: npm run type-check
-      
-      - name: Run tests
-        run: npm run test:ci
-      
-      - name: Upload coverage
-        uses: codecov/codecov-action@v3
-
-  build:
-    needs: test
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-      
-      - name: Log in to Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      
-      - name: Extract metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=sha
-      
-      - name: Build and push API image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: docker/Dockerfile.server
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}-api
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-      
-      - name: Build and push Client image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: docker/Dockerfile.client
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}-client
-          labels: ${{ steps.meta.outputs.labels }}
-          build-args: |
-            VITE_API_URL=${{ secrets.PRODUCTION_API_URL }}
-            VITE_SENTRY_DSN=${{ secrets.SENTRY_DSN_CLIENT }}
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment: production
-    
-    steps:
-      - name: Deploy to production
-        uses: appleboy/ssh-action@v1.0.0
-        with:
-          host: ${{ secrets.PRODUCTION_HOST }}
-          username: ${{ secrets.PRODUCTION_USER }}
-          key: ${{ secrets.PRODUCTION_SSH_KEY }}
-          script: |
-            cd /opt/dnd-tracker
-            docker-compose -f docker-compose.production.yml pull
-            docker-compose -f docker-compose.production.yml up -d --remove-orphans
-            docker system prune -af
-      
-      - name: Run database migrations
-        uses: appleboy/ssh-action@v1.0.0
-        with:
-          host: ${{ secrets.PRODUCTION_HOST }}
-          username: ${{ secrets.PRODUCTION_USER }}
-          key: ${{ secrets.PRODUCTION_SSH_KEY }}
-          script: |
-            cd /opt/dnd-tracker
-            docker-compose -f docker-compose.production.yml run --rm prisma-migrate
-      
-      - name: Health check
-        run: |
-          sleep 30
-          curl -f ${{ secrets.PRODUCTION_URL }}/api/v1/health || exit 1
-      
-      - name: Notify deployment
-        uses: 8398a7/action-slack@v3
-        with:
-          status: ${{ job.status }}
-          text: Production deployment ${{ job.status }}
-          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
-        if: always()
+main()
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });
 ```
 
 ## 13. Monitoring & Observability
