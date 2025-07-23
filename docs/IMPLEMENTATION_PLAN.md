@@ -1,13 +1,13 @@
 # AI-Driven Implementation Plan: D&D Encounter Tracker (Express/React)
 
-**Version:** 3.0  
+**Version:** 4.0  
 **Date:** July 2025  
-**Duration:** 8-10 weeks to production launch  
+**Duration:** 10-12 weeks to full production launch  
 **Approach:** AI-accelerated development with modern Express/React architecture
 
 ## Executive Summary
 
-This implementation plan leverages AI agents for rapid development of the D&D Encounter Tracker using a modern Express/React stack. By maintaining separation between frontend and backend, we achieve better control over authentication, easier debugging, and more deployment flexibility compared to Next.js alternatives.
+This implementation plan leverages AI agents for rapid development of the D&D Encounter Tracker using a modern Express/React stack. The plan is structured around a **Beta Launch Strategy** where Phase 1 delivers an MVP beta to gather real user feedback, and Phase 2 incorporates those learnings for a refined production launch.
 
 ## Key Architecture Decisions
 
@@ -28,9 +28,11 @@ This implementation plan leverages AI agents for rapid development of the D&D En
 - **Server-Sent Events** for real-time updates without WebSocket complexity
 - **Comprehensive testing** with Vitest and Playwright
 
-## Phase 1: Rapid Foundation (Week 1-2)
+## Phase 1: MVP Beta Launch (Week 1-3)
 
-### Week 1: Project Setup & Core Infrastructure
+**Objective**: Deliver a functional beta version to 50-100 early adopters for feedback collection
+
+### Week 1: Rapid Foundation Setup
 
 **Day 1-2: AI-Powered Project Initialization**
 
@@ -92,7 +94,6 @@ AI Tasks:
    - POST /api/v1/auth/register
    - POST /api/v1/auth/login
    - POST /api/v1/auth/logout
-   - POST /api/v1/auth/refresh
    - GET /api/v1/auth/session
    
 3. Implement password security:
@@ -102,7 +103,7 @@ AI Tasks:
    
 4. Create auth middleware:
    - Session validation
-   - Role-based access control
+   - Basic role checking
    - Request logging
 ```
 
@@ -114,7 +115,7 @@ AI Tasks:
    - Configure for optimal development experience
    - Set up path aliases
    - Configure environment variables
-   - Add PWA plugin
+   - Add PWA plugin (basic setup)
    
 2. Implement routing with TanStack Router:
    - Type-safe route definitions
@@ -135,35 +136,32 @@ AI Tasks:
    - Create layout components
 ```
 
-**Day 6-7: Database Layer & API Structure**
+**Day 6-7: Database Layer & Basic API**
 
 AI Tasks:
 ```
 1. Implement repository pattern with Prisma:
    - UserRepository with auth methods
    - PartyRepository with CRUD operations
-   - EncounterRepository with complex queries
+   - EncounterRepository with basic queries
    - CreatureRepository with template system
    
 2. Create service layer:
    - Business logic separation
    - Transaction handling
-   - Error management
-   - Caching integration
+   - Basic error management
    
 3. Set up API routes:
    - RESTful endpoint structure
    - Request validation with Zod
    - Consistent error responses
-   - OpenAPI documentation
    
-4. Implement rate limiting:
-   - Tier-based limits
-   - Redis-backed rate limiting
-   - Custom middleware
+4. Implement basic rate limiting:
+   - Simple IP-based limits
+   - Basic tier awareness
 ```
 
-### Week 2: Core Features Development
+### Week 2: Core MVP Features
 
 **Day 8-10: Party & Character Management**
 
@@ -172,542 +170,501 @@ AI Tasks:
 1. Backend implementation:
    - Complete CRUD for parties
    - Character sub-document management
-   - Bulk operations support
-   - Import from D&D Beyond format
+   - Basic import support
    
 2. Frontend party management:
    - Party list with search/filter
    - Party creation wizard
    - Character management interface
-   - Drag-and-drop character ordering
+   - Basic character forms
    
 3. State management setup:
    - Zustand store for party state
    - React Query for server synchronization
-   - Optimistic updates
-   - Offline queue
+   - Basic optimistic updates
    
-4. Testing implementation:
-   - Unit tests for services
-   - Integration tests for API
-   - Component tests for UI
+4. Basic testing:
+   - Unit tests for core services
+   - Integration tests for party API
+   - Component smoke tests
 ```
 
-**Day 11-14: Encounter & Combat System**
+**Day 11-14: Combat System MVP**
 
 AI Tasks:
 ```
 1. Encounter management backend:
    - CRUD operations with participants
-   - Initiative calculation
-   - Combat state management
-   - Real-time update preparation
+   - Initiative calculation with dex tiebreaking
+   - Basic combat state management
    
 2. Encounter UI components:
    - Encounter builder interface
    - Participant management
-   - Initiative tracker
-   - HP/condition tracking
+   - Initiative tracker (sortable)
+   - HP tracking with damage/healing
    
-3. Implement SSE for real-time:
-   - Server-side event streaming
-   - Client-side EventSource handling
-   - Reconnection logic
-   - State synchronization
-   
-4. Combat features:
+3. Combat features:
    - Turn/round management
-   - Condition tracking
-   - Combat log (basic version)
-   - Lair action triggers
-```
-
-## Phase 2: Advanced Features (Week 3-4)
-
-### Week 3: Real-time & Offline Support
-
-**Day 15-17: Server-Sent Events Implementation**
-
-AI Tasks:
-```
-1. SSE infrastructure:
-   - Event streaming endpoints
-   - Redis pub/sub integration
+   - Basic condition tracking
+   - Simple combat log
+   - Lair action prompts (basic)
+   
+4. Real-time foundation:
+   - Server-sent events setup
+   - Basic live HP updates
    - Connection management
-   - Heartbeat implementation
-   
-2. Client-side SSE handling:
-   - Custom useSSE hook
-   - Automatic reconnection
-   - Event type handling
-   - State reconciliation
-   
-3. Real-time features:
-   - Live HP updates
-   - Turn notifications
-   - Condition changes
-   - Combat log streaming
-   
-4. Performance optimization:
-   - Connection pooling
-   - Event batching
-   - Selective updates
-   - Bandwidth management
 ```
 
-**Day 18-21: Progressive Web App Features**
+### Week 3: Beta Launch Preparation
+
+**Day 15-17: Subscription System (Free Tier Only)**
 
 AI Tasks:
 ```
-1. Service Worker implementation:
-   - Workbox configuration
-   - Caching strategies
-   - Offline fallback
-   - Background sync
+1. Basic subscription infrastructure:
+   - User subscription model
+   - Free tier limits enforcement
+   - Usage tracking
    
-2. Offline functionality:
-   - IndexedDB for local storage
-   - Queue for offline actions
-   - Conflict resolution
-   - Sync indicators
+2. Feature gating middleware:
+   - Participant limits (6 for free)
+   - Party limits (1 for free)
+   - Encounter limits (3 for free)
    
-3. PWA enhancements:
-   - App manifest
-   - Install prompts
-   - Push notifications
-   - Periodic background sync
+3. Usage dashboard:
+   - Current usage display
+   - Limit warnings
+   - Upgrade prompts (UI only)
    
-4. Mobile optimization:
-   - Touch-friendly UI
-   - Responsive layouts
-   - Performance budgets
-   - Adaptive loading
+4. Database setup:
+   - Subscription and usage tables
+   - Seed free tier subscriptions
 ```
 
-### Week 4: Monetization & Polish
-
-**Day 22-24: Stripe Integration**
+**Day 18-19: Polish & Bug Fixes**
 
 AI Tasks:
 ```
-1. Subscription system:
+1. UI/UX improvements:
+   - Mobile responsiveness
+   - Loading states
+   - Error boundaries
+   - Toast notifications
+   
+2. Performance optimization:
+   - Database query optimization
+   - Frontend bundle optimization
+   - Image optimization
+   
+3. Testing & bug fixes:
+   - E2E test scenarios
+   - Cross-browser testing
+   - Critical bug resolution
+   
+4. Beta deployment prep:
+   - Docker configuration
+   - Environment setup
+   - Health checks
+```
+
+**Day 20-21: Beta Deployment & Launch**
+
+AI Tasks:
+```
+1. Production deployment:
+   - Deploy to staging environment
+   - Smoke test all features
+   - Deploy to beta environment
+   
+2. Monitoring setup:
+   - Basic error tracking with Sentry
+   - Performance monitoring
+   - User analytics setup
+   
+3. Beta user onboarding:
+   - Create beta user accounts
+   - Onboarding email templates
+   - Feedback collection system
+   
+4. Launch activities:
+   - Beta announcement
+   - User invitation emails
+   - Documentation/help guides
+```
+
+## Beta Launch Success Criteria
+
+- **50-100 active beta users** within first week
+- **Core features functional**: Party management, encounter creation, combat tracking
+- **Real-time updates working** for combat sessions
+- **Mobile-friendly interface** for tablet/phone use
+- **< 3 second load times** on 3G connections
+- **Zero data loss** incidents
+- **Active feedback collection** via in-app forms and user interviews
+
+## Phase 2: Production-Ready Launch (Week 4-7)
+
+**Objective**: Incorporate beta feedback and launch production version with full monetization
+
+### Week 4: Beta Feedback Integration
+
+**Day 22-24: Feedback Analysis & Planning**
+
+Human Tasks:
+- Analyze beta user feedback and usage analytics
+- Conduct user interviews with active beta users
+- Prioritize feature improvements and bug fixes
+- Update roadmap based on learnings
+
+AI Tasks:
+```
+1. Implement top feedback items:
+   - UI/UX improvements based on user complaints
+   - Performance optimizations for slow areas
+   - Bug fixes for reported issues
+   
+2. Feature enhancements:
+   - Improve combat flow based on usage patterns
+   - Enhanced initiative tracker features
+   - Better mobile experience
+   
+3. Analytics implementation:
+   - Track feature usage patterns
+   - Monitor user engagement metrics
+   - Implement conversion funnels
+```
+
+**Day 25-28: Advanced Features Based on Feedback**
+
+AI Tasks:
+```
+1. Combat enhancements (if requested):
+   - Advanced condition management
+   - Improved lair action automation
+   - Combat log improvements
+   
+2. Quality of life improvements:
+   - Keyboard shortcuts
+   - Bulk operations
+   - Import/export features
+   
+3. Performance improvements:
+   - Database optimization based on usage
+   - Caching layer implementation
+   - Real-time performance tuning
+```
+
+### Week 5: Full Monetization System
+
+**Day 29-31: Stripe Integration**
+
+AI Tasks:
+```
+1. Complete subscription system:
    - Stripe checkout integration
-   - Webhook handling
+   - Webhook handling for all events
    - Subscription management
-   - Customer portal
+   - Customer portal integration
    
-2. Feature gating:
-   - Tier-based access control
+2. Full feature gating:
+   - All tier-based access control
    - Usage limit enforcement
-   - Upgrade prompts
-   - Grace period handling
+   - Upgrade prompts and flows
    
 3. Billing UI:
-   - Pricing page
-   - Subscription management
-   - Usage dashboard
+   - Pricing page with feedback-informed pricing
+   - Subscription management dashboard
+   - Usage analytics for users
    - Payment history
    
 4. Testing subscriptions:
-   - Stripe test mode
+   - Stripe test mode validation
    - Webhook testing
    - Edge case handling
-   - Subscription lifecycle
+   - Subscription lifecycle testing
 ```
 
-**Day 25-28: Performance & Security**
+**Day 32-35: Advanced Real-time & Offline Support**
 
 AI Tasks:
 ```
-1. Performance optimization:
-   - Database query optimization
-   - Caching layer implementation
-   - Bundle size optimization
-   - Lazy loading
+1. Enhanced SSE implementation:
+   - Redis pub/sub integration
+   - Connection management improvements
+   - Event type expansion based on usage
    
-2. Security hardening:
-   - Security headers
-   - Input sanitization
-   - SQL injection prevention
-   - XSS protection
+2. Progressive Web App features:
+   - Service worker implementation
+   - Offline functionality for core features
+   - Background sync for actions
+   - Push notifications (if requested)
    
-3. Monitoring setup:
-   - Sentry error tracking
-   - Performance monitoring
-   - Custom metrics
-   - Health checks
-   
-4. Load testing:
-   - API stress testing
-   - Database performance
-   - Caching effectiveness
-   - Real-time scalability
-```
-
-## Phase 3: Testing & Deployment (Week 5-6)
-
-### Week 5: Comprehensive Testing
-
-**Day 29-31: Test Coverage**
-
-AI Tasks:
-```
-1. Unit test completion:
-   - 80%+ coverage for services
-   - Repository method testing
-   - Utility function tests
-   - Component unit tests
-   
-2. Integration testing:
-   - API endpoint testing
-   - Database integration
-   - Authentication flows
-   - Subscription workflows
-   
-3. E2E test scenarios:
-   - Complete user journeys
-   - Combat workflows
-   - Offline scenarios
-   - Payment flows
-   
-4. Performance testing:
-   - Load testing with k6
-   - Database query analysis
-   - Frontend performance
-   - Real-time stress testing
-```
-
-**Day 32-35: Bug Fixes & Optimization**
-
-AI Tasks:
-```
-1. Bug resolution:
-   - Critical bug fixes
-   - UI/UX improvements
-   - Performance bottlenecks
-   - Cross-browser testing
-   
-2. Optimization tasks:
-   - Database indexing
-   - Query optimization
-   - Frontend bundle size
-   - Image optimization
-   
-3. Documentation:
-   - API documentation
-   - Deployment guide
-   - User manual
-   - Developer docs
-   
-4. Security audit:
-   - Dependency scanning
-   - Penetration testing
-   - OWASP compliance
-   - Security headers
-```
-
-### Week 6: Production Deployment
-
-**Day 36-38: Deployment Infrastructure**
-
-AI Tasks:
-```
-1. Docker configuration:
-   - Multi-stage builds
-   - Security scanning
-   - Size optimization
-   - Health checks
-   
-2. CI/CD pipeline:
-   - GitHub Actions setup
-   - Automated testing
-   - Security scanning
-   - Deployment automation
-   
-3. Production environment:
-   - Environment configuration
-   - SSL certificates
-   - CDN setup
-   - Backup configuration
-   
-4. Monitoring setup:
-   - APM configuration
-   - Log aggregation
-   - Alert rules
-   - Dashboard creation
-```
-
-**Day 39-42: Launch Preparation**
-
-AI Tasks:
-```
-1. Pre-launch checklist:
-   - Performance verification
-   - Security validation
-   - Backup testing
-   - Rollback procedures
-   
-2. Launch tasks:
-   - DNS configuration
-   - Production deployment
-   - Smoke testing
-   - Monitor activation
-   
-3. Post-launch:
-   - Performance monitoring
-   - Error tracking
-   - User feedback
-   - Quick fixes
-   
-4. Documentation:
-   - Release notes
-   - Known issues
-   - Support documentation
-   - Marketing materials
-```
-
-## Phase 4: Growth Features (Week 7-8)
-
-### Week 7: Advanced Features
-
-**Day 43-46: Premium Features**
-
-AI Tasks:
-```
-1. Advanced combat log:
-   - Detailed action tracking
-   - Filtering and search
-   - Export functionality
-   - Analytics dashboard
-   
-2. Collaboration features:
-   - Shared encounters
-   - Real-time collaboration
+3. Collaboration features:
+   - Shared encounters (if highly requested)
+   - Real-time collaborative editing
    - Permission management
-   - Activity feeds
-   
-3. Import/Export:
-   - Multiple format support
-   - Batch operations
-   - Template sharing
-   - Campaign export
-   
-4. Custom themes:
-   - Theme editor
-   - Color customization
-   - Layout options
-   - Theme marketplace
 ```
 
-**Day 47-49: Analytics & Reporting**
+### Week 6: Security, Performance & Testing
+
+**Day 36-38: Security Hardening**
 
 AI Tasks:
 ```
-1. Usage analytics:
-   - User behavior tracking
-   - Feature usage metrics
-   - Performance analytics
+1. Security audit implementation:
+   - Security headers
+   - Input sanitization improvements
+   - Rate limiting enhancements
+   - OWASP compliance check
+   
+2. Advanced monitoring:
+   - Comprehensive error tracking
+   - Performance monitoring
+   - Security incident detection
    - Custom dashboards
    
-2. Business metrics:
+3. Load testing:
+   - API stress testing
+   - Database performance under load
+   - Real-time scalability testing
+   - CDN performance validation
+```
+
+**Day 39-42: Final Testing & Polish**
+
+AI Tasks:
+```
+1. Comprehensive test suite:
+   - E2E test coverage expansion
+   - Integration test completion
+   - Performance regression testing
+   - Cross-browser compatibility
+   
+2. Final optimizations:
+   - Bundle size optimization
+   - Database query optimization
+   - Image optimization
+   - CDN configuration
+   
+3. Production deployment prep:
+   - CI/CD pipeline finalization
+   - Monitoring alert configuration
+   - Backup and recovery testing
+   - Rollback procedures
+```
+
+### Week 7: Production Launch
+
+**Day 43-45: Production Deployment**
+
+AI Tasks:
+```
+1. Production environment:
+   - Full production deployment
+   - SSL certificate configuration
+   - CDN setup and testing
+   - Database backup configuration
+   
+2. Go-live checklist:
+   - Performance verification
+   - Security validation
+   - Payment processing testing
+   - Monitoring activation
+   
+3. Launch preparation:
+   - Marketing site updates
+   - Documentation finalization
+   - Support system setup
+   - Launch announcement preparation
+```
+
+**Day 46-49: Launch & Initial Support**
+
+Human Tasks:
+- Execute launch marketing campaign
+- Monitor user acquisition and onboarding
+- Respond to support requests
+- Collect initial production feedback
+
+AI Tasks:
+```
+1. Launch monitoring:
+   - Real-time performance tracking
+   - Error rate monitoring
+   - User flow analysis
    - Conversion tracking
-   - Churn analysis
-   - Revenue reporting
-   - Growth metrics
    
-3. Admin tools:
-   - User management
-   - Content moderation
-   - System health
-   - Support tools
+2. Rapid iteration:
+   - Quick bug fixes
+   - Performance optimizations
+   - User experience improvements
    
-4. Reporting:
-   - Automated reports
-   - Email summaries
-   - Export options
-   - API analytics
+3. Support tools:
+   - Admin dashboard for support
+   - User management tools
+   - Analytics and reporting
 ```
 
-### Week 8: Platform Expansion
+## Phase 3: Growth & Optimization (Week 8-10)
 
-**Day 50-52: API Development**
+**Objective**: Scale based on production usage and implement growth features
 
-AI Tasks:
+### Week 8: Growth Features
+
+**Day 50-52: Advanced Features**
+
+AI Tasks based on production data and feedback:
 ```
-1. Public API:
-   - RESTful endpoints
-   - Authentication
-   - Rate limiting
-   - Documentation
+1. Premium features (if conversion data supports):
+   - Advanced combat analytics
+   - Custom themes and branding
+   - API access for integrations
    
-2. Webhooks:
-   - Event system
-   - Webhook management
-   - Retry logic
-   - Security
+2. Community features (if engagement data supports):
+   - Creature sharing marketplace
+   - Community templates
+   - User-generated content
    
-3. Third-party integrations:
+3. Integration features (if requested):
+   - D&D Beyond integration
+   - Roll20 compatibility
    - Discord bot
-   - Roll20 integration
-   - D&D Beyond sync
-   - VTT compatibility
-   
-4. Developer portal:
-   - API documentation
-   - SDK generation
-   - Example code
-   - Support resources
 ```
 
-**Day 53-56: Mobile & Future Planning**
+### Week 9: Platform Expansion
+
+**Day 53-56: Mobile & Ecosystem**
 
 AI Tasks:
 ```
-1. Mobile optimization:
-   - Touch interactions
-   - Gesture support
-   - Performance tuning
-   - App store prep
+1. Mobile optimization (if mobile usage is high):
+   - Native app considerations
+   - Progressive Web App enhancements
+   - Touch interface improvements
    
-2. Feature roadmap:
-   - User feedback analysis
-   - Competitor analysis
-   - Technical debt assessment
-   - Innovation opportunities
+2. Third-party integrations:
+   - API development for partners
+   - Webhook system
+   - Developer documentation
    
-3. Scaling preparation:
-   - Architecture review
-   - Database sharding plan
-   - Microservices evaluation
+3. Analytics and business intelligence:
+   - Advanced user analytics
+   - Business metrics dashboard
+   - Predictive analytics for churn
+```
+
+### Week 10: Future Planning
+
+**Day 57-60: Scaling & Roadmap**
+
+AI Tasks:
+```
+1. Infrastructure scaling:
+   - Database sharding evaluation
+   - Microservices consideration
    - CDN optimization
    
-4. Business development:
+2. Business development:
    - Partnership opportunities
-   - Marketing strategy
-   - Community building
-   - Content creation
+   - Content licensing
+   - Market expansion analysis
+   
+3. Technical roadmap:
+   - Architecture evolution planning
+   - Technology refresh planning
+   - Innovation opportunities
 ```
 
-## Continuous Improvement Cycle
+## Beta-to-Production Feedback Loop
 
-### Daily Practices
+### Continuous Feedback Collection
 
-1. **Morning Standup** (15 min)
-   - Review overnight monitoring
-   - Check error rates
-   - Plan day's priorities
-   - Address blockers
+**During Beta (Week 3-4)**:
+- In-app feedback widgets
+- Weekly user surveys
+- Usage analytics tracking
+- User interview sessions
+- Support ticket analysis
 
-2. **Code Review** (30 min)
-   - AI-generated code review
-   - Security checks
-   - Performance analysis
-   - Best practices
+**Feedback Integration Process**:
+1. **Daily** - Monitor usage metrics and error rates
+2. **Weekly** - Analyze feedback themes and prioritize improvements
+3. **Bi-weekly** - Implement high-priority improvements
+4. **Monthly** - Major feature decisions based on usage patterns
 
-3. **Testing** (Throughout day)
-   - Test-driven development
-   - Continuous integration
-   - Automated testing
-   - Manual QA
+### Key Metrics to Track
 
-4. **Deployment** (As needed)
-   - Feature flags
-   - Canary releases
-   - Rollback ready
-   - Monitor closely
+**Beta Phase Metrics**:
+- User activation rate (% who complete first encounter)
+- Feature adoption rates
+- Session duration and frequency
+- Mobile vs desktop usage
+- Drop-off points in user flow
 
-### Weekly Rituals
+**Production Phase Metrics**:
+- Free-to-paid conversion rate
+- Monthly recurring revenue (MRR)
+- Customer acquisition cost (CAC)
+- Churn rate by tier
+- Feature usage by subscription level
 
-1. **Performance Review**
-   - Analyze metrics
-   - Identify bottlenecks
-   - Plan optimizations
-   - Update benchmarks
+## Risk Mitigation Updates
 
-2. **Security Audit**
-   - Dependency updates
-   - Vulnerability scanning
-   - Access review
-   - Incident planning
+### Beta Phase Risks
+1. **Low Beta Adoption**
+   - Mitigation: Focus on D&D communities, Reddit, Discord
+   - Fallback: Extend beta period, improve onboarding
 
-3. **User Feedback**
-   - Support ticket analysis
-   - Feature requests
-   - Bug reports
-   - Satisfaction scores
+2. **Critical Bugs in Beta**
+   - Mitigation: Comprehensive testing before beta launch
+   - Fallback: Hotfix deployment process, user communication
 
-4. **Technical Debt**
-   - Code quality metrics
-   - Refactoring priorities
-   - Documentation updates
-   - Tool improvements
+3. **Negative Beta Feedback**
+   - Mitigation: Rapid iteration based on feedback
+   - Fallback: Pivot features based on user needs
 
-## Success Metrics
+### Production Phase Risks
+1. **Subscription Resistance**
+   - Mitigation: Generous free tier, clear value proposition
+   - Fallback: Adjust pricing based on beta feedback
 
-### Technical Metrics
-- **API Response Time**: < 200ms p95
-- **Frontend Load Time**: < 3s on 3G
-- **Uptime**: 99.9% availability
-- **Error Rate**: < 0.1%
-- **Test Coverage**: > 80%
+2. **Competitive Response**
+   - Mitigation: Unique features, superior UX
+   - Fallback: Rapid feature development, community building
 
-### Business Metrics
-- **User Acquisition**: 1,000 users in first month
-- **Conversion Rate**: 5% free to paid
-- **Churn Rate**: < 5% monthly
-- **MRR Growth**: 20% month-over-month
-- **Support Tickets**: < 2% of active users
+## Success Criteria Updates
 
-### Development Metrics
-- **Deployment Frequency**: Daily
-- **Lead Time**: < 2 days
-- **MTTR**: < 30 minutes
-- **Change Failure Rate**: < 5%
-- **Developer Satisfaction**: > 8/10
+### Beta Launch Success (End of Week 3)
+- **50+ active weekly users** trying core features
+- **Functional core workflow** from party creation to combat
+- **Positive user sentiment** (>70% satisfaction in surveys)
+- **Technical stability** (<1% error rate)
+- **Mobile usability** (functional on tablets/phones)
 
-## Risk Mitigation
+### Production Launch Success (End of Week 7)
+- **500+ registered users** within first week
+- **5%+ conversion rate** from free to paid
+- **$1,000+ MRR** within first month
+- **<5% churn rate** for paid subscribers
+- **Technical excellence** (99.9% uptime, <2s load times)
 
-### Technical Risks
-1. **Database Performance**
-   - Mitigation: Proper indexing, caching, read replicas
-   - Monitoring: Query performance tracking
-   - Fallback: Database scaling plan ready
-
-2. **Real-time Scalability**
-   - Mitigation: SSE over WebSockets, connection limits
-   - Monitoring: Connection metrics
-   - Fallback: Polling degradation
-
-3. **Authentication Issues**
-   - Mitigation: Session-based with Lucia Auth
-   - Monitoring: Auth failure rates
-   - Fallback: Support escalation path
-
-### Business Risks
-1. **Slow Adoption**
-   - Mitigation: Generous free tier, smooth onboarding
-   - Monitoring: Activation metrics
-   - Fallback: Marketing campaign adjustment
-
-2. **High Churn**
-   - Mitigation: Engagement features, email campaigns
-   - Monitoring: Cohort retention
-   - Fallback: Win-back campaigns
-
-3. **Competition**
-   - Mitigation: Unique features, better UX
-   - Monitoring: Competitor analysis
-   - Fallback: Rapid feature development
+### 3-Month Post-Launch Success
+- **2,000+ registered users**
+- **10%+ conversion rate**
+- **$5,000+ MRR**
+- **Established community** (forum, Discord, social media)
+- **Clear product-market fit** signals
 
 ## Conclusion
 
-This implementation plan provides a comprehensive roadmap for building a production-ready D&D Encounter Tracker using modern Express/React architecture. The separation of concerns, explicit control over authentication, and progressive enhancement approach ensure a robust, scalable application that avoids common Next.js pitfalls while delivering an excellent user experience.
+This updated implementation plan provides a robust beta-to-production pathway that prioritizes real user feedback and iterative improvement. The beta launch at the end of Phase 1 ensures we validate core assumptions and user needs before investing in full monetization and advanced features.
 
 Key advantages of this approach:
-- **Full Control**: Complete ownership of authentication and session management
-- **Better Debugging**: Clear middleware chain and explicit error handling
-- **Flexible Deployment**: No vendor lock-in, deploy anywhere
-- **Superior Performance**: Fine-grained caching and optimization
-- **Future-Proof**: Can adapt to any frontend framework or architectural changes
+- **Real User Validation**: Beta feedback guides production decisions
+- **Risk Reduction**: Major issues caught in beta phase
+- **Better Product-Market Fit**: Features aligned with actual user needs
+- **Faster Time-to-Market**: MVP beta launches in 3 weeks
+- **Data-Driven Development**: Production features based on usage analytics
 
-With AI-accelerated development and modern tooling, this 8-week timeline is aggressive but achievable, delivering a production-ready application that can scale with user growth and business needs.
+The beta-first approach ensures we build what users actually want, not just what we think they need, leading to higher conversion rates and better long-term success.
