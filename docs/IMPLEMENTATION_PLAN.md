@@ -1,40 +1,40 @@
 # AI-Driven Implementation Plan: D&D Encounter Tracker (Express/React)
 
-**Version:** 4.0  
-**Date:** July 2025  
-**Duration:** 10-12 weeks to full production launch  
+**Version:** 4.1
+**Date:** July 23, 2025
+**Duration:** 10-12 weeks to full production launch
 **Approach:** AI-accelerated development with modern Express/React architecture
 
 ## Executive Summary
 
-This implementation plan leverages AI agents for rapid development of the D&D Encounter Tracker using a modern Express/React stack. The plan is structured around a **Beta Launch Strategy** where Phase 1 delivers an MVP beta to gather real user feedback, and Phase 2 incorporates those learnings for a refined production launch.
+This implementation plan leverages AI agents for rapid development of the D&D Encounter Tracker using a modern Express/React stack. The plan is structured around a **Beta Launch Strategy** where Phase 1 delivers an MVP beta to gather real user feedback, and Phase 2 incorporates those learnings for a refined production launch. **This version incorporates critical security and operational updates into the initial development phase.**
 
 ## Key Architecture Decisions
 
 ### Why Express/React Over Next.js
 
-1. **Authentication Control**: Full control over session management without framework constraints
-2. **Debugging Clarity**: Explicit middleware chain for easier troubleshooting
-3. **Deployment Flexibility**: No vendor lock-in, deploy anywhere
-4. **Backend Portability**: API can serve any frontend framework
-5. **Performance Optimization**: Fine-grained caching control
+1.  **Authentication Control**: Full control over session management without framework constraints
+2.  **Debugging Clarity**: Explicit middleware chain for easier troubleshooting
+3.  **Deployment Flexibility**: No vendor lock-in, deploy anywhere
+4.  **Backend Portability**: API can serve any frontend framework
+5.  **Performance Optimization**: Fine-grained caching control
 
 ### Modern Stack Highlights
 
-- **Express.js** with TypeScript for robust API development
-- **React + Vite** for lightning-fast frontend development
-- **Prisma ORM** replacing Mongoose for better TypeScript integration
-- **Lucia Auth** for modern session management
-- **Server-Sent Events** for real-time updates without WebSocket complexity
-- **Comprehensive testing** with Vitest and Playwright
+-   **Express.js** with TypeScript for robust API development
+-   **React + Vite** for lightning-fast frontend development
+-   **Prisma ORM** replacing Mongoose for better TypeScript integration
+-   **Lucia Auth** for modern session management
+-   **Server-Sent Events** for real-time updates without WebSocket complexity
+-   **Comprehensive testing** with Vitest and Playwright
 
 ## Phase 1: MVP Beta Launch (Week 1-3)
 
 **Objective**: Deliver a functional beta version to 50-100 early adopters for feedback collection
 
-### Week 1: Rapid Foundation Setup
+### Week 1: Secure Foundation & Core Setup
 
-**Day 1-2: AI-Powered Project Initialization**
+**Day 1-2: AI-Powered Project Initialization & Security Configuration**
 
 AI Tasks:
 ```
@@ -52,10 +52,10 @@ AI Tasks:
    - Vitest configuration for unit testing
    - Docker Compose for local development
    
-3. Set up Prisma with MongoDB:
-   - Complete schema as per technical design
-   - Migration scripts
-   - Seed data for development
+3. Set up Prisma with MongoDB, including security enhancements:
+   - Complete schema as per technical design (v4.1), including fields for Account Lockout (`failedLoginAttempts`, `lockedUntil`) and Stripe Idempotency (`ProcessedEvent`).
+   - Migration scripts for the updated schema.
+   - **Create database seeding script (`prisma/seed.ts`) for system creature templates.**
    
 4. Initialize package.json files with exact dependencies:
    Backend:
@@ -64,6 +64,7 @@ AI Tasks:
    - pino for structured logging
    - zod for validation
    - rate-limiter-flexible for rate limiting
+   - **node-cron for scheduled jobs**
    
    Frontend:
    - react@18.x with TypeScript
@@ -75,12 +76,13 @@ AI Tasks:
 ```
 
 Human Tasks:
-- Review and approve project structure
-- Set up MongoDB Atlas and Redis Cloud accounts
-- Configure GitHub repository with branch protection
-- Create .env files with necessary secrets
+-   Review and approve project structure and updated schema.
+-   Set up MongoDB Atlas and **mandatory Redis Cloud accounts for production**.
+-   Configure GitHub repository with branch protection.
+-   Create `.env` files with necessary secrets.
+-   **Validate that the application fails on startup in a production configuration if Redis is unavailable.**
 
-**Day 3: Authentication System with Lucia**
+**Day 3-4: Hardened Authentication System with Lucia**
 
 AI Tasks:
 ```
@@ -96,10 +98,10 @@ AI Tasks:
    - POST /api/v1/auth/logout
    - GET /api/v1/auth/session
    
-3. Implement password security:
+3. Implement enhanced password security:
    - Argon2 hashing
    - Password strength validation
-   - Account lockout after failed attempts
+   - **Implement business logic for Account Lockout based on `failedLoginAttempts` and `lockedUntil` fields.**
    
 4. Create auth middleware:
    - Session validation
@@ -107,7 +109,7 @@ AI Tasks:
    - Request logging
 ```
 
-**Day 4-5: Frontend Foundation with Vite**
+**Day 5-6: Frontend Foundation with Vite**
 
 AI Tasks:
 ```
@@ -136,12 +138,12 @@ AI Tasks:
    - Create layout components
 ```
 
-**Day 6-7: Database Layer & Basic API**
+**Day 7: Database Layer & Production-Ready Rate Limiting**
 
 AI Tasks:
 ```
 1. Implement repository pattern with Prisma:
-   - UserRepository with auth methods
+   - UserRepository with updated auth methods
    - PartyRepository with CRUD operations
    - EncounterRepository with basic queries
    - CreatureRepository with template system
@@ -156,9 +158,10 @@ AI Tasks:
    - Request validation with Zod
    - Consistent error responses
    
-4. Implement basic rate limiting:
-   - Simple IP-based limits
-   - Basic tier awareness
+4. Implement robust rate limiting:
+   - **Configure rate limiter to use Redis as a hard dependency in production.**
+   - Implement tier-based limits for authenticated users.
+   - Implement strict IP-based limits for authentication endpoints.
 ```
 
 ### Week 2: Core MVP Features
@@ -355,37 +358,42 @@ AI Tasks:
    - Real-time performance tuning
 ```
 
-### Week 5: Full Monetization System
+### Week 5: Full Monetization System with Idempotency
 
-**Day 29-31: Stripe Integration**
+**Day 29-32: Stripe Integration & Usage Reset**
 
 AI Tasks:
 ```
 1. Complete subscription system:
    - Stripe checkout integration
-   - Webhook handling for all events
-   - Subscription management
+   - **Implement idempotent webhook handler using the `ProcessedEvent` model to prevent duplicate processing.**
+   - Subscription management logic
    - Customer portal integration
    
-2. Full feature gating:
+2. **Implement Usage Limit Reset Mechanism:**
+   - **Create a scheduled job (`node-cron`) to run daily.**
+   - **The job will reset usage counters for users whose billing cycle has ended.**
+   - **Integrate and enable the job in the production server startup process.**
+
+3. Full feature gating:
    - All tier-based access control
    - Usage limit enforcement
    - Upgrade prompts and flows
    
-3. Billing UI:
+4. Billing UI:
    - Pricing page with feedback-informed pricing
    - Subscription management dashboard
    - Usage analytics for users
    - Payment history
    
-4. Testing subscriptions:
+5. Testing subscriptions:
    - Stripe test mode validation
-   - Webhook testing
-   - Edge case handling
-   - Subscription lifecycle testing
+   - **Test webhook idempotency by sending duplicate events.**
+   - **Test usage reset job by manually setting subscription end dates.**
+   - Edge case handling and subscription lifecycle testing
 ```
 
-**Day 32-35: Advanced Real-time & Offline Support**
+**Day 33-35: Advanced Real-time & Offline Support (Shifted by one day)**
 
 AI Tasks:
 ```
