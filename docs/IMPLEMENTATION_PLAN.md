@@ -1,809 +1,713 @@
-# AI-Driven Implementation Plan: D&D Encounter Tracker
+# AI-Driven Implementation Plan: D&D Encounter Tracker (Express/React)
 
-**Version:** 2.1  
+**Version:** 3.0  
 **Date:** July 2025  
-**Duration:** 8-10 weeks to production launch (accelerated with AI)
-**Approach:** AI-agent driven development with early staging deployment and automated linting
+**Duration:** 8-10 weeks to production launch  
+**Approach:** AI-accelerated development with modern Express/React architecture
 
 ## Executive Summary
 
-This implementation plan leverages AI agents for rapid development of the D&D Encounter Tracker with **early staging deployment** and **comprehensive automated linting**. By deploying to staging immediately after project setup, we enable continuous integration testing and early feedback. The integrated linting pipeline prevents trivial PR failures and maintains code quality automatically.
+This implementation plan leverages AI agents for rapid development of the D&D Encounter Tracker using a modern Express/React stack. By maintaining separation between frontend and backend, we achieve better control over authentication, easier debugging, and more deployment flexibility compared to Next.js alternatives.
 
-## Key Changes from Original Plan
+## Key Architecture Decisions
 
-### Timeline Enhancements
-- **Early Staging Deployment**: Week 1 deployment to enable continuous feedback
-- **Automated Code Quality**: Comprehensive linting with auto-fixes in CI/CD
-- **Iterative Deployment**: Weekly staging deployments for testing
-- **PR Quality Gates**: Automated linting, formatting, and testing on all PRs
+### Why Express/React Over Next.js
 
-### CI/CD Enhancements
-- **Multi-stage Linting**: ESLint, Prettier, MarkdownLint with auto-fixes
-- **Auto-commit Fixes**: Linters automatically fix and commit resolvable issues
-- **Quality Gates**: Block PRs with unfixable linting errors
-- **Preview Deployments**: Automatic staging deployments for feature branches
+1. **Authentication Control**: Full control over session management without framework constraints
+2. **Debugging Clarity**: Explicit middleware chain for easier troubleshooting
+3. **Deployment Flexibility**: No vendor lock-in, deploy anywhere
+4. **Backend Portability**: API can serve any frontend framework
+5. **Performance Optimization**: Fine-grained caching control
 
-## AI Development Strategy
+### Modern Stack Highlights
 
-### Core Principles
+- **Express.js** with TypeScript for robust API development
+- **React + Vite** for lightning-fast frontend development
+- **Prisma ORM** replacing Mongoose for better TypeScript integration
+- **Lucia Auth** for modern session management
+- **Server-Sent Events** for real-time updates without WebSocket complexity
+- **Comprehensive testing** with Vitest and Playwright
 
-1. **Deploy Early, Deploy Often**: Staging deployment by Day 3, weekly updates
-2. **Quality Automation**: AI generates code that passes all linters automatically
-3. **Auto-fix Pipeline**: CI/CD automatically resolves formatting and style issues
-4. **Zero-tolerance for Trivial Failures**: Prevent easy-to-fix PR failures
-5. **Continuous Feedback**: Early staging allows rapid iteration
+## Phase 1: Rapid Foundation (Week 1-2)
 
-## Phase 1: Rapid Foundation with Early Deployment (Week 1-2)
+### Week 1: Project Setup & Core Infrastructure
 
-### Week 1: Automated Setup & Immediate Deployment
-
-**Day 1-2: Project Initialization with Linting**
+**Day 1-2: AI-Powered Project Initialization**
 
 AI Tasks:
 ```
-1. Generate complete monorepo structure per technical design:
-   - packages/server/ (Backend application)
-   - packages/client/ (Frontend application)
-   - packages/shared/ (Shared types/utilities)
-
-2. Create comprehensive linting configuration:
-   - ESLint with TypeScript rules for all packages
-   - Prettier configuration with consistent formatting
-   - MarkdownLint for documentation
-   - Lint-staged for pre-commit hooks
-   - Husky for Git hooks
-
-3. Set up package.json files with exact dependencies:
-   - ESLint plugins: @typescript-eslint, eslint-plugin-react
-   - Prettier integration
-   - Lint tooling: lint-staged, husky
-   - Build and dev dependencies
-
-4. Create Docker Compose for development:
-   - MongoDB 7.0 container
-   - Redis 7.x container
-   - Node.js backend service
-   - React dev server with hot reload
-
-5. Initialize GitHub repository with:
-   - Branch protection rules requiring PR reviews
-   - Status checks for linting and tests
-   - Auto-delete head branches after merge
+1. Generate complete monorepo structure:
+   dnd-tracker-express/
+   ├── packages/
+   │   ├── server/         # Express backend
+   │   ├── client/         # React frontend
+   │   └── shared/         # Shared types and schemas
+   
+2. Create comprehensive configuration files:
+   - TypeScript configs for all packages with strict mode
+   - ESLint with @typescript-eslint and security plugins
+   - Prettier with consistent formatting rules
+   - Vitest configuration for unit testing
+   - Docker Compose for local development
+   
+3. Set up Prisma with MongoDB:
+   - Complete schema as per technical design
+   - Migration scripts
+   - Seed data for development
+   
+4. Initialize package.json files with exact dependencies:
+   Backend:
+   - express@4.19.x with TypeScript types
+   - @lucia-auth/adapter-prisma for authentication
+   - pino for structured logging
+   - zod for validation
+   - rate-limiter-flexible for rate limiting
+   
+   Frontend:
+   - react@18.x with TypeScript
+   - vite@5.x for build tooling
+   - @tanstack/react-router for type-safe routing
+   - @tanstack/react-query for server state
+   - zustand for client state
+   - shadcn/ui components
 ```
 
 Human Tasks:
-- Review and approve repository structure
-- Set up cloud accounts (MongoDB Atlas, Redis Cloud, hosting)
-- Configure GitHub secrets for deployment
-- Review linting configurations
+- Review and approve project structure
+- Set up MongoDB Atlas and Redis Cloud accounts
+- Configure GitHub repository with branch protection
+- Create .env files with necessary secrets
 
-**Day 3: CI/CD Pipeline with Auto-fixing**
-
-AI Tasks:
-```
-1. Create comprehensive GitHub Actions workflow:
-
-name: CI/CD Pipeline with Auto-fix
-on:
-  push:
-    branches: [main, develop]
-  pull_request:
-    branches: [main, develop]
-
-jobs:
-  lint-and-fix:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          
-      - name: Install dependencies
-        run: npm ci
-        
-      - name: Run ESLint with auto-fix
-        run: npx eslint . --ext .ts,.tsx,.js,.jsx --fix
-        
-      - name: Run Prettier with auto-fix
-        run: npx prettier --write .
-        
-      - name: Run MarkdownLint with auto-fix
-        run: npx markdownlint-cli2-fix "**/*.md"
-        
-      - name: Commit auto-fixes
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: 'style: auto-fix linting issues [skip ci]'
-        if: github.event_name == 'push'
-        
-      - name: Check for remaining linting errors
-        run: |
-          npx eslint . --ext .ts,.tsx,.js,.jsx
-          npx prettier --check .
-          npx markdownlint-cli2 "**/*.md"
-
-  test:
-    needs: lint-and-fix
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-      - run: npm ci
-      - run: npm test
-      - run: npm run type-check
-
-  build:
-    needs: [lint-and-fix, test]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Build application
-        run: |
-          npm ci
-          npm run build
-      - name: Build Docker image
-        run: docker build -t dnd-tracker:${{ github.sha }} .
-
-  deploy-staging:
-    needs: [lint-and-fix, test, build]
-    if: github.ref == 'refs/heads/develop' || github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    environment: staging
-    steps:
-      - name: Deploy to staging
-        run: |
-          echo "Deploying to staging environment"
-          # Deployment commands will be added based on hosting choice
-
-2. Create additional linting configurations:
-   - .eslintrc.js with TypeScript and React rules
-   - .prettierrc with team formatting standards
-   - .markdownlint.json for documentation standards
-   - .gitignore with comprehensive exclusions
-   - .dockerignore for optimized builds
-
-3. Set up pre-commit hooks:
-   - Husky configuration
-   - Lint-staged for changed files only
-   - Pre-commit linting to catch issues early
-```
-
-**Day 4-5: First Staging Deployment with D&D Tracker Welcome**
+**Day 3: Authentication System with Lucia**
 
 AI Tasks:
 ```
-1. Create initial D&D Tracker welcome application:
-   - Basic Express server with health check endpoint
-   - React welcome page with D&D Tracker branding and theme
-   - Professional welcome messaging and feature overview
-   - Basic routing setup with placeholder navigation
-   - Initial component library (Header, Footer, Navigation)
-   - Responsive design foundation
-   - Docker configuration for both services
-   - Environment variable configuration
+1. Implement Lucia Auth configuration:
+   - Session-based authentication
+   - Secure cookie handling
+   - CSRF protection
+   - Session refresh logic
+   
+2. Create authentication endpoints:
+   - POST /api/v1/auth/register
+   - POST /api/v1/auth/login
+   - POST /api/v1/auth/logout
+   - POST /api/v1/auth/refresh
+   - GET /api/v1/auth/session
+   
+3. Implement password security:
+   - Argon2 hashing
+   - Password strength validation
+   - Account lockout after failed attempts
+   
+4. Create auth middleware:
+   - Session validation
+   - Role-based access control
+   - Request logging
+```
 
-2. Set up staging infrastructure:
-   - Choose hosting platform (Railway, Render, or DigitalOcean)
+**Day 4-5: Frontend Foundation with Vite**
+
+AI Tasks:
+```
+1. Set up React with Vite:
+   - Configure for optimal development experience
+   - Set up path aliases
    - Configure environment variables
-   - Set up database connections
-   - Configure SSL/TLS certificates
-
-3. Deploy D&D Tracker welcome page to staging:
-   - Automated deployment through GitHub Actions
-   - Health checks and smoke tests
-   - Basic branding and navigation structure
-   - Coming soon messaging for features
-   - Feature roadmap display
-   - Contact/feedback mechanisms
-   - Monitoring setup for basic metrics
-   - Error tracking with Sentry
-
-4. Create deployment documentation:
-   - Staging URL and access instructions
-   - Environment configuration guide
-   - Troubleshooting common issues
-   - Rollback procedures
+   - Add PWA plugin
+   
+2. Implement routing with TanStack Router:
+   - Type-safe route definitions
+   - Nested layouts
+   - Protected routes
+   - Loading states
+   
+3. Create authentication UI:
+   - Login/Register forms with React Hook Form
+   - Session management hooks
+   - Protected route wrapper
+   - Persistent auth state
+   
+4. Set up component library:
+   - Install and configure shadcn/ui
+   - Create base components (Button, Card, Dialog, etc.)
+   - Set up dark mode support
+   - Create layout components
 ```
 
-Human Tasks:
-- Review welcome page design and messaging
-- Test staging deployment
-- Verify CI/CD pipeline functionality
-- Review auto-fix behavior
-- Configure monitoring alerts
-- Gather initial stakeholder feedback on branding
-
-**Day 5-7: Authentication System with Continuous Deployment**
+**Day 6-7: Database Layer & API Structure**
 
 AI Tasks:
 ```
-1. Implement complete JWT authentication per design:
-   - User registration with Mongoose schema
-   - Email verification system
-   - Login with access/refresh tokens
-   - Password reset flow with expiring tokens
-   - Session management with Redis
-
-2. Generate comprehensive auth tests:
-   - Unit tests for JWT utilities
-   - Integration tests for auth endpoints
-   - E2E tests for auth flows
-   - Security tests for edge cases
-
-3. Deploy authentication to staging:
-   - Update staging environment with auth features
-   - Test authentication flow in staging
-   - Monitor for errors and performance issues
-   - Update documentation with auth endpoints
-
-4. Automated quality checks:
-   - All code passes ESLint rules
-   - All code formatted with Prettier
-   - All documentation passes MarkdownLint
-   - Test coverage meets minimum thresholds
+1. Implement repository pattern with Prisma:
+   - UserRepository with auth methods
+   - PartyRepository with CRUD operations
+   - EncounterRepository with complex queries
+   - CreatureRepository with template system
+   
+2. Create service layer:
+   - Business logic separation
+   - Transaction handling
+   - Error management
+   - Caching integration
+   
+3. Set up API routes:
+   - RESTful endpoint structure
+   - Request validation with Zod
+   - Consistent error responses
+   - OpenAPI documentation
+   
+4. Implement rate limiting:
+   - Tier-based limits
+   - Redis-backed rate limiting
+   - Custom middleware
 ```
 
-### Week 2: Core Feature Development with Weekly Deployments
+### Week 2: Core Features Development
 
 **Day 8-10: Party & Character Management**
 
 AI Tasks:
 ```
 1. Backend implementation:
-   - Complete CRUD operations for parties
+   - Complete CRUD for parties
    - Character sub-document management
-   - Soft delete with archival
-   - Import from D&D Beyond
-   - Validation with Joi/Zod
-
-2. Frontend implementation:
-   - Party list page with pagination
-   - Party detail view with characters
-   - Character creation/edit forms
+   - Bulk operations support
+   - Import from D&D Beyond format
+   
+2. Frontend party management:
+   - Party list with search/filter
+   - Party creation wizard
+   - Character management interface
    - Drag-and-drop character ordering
-   - Form validation with React Hook Form
-
-3. Comprehensive testing:
-   - API endpoint tests
-   - Component tests
-   - Business logic tests
-   - User journey tests
-
-4. Mid-week staging deployment:
-   - Deploy party management features
-   - Test in staging environment
-   - Gather feedback from stakeholders
-   - Performance monitoring
+   
+3. State management setup:
+   - Zustand store for party state
+   - React Query for server synchronization
+   - Optimistic updates
+   - Offline queue
+   
+4. Testing implementation:
+   - Unit tests for services
+   - Integration tests for API
+   - Component tests for UI
 ```
 
-**Day 11-14: Encounter & Creature System**
+**Day 11-14: Encounter & Combat System**
 
 AI Tasks:
 ```
-1. Backend implementation:
-   - Encounter CRUD with participants
-   - Creature template management
-   - Search/filter with text indexes
-   - CR calculations
-   - Lair action configuration
-
-2. Frontend implementation:
-   - Encounter list with status filters
-   - Encounter builder interface
-   - Creature picker with search
-   - Quick-add creature features
-   - Initiative order display
-
-3. Combat state management:
+1. Encounter management backend:
+   - CRUD operations with participants
    - Initiative calculation
-   - Turn order tracking
-   - Round management
-   - Combat state persistence
-
-4. Weekly staging deployment:
-   - Deploy encounter system to staging
-   - End-to-end testing in staging
-   - Performance benchmarking
-   - Bug fixes and optimizations
+   - Combat state management
+   - Real-time update preparation
+   
+2. Encounter UI components:
+   - Encounter builder interface
+   - Participant management
+   - Initiative tracker
+   - HP/condition tracking
+   
+3. Implement SSE for real-time:
+   - Server-side event streaming
+   - Client-side EventSource handling
+   - Reconnection logic
+   - State synchronization
+   
+4. Combat features:
+   - Turn/round management
+   - Condition tracking
+   - Combat log (basic version)
+   - Lair action triggers
 ```
 
-## Enhanced CI/CD Configuration
+## Phase 2: Advanced Features (Week 3-4)
 
-### Comprehensive Linting Pipeline
+### Week 3: Real-time & Offline Support
 
-```yaml
-# .github/workflows/ci-cd.yml
-name: Comprehensive CI/CD with Auto-fix
+**Day 15-17: Server-Sent Events Implementation**
 
-on:
-  push:
-    branches: [main, develop]
-  pull_request:
-    branches: [main, develop]
-
-env:
-  NODE_VERSION: '20'
-  
-jobs:
-  lint-and-format:
-    name: Lint and Auto-fix
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          fetch-depth: 0
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run ESLint with auto-fix
-        run: |
-          npx eslint . \
-            --ext .ts,.tsx,.js,.jsx,.json \
-            --fix \
-            --format=compact \
-            --cache \
-            --cache-location=.eslintcache
-
-      - name: Run Prettier with auto-fix
-        run: |
-          npx prettier \
-            --write \
-            --cache \
-            --ignore-unknown \
-            "**/*.{ts,tsx,js,jsx,json,md,yml,yaml}"
-
-      - name: Run MarkdownLint with auto-fix
-        run: |
-          npx markdownlint-cli2-fix \
-            "**/*.md" \
-            "#node_modules" \
-            "#dist" \
-            "#build"
-
-      - name: Check TypeScript compilation
-        run: npx tsc --noEmit
-
-      - name: Commit and push auto-fixes
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: 'style: auto-fix linting and formatting issues [skip ci]'
-          skip_dirty_check: false
-          skip_fetch: false
-          skip_checkout: false
-        if: github.event_name == 'push'
-
-      - name: Verify no remaining linting errors
-        run: |
-          echo "Checking for remaining linting errors..."
-          npx eslint . --ext .ts,.tsx,.js,.jsx,.json
-          npx prettier --check "**/*.{ts,tsx,js,jsx,json,md,yml,yaml}"
-          npx markdownlint-cli2 "**/*.md" "#node_modules" "#dist" "#build"
-          echo "✅ All linting checks passed!"
-
-  security-scan:
-    name: Security Scan
-    runs-on: ubuntu-latest
-    needs: lint-and-format
-    steps:
-      - uses: actions/checkout@v4
-      - name: Run security audit
-        run: npm audit --audit-level moderate
-      - name: Check for vulnerabilities
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-      - run: npm ci
-      - run: npx snyk test
-
-  test:
-    name: Test Suite
-    runs-on: ubuntu-latest
-    needs: lint-and-format
-    strategy:
-      matrix:
-        package: [server, client, shared]
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-      
-      - name: Install dependencies
-        run: npm ci
-        
-      - name: Run tests for ${{ matrix.package }}
-        run: |
-          cd packages/${{ matrix.package }}
-          npm test -- --coverage --watchAll=false
-          
-      - name: Upload coverage
-        uses: codecov/codecov-action@v3
-        with:
-          file: packages/${{ matrix.package }}/coverage/lcov.info
-          flags: ${{ matrix.package }}
-
-  build:
-    name: Build Application
-    runs-on: ubuntu-latest
-    needs: [lint-and-format, test]
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          
-      - name: Install dependencies
-        run: npm ci
-        
-      - name: Build all packages
-        run: npm run build
-        
-      - name: Build Docker image
-        run: |
-          docker build -t dnd-tracker:${{ github.sha }} .
-          docker tag dnd-tracker:${{ github.sha }} dnd-tracker:latest
-          
-      - name: Save Docker image
-        run: docker save dnd-tracker:${{ github.sha }} | gzip > dnd-tracker.tar.gz
-        
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: docker-image
-          path: dnd-tracker.tar.gz
-
-  deploy-staging:
-    name: Deploy to Staging
-    runs-on: ubuntu-latest
-    needs: [lint-and-format, test, build, security-scan]
-    if: github.ref == 'refs/heads/develop' || github.event_name == 'pull_request'
-    environment: staging
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Download build artifacts
-        uses: actions/download-artifact@v3
-        with:
-          name: docker-image
-          
-      - name: Load Docker image
-        run: docker load < dnd-tracker.tar.gz
-        
-      - name: Deploy to staging
-        env:
-          STAGING_HOST: ${{ secrets.STAGING_HOST }}
-          STAGING_USER: ${{ secrets.STAGING_USER }}
-          STAGING_KEY: ${{ secrets.STAGING_PRIVATE_KEY }}
-        run: |
-          echo "🚀 Deploying to staging environment..."
-          # Add specific deployment commands based on hosting choice
-          echo "✅ Staging deployment completed!"
-          
-      - name: Run smoke tests
-        run: |
-          echo "🧪 Running smoke tests..."
-          # Add basic health check tests
-          curl -f ${{ secrets.STAGING_URL }}/health || exit 1
-          echo "✅ Smoke tests passed!"
-          
-      - name: Notify deployment
-        uses: 8398a7/action-slack@v3
-        with:
-          status: custom
-          custom_payload: |
-            {
-              text: "🚀 Staging deployment successful!",
-              attachments: [{
-                color: 'good',
-                fields: [{
-                  title: 'Environment',
-                  value: 'Staging',
-                  short: true
-                }, {
-                  title: 'Commit',
-                  value: '${{ github.sha }}',
-                  short: true
-                }, {
-                  title: 'URL',
-                  value: '${{ secrets.STAGING_URL }}',
-                  short: false
-                }]
-              }]
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
-        if: always()
-
-  deploy-production:
-    name: Deploy to Production
-    runs-on: ubuntu-latest
-    needs: [lint-and-format, test, build, security-scan]
-    if: github.ref == 'refs/heads/main'
-    environment: production
-    steps:
-      - name: Production deployment
-        run: |
-          echo "🚀 Deploying to production..."
-          # Production deployment logic
+AI Tasks:
+```
+1. SSE infrastructure:
+   - Event streaming endpoints
+   - Redis pub/sub integration
+   - Connection management
+   - Heartbeat implementation
+   
+2. Client-side SSE handling:
+   - Custom useSSE hook
+   - Automatic reconnection
+   - Event type handling
+   - State reconciliation
+   
+3. Real-time features:
+   - Live HP updates
+   - Turn notifications
+   - Condition changes
+   - Combat log streaming
+   
+4. Performance optimization:
+   - Connection pooling
+   - Event batching
+   - Selective updates
+   - Bandwidth management
 ```
 
-### Enhanced Linting Configuration
+**Day 18-21: Progressive Web App Features**
 
-#### ESLint Configuration (`.eslintrc.js`)
-
-```javascript
-module.exports = {
-  root: true,
-  env: {
-    node: true,
-    browser: true,
-    es2022: true,
-  },
-  extends: [
-    'eslint:recommended',
-    '@typescript-eslint/recommended',
-    '@typescript-eslint/recommended-requiring-type-checking',
-    'plugin:react/recommended',
-    'plugin:react-hooks/recommended',
-    'plugin:@typescript-eslint/strict',
-    'prettier', // Must be last to override other configs
-  ],
-  parser: '@typescript-eslint/parser',
-  parserOptions: {
-    ecmaVersion: 'latest',
-    sourceType: 'module',
-    project: ['./tsconfig.json', './packages/*/tsconfig.json'],
-    tsconfigRootDir: __dirname,
-    ecmaFeatures: {
-      jsx: true,
-    },
-  },
-  plugins: [
-    '@typescript-eslint',
-    'react',
-    'react-hooks',
-    'import',
-    'security',
-  ],
-  rules: {
-    // TypeScript specific rules
-    '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
-    '@typescript-eslint/explicit-function-return-type': 'warn',
-    '@typescript-eslint/no-explicit-any': 'error',
-    '@typescript-eslint/prefer-nullish-coalescing': 'error',
-    '@typescript-eslint/prefer-optional-chain': 'error',
-    
-    // Import rules
-    'import/order': ['error', {
-      'groups': ['builtin', 'external', 'internal', 'parent', 'sibling', 'index'],
-      'newlines-between': 'always',
-      'alphabetize': { order: 'asc', caseInsensitive: true }
-    }],
-    
-    // Security rules
-    'security/detect-object-injection': 'warn',
-    'security/detect-non-literal-regexp': 'warn',
-    
-    // General rules
-    'no-console': 'warn',
-    'no-debugger': 'error',
-    'prefer-const': 'error',
-    'no-var': 'error',
-  },
-  settings: {
-    react: {
-      version: 'detect',
-    },
-  },
-  overrides: [
-    {
-      files: ['**/*.test.ts', '**/*.test.tsx', '**/*.spec.ts'],
-      env: {
-        jest: true,
-      },
-      rules: {
-        '@typescript-eslint/no-explicit-any': 'off',
-        'security/detect-object-injection': 'off',
-      },
-    },
-  ],
-};
+AI Tasks:
+```
+1. Service Worker implementation:
+   - Workbox configuration
+   - Caching strategies
+   - Offline fallback
+   - Background sync
+   
+2. Offline functionality:
+   - IndexedDB for local storage
+   - Queue for offline actions
+   - Conflict resolution
+   - Sync indicators
+   
+3. PWA enhancements:
+   - App manifest
+   - Install prompts
+   - Push notifications
+   - Periodic background sync
+   
+4. Mobile optimization:
+   - Touch-friendly UI
+   - Responsive layouts
+   - Performance budgets
+   - Adaptive loading
 ```
 
-#### Prettier Configuration (`.prettierrc`)
+### Week 4: Monetization & Polish
 
-```json
-{
-  "semi": true,
-  "trailingComma": "es5",
-  "singleQuote": true,
-  "printWidth": 80,
-  "tabWidth": 2,
-  "useTabs": false,
-  "quoteProps": "as-needed",
-  "bracketSpacing": true,
-  "arrowParens": "avoid",
-  "endOfLine": "lf",
-  "overrides": [
-    {
-      "files": "*.md",
-      "options": {
-        "printWidth": 100,
-        "proseWrap": "always"
-      }
-    }
-  ]
-}
+**Day 22-24: Stripe Integration**
+
+AI Tasks:
+```
+1. Subscription system:
+   - Stripe checkout integration
+   - Webhook handling
+   - Subscription management
+   - Customer portal
+   
+2. Feature gating:
+   - Tier-based access control
+   - Usage limit enforcement
+   - Upgrade prompts
+   - Grace period handling
+   
+3. Billing UI:
+   - Pricing page
+   - Subscription management
+   - Usage dashboard
+   - Payment history
+   
+4. Testing subscriptions:
+   - Stripe test mode
+   - Webhook testing
+   - Edge case handling
+   - Subscription lifecycle
 ```
 
-#### MarkdownLint Configuration (`.markdownlint.json`)
+**Day 25-28: Performance & Security**
 
-```json
-{
-  "default": true,
-  "MD003": { "style": "atx" },
-  "MD007": { "indent": 2 },
-  "MD013": { "line_length": 100 },
-  "MD024": { "allow_different_nesting": true },
-  "MD033": { "allowed_elements": ["br", "sub", "sup"] },
-  "MD041": false
-}
+AI Tasks:
+```
+1. Performance optimization:
+   - Database query optimization
+   - Caching layer implementation
+   - Bundle size optimization
+   - Lazy loading
+   
+2. Security hardening:
+   - Security headers
+   - Input sanitization
+   - SQL injection prevention
+   - XSS protection
+   
+3. Monitoring setup:
+   - Sentry error tracking
+   - Performance monitoring
+   - Custom metrics
+   - Health checks
+   
+4. Load testing:
+   - API stress testing
+   - Database performance
+   - Caching effectiveness
+   - Real-time scalability
 ```
 
-### Pre-commit Hooks Configuration
+## Phase 3: Testing & Deployment (Week 5-6)
 
-#### Husky Setup (`.husky/pre-commit`)
+### Week 5: Comprehensive Testing
 
-```bash
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
+**Day 29-31: Test Coverage**
 
-npx lint-staged
+AI Tasks:
+```
+1. Unit test completion:
+   - 80%+ coverage for services
+   - Repository method testing
+   - Utility function tests
+   - Component unit tests
+   
+2. Integration testing:
+   - API endpoint testing
+   - Database integration
+   - Authentication flows
+   - Subscription workflows
+   
+3. E2E test scenarios:
+   - Complete user journeys
+   - Combat workflows
+   - Offline scenarios
+   - Payment flows
+   
+4. Performance testing:
+   - Load testing with k6
+   - Database query analysis
+   - Frontend performance
+   - Real-time stress testing
 ```
 
-#### Lint-staged Configuration (`package.json`)
+**Day 32-35: Bug Fixes & Optimization**
 
-```json
-{
-  "lint-staged": {
-    "*.{ts,tsx,js,jsx}": [
-      "eslint --fix",
-      "prettier --write"
-    ],
-    "*.{json,md,yml,yaml}": [
-      "prettier --write"
-    ],
-    "*.md": [
-      "markdownlint-cli2-fix"
-    ]
-  }
-}
+AI Tasks:
+```
+1. Bug resolution:
+   - Critical bug fixes
+   - UI/UX improvements
+   - Performance bottlenecks
+   - Cross-browser testing
+   
+2. Optimization tasks:
+   - Database indexing
+   - Query optimization
+   - Frontend bundle size
+   - Image optimization
+   
+3. Documentation:
+   - API documentation
+   - Deployment guide
+   - User manual
+   - Developer docs
+   
+4. Security audit:
+   - Dependency scanning
+   - Penetration testing
+   - OWASP compliance
+   - Security headers
 ```
 
-## Updated Timeline with Early Deployment
+### Week 6: Production Deployment
 
-### Week 1: Foundation + Immediate Staging
-- **Day 1-2**: Project setup with comprehensive linting
-- **Day 3**: CI/CD pipeline with auto-fixes
-- **Day 4-5**: **First staging deployment** (D&D Tracker welcome page)
-- **Day 6-7**: Authentication system + deploy to staging
+**Day 36-38: Deployment Infrastructure**
 
-### Week 2: Core Features + Weekly Deployment
-- **Day 8-10**: Party management + mid-week staging update
-- **Day 11-14**: Encounter system + **weekly staging deployment**
+AI Tasks:
+```
+1. Docker configuration:
+   - Multi-stage builds
+   - Security scanning
+   - Size optimization
+   - Health checks
+   
+2. CI/CD pipeline:
+   - GitHub Actions setup
+   - Automated testing
+   - Security scanning
+   - Deployment automation
+   
+3. Production environment:
+   - Environment configuration
+   - SSL certificates
+   - CDN setup
+   - Backup configuration
+   
+4. Monitoring setup:
+   - APM configuration
+   - Log aggregation
+   - Alert rules
+   - Dashboard creation
+```
 
-### Week 3-4: Combat Features + Continuous Deployment
-- **Day 15-17**: Combat tracker + staging deployment
-- **Day 18-21**: WebSocket integration + staging deployment
-- **Day 22-28**: Integration testing + **staging performance testing**
+**Day 39-42: Launch Preparation**
 
-### Week 5-8: Advanced Features + Production Prep
-- **Week 5**: Stripe integration + staging deployment
-- **Week 6**: Feature gating + staging deployment
-- **Week 7**: Premium features + **production candidate**
-- **Week 8**: **Production deployment**
+AI Tasks:
+```
+1. Pre-launch checklist:
+   - Performance verification
+   - Security validation
+   - Backup testing
+   - Rollback procedures
+   
+2. Launch tasks:
+   - DNS configuration
+   - Production deployment
+   - Smoke testing
+   - Monitor activation
+   
+3. Post-launch:
+   - Performance monitoring
+   - Error tracking
+   - User feedback
+   - Quick fixes
+   
+4. Documentation:
+   - Release notes
+   - Known issues
+   - Support documentation
+   - Marketing materials
+```
 
-## Quality Gates Enhanced
+## Phase 4: Growth Features (Week 7-8)
 
-### Automated Quality Checks
+### Week 7: Advanced Features
 
-1. **Code Quality** (Automated)
-   - ESLint: 0 errors, auto-fix warnings
-   - Prettier: Consistent formatting enforced
-   - MarkdownLint: Documentation standards
-   - TypeScript: Strict compilation
+**Day 43-46: Premium Features**
 
-2. **Security** (Automated)
-   - npm audit: No high/critical vulnerabilities
-   - Snyk scanning: Security issue detection
-   - OWASP dependency checking
+AI Tasks:
+```
+1. Advanced combat log:
+   - Detailed action tracking
+   - Filtering and search
+   - Export functionality
+   - Analytics dashboard
+   
+2. Collaboration features:
+   - Shared encounters
+   - Real-time collaboration
+   - Permission management
+   - Activity feeds
+   
+3. Import/Export:
+   - Multiple format support
+   - Batch operations
+   - Template sharing
+   - Campaign export
+   
+4. Custom themes:
+   - Theme editor
+   - Color customization
+   - Layout options
+   - Theme marketplace
+```
 
-3. **Testing** (Automated)
-   - Unit tests: >80% coverage
-   - Integration tests: All endpoints
-   - E2E tests: Critical user flows
-   - Smoke tests: Basic functionality
+**Day 47-49: Analytics & Reporting**
 
-4. **Performance** (Monitored)
-   - Bundle size: <500KB gzipped
-   - API response: <200ms average
-   - Page load: <3s on 3G
-   - Lighthouse: >90 score
+AI Tasks:
+```
+1. Usage analytics:
+   - User behavior tracking
+   - Feature usage metrics
+   - Performance analytics
+   - Custom dashboards
+   
+2. Business metrics:
+   - Conversion tracking
+   - Churn analysis
+   - Revenue reporting
+   - Growth metrics
+   
+3. Admin tools:
+   - User management
+   - Content moderation
+   - System health
+   - Support tools
+   
+4. Reporting:
+   - Automated reports
+   - Email summaries
+   - Export options
+   - API analytics
+```
 
-### Deployment Gates
+### Week 8: Platform Expansion
 
-- **Staging**: Automatic on develop branch push
-- **Production**: Manual approval after staging validation
-- **Rollback**: Automatic on health check failures
-- **Monitoring**: Real-time error and performance tracking
+**Day 50-52: API Development**
 
-## Benefits of Early Deployment Strategy
+AI Tasks:
+```
+1. Public API:
+   - RESTful endpoints
+   - Authentication
+   - Rate limiting
+   - Documentation
+   
+2. Webhooks:
+   - Event system
+   - Webhook management
+   - Retry logic
+   - Security
+   
+3. Third-party integrations:
+   - Discord bot
+   - Roll20 integration
+   - D&D Beyond sync
+   - VTT compatibility
+   
+4. Developer portal:
+   - API documentation
+   - SDK generation
+   - Example code
+   - Support resources
+```
 
-### Immediate Feedback
-- Catch integration issues early
-- Validate deployment pipeline
-- Test in realistic environment
-- Stakeholder feedback loops
+**Day 53-56: Mobile & Future Planning**
 
-### Quality Assurance
-- Automated linting prevents trivial failures
-- Consistent code formatting across team
-- Documentation standards maintained
-- Security scanning integrated
+AI Tasks:
+```
+1. Mobile optimization:
+   - Touch interactions
+   - Gesture support
+   - Performance tuning
+   - App store prep
+   
+2. Feature roadmap:
+   - User feedback analysis
+   - Competitor analysis
+   - Technical debt assessment
+   - Innovation opportunities
+   
+3. Scaling preparation:
+   - Architecture review
+   - Database sharding plan
+   - Microservices evaluation
+   - CDN optimization
+   
+4. Business development:
+   - Partnership opportunities
+   - Marketing strategy
+   - Community building
+   - Content creation
+```
 
-### Risk Reduction
-- Deploy small changes frequently
-- Reduce big-bang deployment risks
-- Faster problem identification
-- Easier rollback scenarios
+## Continuous Improvement Cycle
 
-### Developer Experience
-- No manual formatting required
-- Automatic code quality fixes
-- Clear quality feedback
-- Streamlined review process
+### Daily Practices
 
-## Success Metrics Enhanced
+1. **Morning Standup** (15 min)
+   - Review overnight monitoring
+   - Check error rates
+   - Plan day's priorities
+   - Address blockers
 
-### Development Velocity
-- **Week 1**: Foundation + D&D Tracker welcome page staging deployment
-- **Deployment Frequency**: Weekly staging, bi-weekly production
-- **PR Quality**: 90% pass CI without manual fixes
-- **Time to Feedback**: <5 minutes for CI/CD pipeline
+2. **Code Review** (30 min)
+   - AI-generated code review
+   - Security checks
+   - Performance analysis
+   - Best practices
 
-### Code Quality
-- **Linting Errors**: 0 in merged code
-- **Test Coverage**: >80% maintained automatically
-- **Documentation**: 100% up-to-date via automated checks
-- **Security Issues**: Caught before merge
+3. **Testing** (Throughout day)
+   - Test-driven development
+   - Continuous integration
+   - Automated testing
+   - Manual QA
 
-### Deployment Success
-- **Staging Uptime**: >99% availability
-- **Deployment Time**: <10 minutes staging, <30 minutes production
-- **Rollback Time**: <5 minutes if needed
-- **Zero-downtime Deployments**: Achieved by Week 4
+4. **Deployment** (As needed)
+   - Feature flags
+   - Canary releases
+   - Rollback ready
+   - Monitor closely
 
-This updated plan ensures early and continuous feedback while maintaining high code quality through automation, significantly reducing the risk of late-stage integration issues and deployment problems.
+### Weekly Rituals
+
+1. **Performance Review**
+   - Analyze metrics
+   - Identify bottlenecks
+   - Plan optimizations
+   - Update benchmarks
+
+2. **Security Audit**
+   - Dependency updates
+   - Vulnerability scanning
+   - Access review
+   - Incident planning
+
+3. **User Feedback**
+   - Support ticket analysis
+   - Feature requests
+   - Bug reports
+   - Satisfaction scores
+
+4. **Technical Debt**
+   - Code quality metrics
+   - Refactoring priorities
+   - Documentation updates
+   - Tool improvements
+
+## Success Metrics
+
+### Technical Metrics
+- **API Response Time**: < 200ms p95
+- **Frontend Load Time**: < 3s on 3G
+- **Uptime**: 99.9% availability
+- **Error Rate**: < 0.1%
+- **Test Coverage**: > 80%
+
+### Business Metrics
+- **User Acquisition**: 1,000 users in first month
+- **Conversion Rate**: 5% free to paid
+- **Churn Rate**: < 5% monthly
+- **MRR Growth**: 20% month-over-month
+- **Support Tickets**: < 2% of active users
+
+### Development Metrics
+- **Deployment Frequency**: Daily
+- **Lead Time**: < 2 days
+- **MTTR**: < 30 minutes
+- **Change Failure Rate**: < 5%
+- **Developer Satisfaction**: > 8/10
+
+## Risk Mitigation
+
+### Technical Risks
+1. **Database Performance**
+   - Mitigation: Proper indexing, caching, read replicas
+   - Monitoring: Query performance tracking
+   - Fallback: Database scaling plan ready
+
+2. **Real-time Scalability**
+   - Mitigation: SSE over WebSockets, connection limits
+   - Monitoring: Connection metrics
+   - Fallback: Polling degradation
+
+3. **Authentication Issues**
+   - Mitigation: Session-based with Lucia Auth
+   - Monitoring: Auth failure rates
+   - Fallback: Support escalation path
+
+### Business Risks
+1. **Slow Adoption**
+   - Mitigation: Generous free tier, smooth onboarding
+   - Monitoring: Activation metrics
+   - Fallback: Marketing campaign adjustment
+
+2. **High Churn**
+   - Mitigation: Engagement features, email campaigns
+   - Monitoring: Cohort retention
+   - Fallback: Win-back campaigns
+
+3. **Competition**
+   - Mitigation: Unique features, better UX
+   - Monitoring: Competitor analysis
+   - Fallback: Rapid feature development
+
+## Conclusion
+
+This implementation plan provides a comprehensive roadmap for building a production-ready D&D Encounter Tracker using modern Express/React architecture. The separation of concerns, explicit control over authentication, and progressive enhancement approach ensure a robust, scalable application that avoids common Next.js pitfalls while delivering an excellent user experience.
+
+Key advantages of this approach:
+- **Full Control**: Complete ownership of authentication and session management
+- **Better Debugging**: Clear middleware chain and explicit error handling
+- **Flexible Deployment**: No vendor lock-in, deploy anywhere
+- **Superior Performance**: Fine-grained caching and optimization
+- **Future-Proof**: Can adapt to any frontend framework or architectural changes
+
+With AI-accelerated development and modern tooling, this 8-week timeline is aggressive but achievable, delivering a production-ready application that can scale with user growth and business needs.
