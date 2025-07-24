@@ -735,7 +735,7 @@ describe('PartyService', () => {
       });
 
       it('should handle undefined values correctly', () => {
-        const inputData: UpdatePartyData = {
+        const inputData = {
           name: undefined,
           description: undefined,
           isArchived: undefined
