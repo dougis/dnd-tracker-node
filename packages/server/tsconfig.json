@@ -4,6 +4,7 @@
     "composite": true,
     "outDir": "./dist",
     "noEmit": false,
+    "moduleResolution": "node",
     "types": ["node", "vitest/globals"]
   },
   "include": ["src/**/*", "prisma/**/*"],
