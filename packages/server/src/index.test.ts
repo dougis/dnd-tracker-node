@@ -21,7 +21,7 @@ describe('Server configuration', () => {
   });
 
   it('should handle JSON requests', async () => {
-    const response = await request(app)
+    await request(app)
       .post('/api/test')
       .send({ test: 'data' })
       .expect(404); // Since we haven't defined POST yet

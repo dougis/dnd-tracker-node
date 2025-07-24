@@ -40,7 +40,7 @@ describe('Monorepo configuration', () => {
     
     const eslintConfig = JSON.parse(readFileSync('.eslintrc.json', 'utf8'));
     expect(eslintConfig.root).toBe(true);
-    expect(eslintConfig.extends).toContain('@typescript-eslint/recommended');
+    expect(eslintConfig.extends).toContain('plugin:@typescript-eslint/recommended');
   });
 
   it('should have Prettier configuration', () => {
