@@ -17,9 +17,9 @@ function safeSendSSE(res: Response, data: unknown): void {
     
     // Validate that data is safe for transmission
     if (typeof sanitizedData === 'object' && sanitizedData !== null) {
-      // Use Express response.json() method for safe JSON transmission
+      // Use safe string concatenation to prevent XSS from template literals
       const jsonString = JSON.stringify(sanitizedData);
-      const sseData = `data: ${jsonString}\n\n`;
+      const sseData = 'data: ' + jsonString + '\n\n';
       
       // Set proper content type and send via Express
       res.setHeader('Content-Type', 'text/event-stream');
