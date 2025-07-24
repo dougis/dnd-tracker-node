@@ -4,17 +4,21 @@ import { PrismaClient } from '@prisma/client';
 import { AuthService } from '../services/AuthService';
 import { UserService } from '../services/UserService';
 import { requireAuth } from './middleware';
+import { loginRateLimit, registerRateLimit, createTierBasedRateLimit } from '../middleware/rate-limiting';
 
 const router = Router();
 const prisma = new PrismaClient();
 const authService = new AuthService(prisma);
 const userService = new UserService(prisma);
 
+// Create tier-based rate limiter for authenticated routes
+const tierBasedRateLimit = createTierBasedRateLimit();
+
 /**
  * POST /api/auth/register
  * Register a new user
  */
-router.post('/register', [
+router.post('/register', registerRateLimit, [
   body('email')
     .isEmail()
     .normalizeEmail()
@@ -89,7 +93,7 @@ router.post('/register', [
  * POST /api/auth/login
  * Login user
  */
-router.post('/login', [
+router.post('/login', loginRateLimit, [
   body('email')
     .isEmail()
     .normalizeEmail()
@@ -262,7 +266,7 @@ router.get('/session', async (req: Request, res: Response): Promise<void> => {
  * GET /api/auth/profile
  * Get current user profile (protected route)
  */
-router.get('/profile', requireAuth, async (req: Request, res: Response): Promise<void> => {
+router.get('/profile', tierBasedRateLimit, requireAuth, async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
     
@@ -300,7 +304,7 @@ router.get('/profile', requireAuth, async (req: Request, res: Response): Promise
  * PUT /api/auth/profile
  * Update user profile (protected route)
  */
-router.put('/profile', requireAuth, [
+router.put('/profile', tierBasedRateLimit, requireAuth, [
   body('username')
     .optional()
     .isLength({ min: 3, max: 30 })
