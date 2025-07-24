@@ -1,8 +1,15 @@
 import { Router, Request, Response } from 'express';
-import { body, validationResult } from 'express-validator';
+import { body } from 'express-validator';
 import { PrismaClient } from '@prisma/client';
 import { CharacterService } from '../services/CharacterService';
 import { requireAuth } from '../auth/middleware';
+import { 
+  handleValidationErrors, 
+  sendSuccessResponse, 
+  sendErrorResponse, 
+  sendNotFoundResponse,
+  asyncHandler
+} from '../utils/routeHelpers';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -115,111 +122,65 @@ router.post(
       .isLength({ max: 1000 })
       .withMessage('Notes must not exceed 1000 characters'),
   ],
-  async (req: Request, res: Response): Promise<void> => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-        errors: errors.array(),
-      });
-      return;
-    }
+  asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    if (handleValidationErrors(req, res)) return;
+
+    const userId = req.user!.id;
+    const characterData = req.body;
 
     try {
-      const userId = req.user!.id;
-      const characterData = req.body;
-
       const character = await characterService.create(userId, characterData);
-
-      res.status(201).json({
-        success: true,
-        data: character,
-        message: 'Character created successfully',
-      });
+      sendSuccessResponse(res, character, 'Character created successfully', 201);
     } catch (error) {
-      console.error('Error creating character:', error);
-      res.status(500).json({
-        success: false,
-        message: error instanceof Error ? error.message : 'Failed to create character',
-      });
+      sendErrorResponse(res, error, 'Failed to create character');
     }
-  }
+  })
 );
 
 /**
  * GET /api/characters/party/:partyId
  * Get all characters in a party
  */
-router.get('/party/:partyId', async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { partyId } = req.params;
-    if (!partyId) {
-      res.status(400).json({
-        success: false,
-        message: 'Party ID parameter is required',
-      });
-      return;
-    }
-
-    const userId = req.user!.id;
-
-    const characters = await characterService.findByPartyId(partyId, userId);
-
-    res.status(200).json({
-      success: true,
-      data: characters,
-      message: 'Characters retrieved successfully',
-    });
-  } catch (error) {
-    console.error('Error fetching characters:', error);
-    res.status(500).json({
-      success: false,
-      message: error instanceof Error ? error.message : 'Failed to fetch characters',
-    });
+router.get('/party/:partyId', asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  const { partyId } = req.params;
+  if (!partyId) {
+    return sendErrorResponse(res, new Error('Party ID parameter is required'), 'Party ID parameter is required', 400);
   }
-});
+
+  const userId = req.user!.id;
+
+  try {
+    const characters = await characterService.findByPartyId(partyId, userId);
+    sendSuccessResponse(res, characters, 'Characters retrieved successfully');
+  } catch (error) {
+    sendErrorResponse(res, error, 'Failed to fetch characters');
+  }
+}));
 
 /**
  * GET /api/characters/:id
  * Get a specific character by ID
  */
-router.get('/:id', async (req: Request, res: Response): Promise<void> => {
+router.get('/:id', asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  const { id } = req.params;
+  if (!id) {
+    return sendErrorResponse(res, new Error('Character ID parameter is required'), 'Character ID parameter is required', 400);
+  }
+
+  const userId = req.user!.id;
+
   try {
-    const { id } = req.params;
-    if (!id) {
-      res.status(400).json({
-        success: false,
-        message: 'Character ID parameter is required',
-      });
-      return;
-    }
-
-    const userId = req.user!.id;
-
     const character = await characterService.findById(id, userId);
 
     if (!character) {
-      res.status(404).json({
-        success: false,
-        message: 'Character not found',
-      });
-      return;
+      return sendNotFoundResponse(res, 'Character not found');
     }
 
-    res.status(200).json({
-      success: true,
-      data: character,
-      message: 'Character retrieved successfully',
-    });
+    sendSuccessResponse(res, character, 'Character retrieved successfully');
   } catch (error) {
-    console.error('Error fetching character:', error);
-    res.status(500).json({
-      success: false,
-      message: error instanceof Error ? error.message : 'Failed to fetch character',
-    });
+    sendErrorResponse(res, error, 'Failed to fetch character');
   }
-});
+}));
 
 /**
  * PUT /api/characters/:id
@@ -301,93 +262,54 @@ router.put(
       .isLength({ max: 1000 })
       .withMessage('Notes must not exceed 1000 characters'),
   ],
-  async (req: Request, res: Response): Promise<void> => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-        errors: errors.array(),
-      });
-      return;
+  asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    if (handleValidationErrors(req, res)) return;
+
+    const { id } = req.params;
+    if (!id) {
+      return sendErrorResponse(res, new Error('Character ID parameter is required'), 'Character ID parameter is required', 400);
     }
 
+    const userId = req.user!.id;
+    const updateData = req.body;
+
     try {
-      const { id } = req.params;
-      if (!id) {
-        res.status(400).json({
-          success: false,
-          message: 'Character ID parameter is required',
-        });
-        return;
-      }
-
-      const userId = req.user!.id;
-      const updateData = req.body;
-
       const character = await characterService.update(id, userId, updateData);
 
       if (!character) {
-        res.status(404).json({
-          success: false,
-          message: 'Character not found',
-        });
-        return;
+        return sendNotFoundResponse(res, 'Character not found');
       }
 
-      res.status(200).json({
-        success: true,
-        data: character,
-        message: 'Character updated successfully',
-      });
+      sendSuccessResponse(res, character, 'Character updated successfully');
     } catch (error) {
-      console.error('Error updating character:', error);
-      res.status(500).json({
-        success: false,
-        message: error instanceof Error ? error.message : 'Failed to update character',
-      });
+      sendErrorResponse(res, error, 'Failed to update character');
     }
-  }
+  })
 );
 
 /**
  * DELETE /api/characters/:id
  * Delete a character
  */
-router.delete('/:id', async (req: Request, res: Response): Promise<void> => {
+router.delete('/:id', asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  const { id } = req.params;
+  if (!id) {
+    return sendErrorResponse(res, new Error('Character ID parameter is required'), 'Character ID parameter is required', 400);
+  }
+
+  const userId = req.user!.id;
+
   try {
-    const { id } = req.params;
-    if (!id) {
-      res.status(400).json({
-        success: false,
-        message: 'Character ID parameter is required',
-      });
-      return;
-    }
-
-    const userId = req.user!.id;
-
     const deleted = await characterService.delete(id, userId);
 
     if (!deleted) {
-      res.status(404).json({
-        success: false,
-        message: 'Character not found',
-      });
-      return;
+      return sendNotFoundResponse(res, 'Character not found');
     }
 
-    res.status(200).json({
-      success: true,
-      message: 'Character deleted successfully',
-    });
+    sendSuccessResponse(res, null, 'Character deleted successfully');
   } catch (error) {
-    console.error('Error deleting character:', error);
-    res.status(500).json({
-      success: false,
-      message: error instanceof Error ? error.message : 'Failed to delete character',
-    });
+    sendErrorResponse(res, error, 'Failed to delete character');
   }
-});
+}));
 
 export { router as characterRoutes };

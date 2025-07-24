@@ -1,14 +1,31 @@
 import express from 'express';
 import request from 'supertest';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { partyRoutes } from './routes';
-import { PartyService } from '../services/PartyService';
+
+// Use vi.hoisted to ensure mocks are available during hoisting
+const { mockCreate, mockFindByUserId, mockFindById, mockUpdate, mockDelete } = vi.hoisted(() => ({
+  mockCreate: vi.fn(),
+  mockFindByUserId: vi.fn(),
+  mockFindById: vi.fn(),
+  mockUpdate: vi.fn(),
+  mockDelete: vi.fn(),
+}));
 
 // Mock the service and middleware
-vi.mock('../services/PartyService');
+vi.mock('../services/PartyService', () => ({
+  PartyService: vi.fn().mockImplementation(() => ({
+    create: mockCreate,
+    findByUserId: mockFindByUserId,
+    findById: mockFindById,
+    update: mockUpdate,
+    delete: mockDelete,
+  }))
+}));
+
 vi.mock('@prisma/client', () => ({
   PrismaClient: vi.fn().mockImplementation(() => ({}))
 }));
+
 vi.mock('../auth/middleware', () => ({
   requireAuth: (req: any, res: any, next: any) => {
     req.user = { id: 'user123', email: 'test@example.com' };
@@ -16,27 +33,16 @@ vi.mock('../auth/middleware', () => ({
   }
 }));
 
+import { partyRoutes } from './routes';
+
 describe('Party Routes', () => {
   let app: express.Application;
-  let mockPartyService: any;
 
   beforeEach(() => {
     vi.clearAllMocks();
     
     app = express();
     app.use(express.json());
-
-    mockPartyService = {
-      create: vi.fn(),
-      findByUserId: vi.fn(),
-      findById: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
-    };
-    
-    // Mock the constructor to return our mock instance
-    vi.mocked(PartyService).mockImplementation(() => mockPartyService);
-
     app.use('/api/parties', partyRoutes);
   });
 
@@ -52,11 +58,11 @@ describe('Party Routes', () => {
         userId: 'user123',
         ...newParty,
         isArchived: false,
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: '2025-01-01T00:00:00.000Z',
+        updatedAt: '2025-01-01T00:00:00.000Z'
       };
 
-      mockPartyService.create.mockResolvedValue(mockCreatedParty);
+      mockCreate.mockResolvedValue(mockCreatedParty);
 
       const response = await request(app)
         .post('/api/parties')
@@ -64,13 +70,13 @@ describe('Party Routes', () => {
 
       console.log('Response status:', response.status);
       console.log('Response body:', JSON.stringify(response.body, null, 2));
-      console.log('Service create called:', mockPartyService.create.mock.calls);
-      console.log('Service create return:', await mockPartyService.create.mock.results[0]?.value);
+      console.log('Service create called:', mockCreate.mock.calls);
+      console.log('Service create return:', await mockCreate.mock.results[0]?.value);
 
       expect(response.status).toBe(201);
       expect(response.body.success).toBe(true);
       expect(response.body.data).toEqual(mockCreatedParty);
-      expect(mockPartyService.create).toHaveBeenCalledWith('user123', newParty);
+      expect(mockCreate).toHaveBeenCalledWith('user123', newParty);
     });
 
     it('should return 400 for invalid party data', async () => {
@@ -112,8 +118,8 @@ describe('Party Routes', () => {
           name: 'Party 1',
           description: 'First party',
           isArchived: false,
-          createdAt: new Date(),
-          updatedAt: new Date()
+          createdAt: '2025-01-01T00:00:00.000Z',
+          updatedAt: '2025-01-01T00:00:00.000Z'
         },
         {
           id: 'party2',
@@ -121,12 +127,12 @@ describe('Party Routes', () => {
           name: 'Party 2',
           description: 'Second party',
           isArchived: false,
-          createdAt: new Date(),
-          updatedAt: new Date()
+          createdAt: '2025-01-01T00:00:00.000Z',
+          updatedAt: '2025-01-01T00:00:00.000Z'
         }
       ];
 
-      mockPartyService.findByUserId.mockResolvedValue(mockParties);
+      mockFindByUserId.mockResolvedValue(mockParties);
 
       const response = await request(app)
         .get('/api/parties');
@@ -134,11 +140,11 @@ describe('Party Routes', () => {
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
       expect(response.body.data).toEqual(mockParties);
-      expect(mockPartyService.findByUserId).toHaveBeenCalledWith('user123');
+      expect(mockFindByUserId).toHaveBeenCalledWith('user123', false);
     });
 
     it('should return empty array when user has no parties', async () => {
-      mockPartyService.findByUserId.mockResolvedValue([]);
+      mockFindByUserId.mockResolvedValue([]);
 
       const response = await request(app)
         .get('/api/parties');
@@ -157,11 +163,11 @@ describe('Party Routes', () => {
         name: 'Test Party',
         description: 'A test party',
         isArchived: false,
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: '2025-01-01T00:00:00.000Z',
+        updatedAt: '2025-01-01T00:00:00.000Z'
       };
 
-      mockPartyService.findById.mockResolvedValue(mockParty);
+      mockFindById.mockResolvedValue(mockParty);
 
       const response = await request(app)
         .get('/api/parties/party123');
@@ -169,11 +175,11 @@ describe('Party Routes', () => {
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
       expect(response.body.data).toEqual(mockParty);
-      expect(mockPartyService.findById).toHaveBeenCalledWith('party123', 'user123');
+      expect(mockFindById).toHaveBeenCalledWith('party123', 'user123');
     });
 
     it('should return 404 when party not found', async () => {
-      mockPartyService.findById.mockResolvedValue(null);
+      mockFindById.mockResolvedValue(null);
 
       const response = await request(app)
         .get('/api/parties/nonexistent');
@@ -196,11 +202,11 @@ describe('Party Routes', () => {
         userId: 'user123',
         ...updateData,
         isArchived: false,
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: '2025-01-01T00:00:00.000Z',
+        updatedAt: '2025-01-01T00:00:00.000Z'
       };
 
-      mockPartyService.update.mockResolvedValue(mockUpdatedParty);
+      mockUpdate.mockResolvedValue(mockUpdatedParty);
 
       const response = await request(app)
         .put('/api/parties/party123')
@@ -209,7 +215,7 @@ describe('Party Routes', () => {
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
       expect(response.body.data).toEqual(mockUpdatedParty);
-      expect(mockPartyService.update).toHaveBeenCalledWith('party123', 'user123', updateData);
+      expect(mockUpdate).toHaveBeenCalledWith('party123', 'user123', updateData);
     });
 
     it('should return 404 when updating non-existent party', async () => {
@@ -217,7 +223,7 @@ describe('Party Routes', () => {
         name: 'Updated Name'
       };
 
-      mockPartyService.update.mockResolvedValue(null);
+      mockUpdate.mockResolvedValue(null);
 
       const response = await request(app)
         .put('/api/parties/nonexistent')
@@ -244,7 +250,7 @@ describe('Party Routes', () => {
 
   describe('DELETE /api/parties/:id', () => {
     it('should delete party successfully', async () => {
-      mockPartyService.delete.mockResolvedValue(true);
+      mockDelete.mockResolvedValue(true);
 
       const response = await request(app)
         .delete('/api/parties/party123');
@@ -252,11 +258,11 @@ describe('Party Routes', () => {
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
       expect(response.body.message).toBe('Party deleted successfully');
-      expect(mockPartyService.delete).toHaveBeenCalledWith('party123', 'user123');
+      expect(mockDelete).toHaveBeenCalledWith('party123', 'user123');
     });
 
     it('should return 404 when deleting non-existent party', async () => {
-      mockPartyService.delete.mockResolvedValue(false);
+      mockDelete.mockResolvedValue(false);
 
       const response = await request(app)
         .delete('/api/parties/nonexistent');

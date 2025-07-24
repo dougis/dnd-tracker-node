@@ -93,32 +93,17 @@ export class PartyService {
    * Update a party
    */
   async update(partyId: string, userId: string, data: UpdatePartyData): Promise<Party | null> {
-    if (data.name !== undefined && (!data.name || data.name.trim().length === 0)) {
-      throw new Error('Party name cannot be empty');
-    }
+    this.validateUpdateData(data);
 
     try {
-      // First check if party exists and belongs to user
       const existingParty = await this.findById(partyId, userId);
       if (!existingParty) {
         return null;
       }
 
-      const updateData: any = {};
-      if (data.name !== undefined) {
-        updateData.name = data.name.trim();
-      }
-      if (data.description !== undefined) {
-        updateData.description = data.description?.trim() || null;
-      }
-      if (data.isArchived !== undefined) {
-        updateData.isArchived = data.isArchived;
-      }
-
+      const updateData = this.buildUpdateData(data);
       const party = await this.prisma.party.update({
-        where: {
-          id: partyId,
-        },
+        where: { id: partyId },
         data: updateData,
       });
 
@@ -129,6 +114,34 @@ export class PartyService {
       }
       throw new Error('Failed to update party');
     }
+  }
+
+  /**
+   * Validate update data for party
+   */
+  private validateUpdateData(data: UpdatePartyData): void {
+    if (data.name !== undefined && (!data.name || data.name.trim().length === 0)) {
+      throw new Error('Party name cannot be empty');
+    }
+  }
+
+  /**
+   * Build update data object from partial update data
+   */
+  private buildUpdateData(data: UpdatePartyData): any {
+    const updateData: any = {};
+    
+    if (data.name !== undefined) {
+      updateData.name = data.name.trim();
+    }
+    if (data.description !== undefined) {
+      updateData.description = data.description?.trim() || null;
+    }
+    if (data.isArchived !== undefined) {
+      updateData.isArchived = data.isArchived;
+    }
+
+    return updateData;
   }
 
   /**

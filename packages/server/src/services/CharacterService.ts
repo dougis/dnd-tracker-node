@@ -236,6 +236,14 @@ export class CharacterService {
    * Validate update data for character
    */
   private validateUpdateData(data: UpdateCharacterData): void {
+    this.validateStringFields(data);
+    this.validateNumericFields(data);
+  }
+
+  /**
+   * Validate string fields in update data
+   */
+  private validateStringFields(data: UpdateCharacterData): void {
     if (data.name !== undefined && (!data.name || data.name.trim().length === 0)) {
       throw new Error('Character name cannot be empty');
     }
@@ -247,7 +255,12 @@ export class CharacterService {
     if (data.classes !== undefined && (!data.classes || data.classes.length === 0)) {
       throw new Error('Character must have at least one class');
     }
+  }
 
+  /**
+   * Validate numeric fields in update data
+   */
+  private validateNumericFields(data: UpdateCharacterData): void {
     if (data.currentHp !== undefined && data.currentHp < 0) {
       throw new Error('Current HP cannot be negative');
     }
@@ -263,7 +276,16 @@ export class CharacterService {
   private buildUpdateData(data: UpdateCharacterData): any {
     const updateData: any = {};
     
-    // String fields that need trimming
+    this.processStringFields(data, updateData);
+    this.processDirectFields(data, updateData);
+
+    return updateData;
+  }
+
+  /**
+   * Process string fields that need trimming
+   */
+  private processStringFields(data: UpdateCharacterData, updateData: any): void {
     const stringFields = [
       { key: 'name', transform: (val: string) => val.trim() },
       { key: 'race', transform: (val: string) => val.trim() },
@@ -276,8 +298,12 @@ export class CharacterService {
         updateData[key] = transform(data[key as keyof UpdateCharacterData] as string);
       }
     });
+  }
 
-    // Direct assignment fields
+  /**
+   * Process fields that need direct assignment
+   */
+  private processDirectFields(data: UpdateCharacterData, updateData: any): void {
     const directFields = [
       'classes', 'level', 'ac', 'maxHp', 'currentHp', 'tempHp', 
       'hitDice', 'speed', 'abilities', 'proficiencyBonus', 'features', 'equipment'
@@ -288,8 +314,6 @@ export class CharacterService {
         updateData[key] = data[key as keyof UpdateCharacterData];
       }
     });
-
-    return updateData;
   }
 
   /**
