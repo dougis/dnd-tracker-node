@@ -244,15 +244,25 @@ export class CharacterService {
    * Validate string fields in update data
    */
   private validateStringFields(data: UpdateCharacterData): void {
-    if (data.name !== undefined && (!data.name || data.name.trim().length === 0)) {
-      throw new Error('Character name cannot be empty');
-    }
+    this.validateStringField(data.name, 'Character name cannot be empty');
+    this.validateStringField(data.race, 'Character race cannot be empty'); 
+    this.validateClassesField(data.classes);
+  }
 
-    if (data.race !== undefined && (!data.race || data.race.trim().length === 0)) {
-      throw new Error('Character race cannot be empty');
+  /**
+   * Validate a single string field
+   */
+  private validateStringField(value: string | undefined, errorMessage: string): void {
+    if (value !== undefined && (!value || value.trim().length === 0)) {
+      throw new Error(errorMessage);
     }
+  }
 
-    if (data.classes !== undefined && (!data.classes || data.classes.length === 0)) {
+  /**
+   * Validate classes field
+   */
+  private validateClassesField(classes: any[] | undefined): void {
+    if (classes !== undefined && (!classes || classes.length === 0)) {
       throw new Error('Character must have at least one class');
     }
   }

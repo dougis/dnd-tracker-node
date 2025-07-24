@@ -13,6 +13,31 @@ const createMockParty = (overrides = {}) => ({
   ...overrides
 });
 
+const createDefaultAbilities = () => ({
+  str: 10,
+  dex: 10,
+  con: 10,
+  int: 10,
+  wis: 10,
+  cha: 10
+});
+
+const createExpectedDefaultData = () => ({
+  level: 1,
+  ac: 10,
+  maxHp: 10,
+  currentHp: 10,
+  tempHp: 0,
+  speed: 30,
+  abilities: createDefaultAbilities(),
+  proficiencyBonus: 2,
+  features: [],
+  equipment: [],
+  playerName: null,
+  hitDice: null,
+  notes: null
+});
+
 const createMockCharacter = (overrides = {}) => ({
   id: 'char_123',
   partyId: 'party_123',
@@ -163,59 +188,23 @@ describe('CharacterService', () => {
         name: 'Simple Character',
         race: 'Elf',
         classes: [{ className: 'Wizard', level: 1 }],
-        level: 1,
-        ac: 10,
-        maxHp: 10,
-        currentHp: 10,
-        tempHp: 0,
-        speed: 30,
-        abilities: {
-          str: 10,
-          dex: 10,
-          con: 10,
-          int: 10,
-          wis: 10,
-          cha: 10
-        },
-        proficiencyBonus: 2,
-        features: [],
-        equipment: [],
-        playerName: null,
-        hitDice: null,
-        notes: null
+        ...createExpectedDefaultData()
       });
+
+      const expectedCallData = {
+        partyId: 'party_123',
+        name: 'Simple Character',
+        race: 'Elf',
+        classes: [{ className: 'Wizard', level: 1 }],
+        ...createExpectedDefaultData()
+      };
 
       mockPrisma.character.create = vi.fn().mockResolvedValue(expectedCharacter);
 
       const result = await characterService.create('user_123', minimalData);
 
       expect(mockPrisma.character.create).toHaveBeenCalledWith({
-        data: {
-          partyId: 'party_123',
-          name: 'Simple Character',
-          playerName: null,
-          race: 'Elf',
-          classes: [{ className: 'Wizard', level: 1 }],
-          level: 1,
-          ac: 10,
-          maxHp: 10,
-          currentHp: 10,
-          tempHp: 0,
-          hitDice: null,
-          speed: 30,
-          abilities: {
-            str: 10,
-            dex: 10,
-            con: 10,
-            int: 10,
-            wis: 10,
-            cha: 10
-          },
-          proficiencyBonus: 2,
-          features: [],
-          equipment: [],
-          notes: null,
-        },
+        data: expectedCallData,
       });
 
       expect(result).toEqual(expectedCharacter);
