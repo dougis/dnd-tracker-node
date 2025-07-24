@@ -53,7 +53,7 @@ describe('Rate Limiting Middleware', () => {
     it('should allow login requests within rate limit (5 per minute)', async () => {
       // Arrange
       const loginRateLimiter = rateLimitMiddleware({
-        keyGenerator: (req) => req.ip,
+        keyGenerator: (req) => req.ip || 'unknown',
         points: 5,
         duration: 60,
         blockDuration: 60
@@ -84,7 +84,7 @@ describe('Rate Limiting Middleware', () => {
       });
 
       const loginRateLimiter = rateLimitMiddleware({
-        keyGenerator: (req) => req.ip,
+        keyGenerator: (req) => req.ip || 'unknown',
         points: 5,
         duration: 60,
         blockDuration: 60
@@ -109,7 +109,7 @@ describe('Rate Limiting Middleware', () => {
     it('should apply rate limiting per IP address', async () => {
       // This test should demonstrate that different IPs have separate limits
       const loginRateLimiter = rateLimitMiddleware({
-        keyGenerator: (req) => req.ip,
+        keyGenerator: (req) => req.ip || 'unknown',
         points: 5,
         duration: 60,
         blockDuration: 60
@@ -141,14 +141,23 @@ describe('Rate Limiting Middleware', () => {
     it('should apply tier-based rate limits for free tier users', async () => {
       // Arrange
       const apiRateLimiter = rateLimitMiddleware({
-        keyGenerator: (req) => req.user?.id || req.ip,
+        keyGenerator: (req) => req.user?.id || req.ip || 'unknown',
         points: 100, // Free tier limit
         duration: 3600, // Per hour
         blockDuration: 3600
       });
 
       app.use((req, res, next) => {
-        req.user = { id: 'user_123', tier: 'free' };
+        req.user = { 
+          id: 'user_123', 
+          email: 'test@example.com',
+          username: 'testuser',
+          failedLoginAttempts: 0,
+          lockedUntil: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          tier: 'free' 
+        };
         next();
       });
 
@@ -170,14 +179,23 @@ describe('Rate Limiting Middleware', () => {
     it('should apply different rate limits for premium tier users', async () => {
       // Arrange
       const apiRateLimiter = rateLimitMiddleware({
-        keyGenerator: (req) => req.user?.id || req.ip,
+        keyGenerator: (req) => req.user?.id || req.ip || 'unknown',
         points: 1000, // Premium tier limit
         duration: 3600,
         blockDuration: 3600
       });
 
       app.use((req, res, next) => {
-        req.user = { id: 'user_456', tier: 'premium' };
+        req.user = { 
+          id: 'user_456', 
+          email: 'premium@example.com',
+          username: 'premiumuser',
+          failedLoginAttempts: 0,
+          lockedUntil: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          tier: 'premium' 
+        };
         next();
       });
 
@@ -205,14 +223,23 @@ describe('Rate Limiting Middleware', () => {
       });
 
       const apiRateLimiter = rateLimitMiddleware({
-        keyGenerator: (req) => req.user?.id || req.ip,
+        keyGenerator: (req) => req.user?.id || req.ip || 'unknown',
         points: 100,
         duration: 3600,
         blockDuration: 3600
       });
 
       app.use((req, res, next) => {
-        req.user = { id: 'user_123', tier: 'free' };
+        req.user = { 
+          id: 'user_123', 
+          email: 'test@example.com',
+          username: 'testuser',
+          failedLoginAttempts: 0,
+          lockedUntil: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          tier: 'free' 
+        };
         next();
       });
 
@@ -297,7 +324,7 @@ describe('Rate Limiting Middleware', () => {
       });
 
       const loginRateLimiter = rateLimitMiddleware({
-        keyGenerator: (req) => req.ip,
+        keyGenerator: (req) => req.ip || 'unknown',
         points: 5,
         duration: 60,
         blockDuration: 60
