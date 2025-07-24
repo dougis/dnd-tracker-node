@@ -13,6 +13,7 @@ declare module 'express-serve-static-core' {
       lockedUntil: Date | null;
       createdAt: Date;
       updatedAt: Date;
+      tier?: 'free' | 'basic' | 'premium' | 'pro' | 'enterprise';
     };
     session?: {
       id: string;
@@ -53,8 +54,11 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
       return;
     }
 
-    // Add user and session to request
-    req.user = sessionData.user;
+    // Add user and session to request (with default tier)
+    req.user = {
+      ...sessionData.user,
+      tier: 'free' // Default tier until user tiers are implemented in the database
+    };
     req.session = sessionData.session;
     
     next();
@@ -83,7 +87,10 @@ export const optionalAuth = async (req: Request, res: Response, next: NextFuncti
     const sessionData = await authService.validateSession(sessionId);
     
     if (sessionData) {
-      req.user = sessionData.user;
+      req.user = {
+        ...sessionData.user,
+        tier: 'free' // Default tier until user tiers are implemented in the database
+      };
       req.session = sessionData.session;
     }
     
