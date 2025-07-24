@@ -1,32 +1,39 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import request from 'supertest';
 import express from 'express';
-import { authRoutes } from './routes';
-import { AuthService } from '../services/AuthService';
+
+// Use vi.hoisted to ensure mocks are available during hoisting
+const { mockRegister, mockLogin, mockLogout, mockValidateSession } = vi.hoisted(() => ({
+  mockRegister: vi.fn(),
+  mockLogin: vi.fn(),
+  mockLogout: vi.fn(),
+  mockValidateSession: vi.fn(),
+}));
 
 // Mock the entire services
-vi.mock('../services/AuthService');
+vi.mock('../services/AuthService', () => ({
+  AuthService: vi.fn().mockImplementation(() => ({
+    register: mockRegister,
+    login: mockLogin,
+    logout: mockLogout,
+    validateSession: mockValidateSession
+  }))
+}));
+
 vi.mock('../services/UserService');
 vi.mock('@prisma/client');
 
+import { authRoutes } from './routes';
+
 describe('Authentication Routes', () => {
   let app: express.Application;
-  let mockAuthService: any;
 
   beforeEach(() => {
     app = express();
     app.use(express.json());
-    
-    mockAuthService = {
-      register: vi.fn(),
-      login: vi.fn(),
-      logout: vi.fn(),
-      validateSession: vi.fn()
-    };
-    
-    (AuthService as any).mockImplementation(() => mockAuthService);
-    
     app.use('/api/auth', authRoutes);
+    
+    vi.clearAllMocks();
   });
 
   afterEach(() => {
@@ -50,7 +57,7 @@ describe('Authentication Routes', () => {
         updatedAt: new Date()
       };
       
-      mockAuthService.register.mockResolvedValue(mockUser);
+      mockRegister.mockResolvedValue(mockUser);
 
       // Act
       const response = await request(app)
@@ -72,7 +79,7 @@ describe('Authentication Routes', () => {
         },
         message: 'User registered successfully'
       });
-      expect(mockAuthService.register).toHaveBeenCalledWith(
+      expect(mockRegister).toHaveBeenCalledWith(
         validRegistrationData.email,
         validRegistrationData.username,
         validRegistrationData.password
@@ -123,7 +130,7 @@ describe('Authentication Routes', () => {
     });
 
     it('should return 409 for existing user', async () => {
-      mockAuthService.register.mockRejectedValue(new Error('User with this email already exists'));
+      mockRegister.mockRejectedValue(new Error('User with this email already exists'));
 
       const response = await request(app)
         .post('/api/auth/register')
@@ -160,7 +167,7 @@ describe('Authentication Routes', () => {
         }
       };
       
-      mockAuthService.login.mockResolvedValue(mockResult);
+      mockLogin.mockResolvedValue(mockResult);
 
       // Act
       const response = await request(app)
@@ -173,7 +180,7 @@ describe('Authentication Routes', () => {
       expect(response.body.data.user).toBeDefined();
       expect(response.body.data.sessionId).toBe(mockResult.session.id);
       expect(response.headers['set-cookie']).toBeDefined();
-      expect(mockAuthService.login).toHaveBeenCalledWith(
+      expect(mockLogin).toHaveBeenCalledWith(
         validLoginData.email,
         validLoginData.password
       );
@@ -198,7 +205,7 @@ describe('Authentication Routes', () => {
     });
 
     it('should return 401 for invalid credentials', async () => {
-      mockAuthService.login.mockRejectedValue(new Error('Invalid credentials'));
+      mockLogin.mockRejectedValue(new Error('Invalid credentials'));
 
       const response = await request(app)
         .post('/api/auth/login')
@@ -210,7 +217,7 @@ describe('Authentication Routes', () => {
     });
 
     it('should return 423 for locked account', async () => {
-      mockAuthService.login.mockRejectedValue(new Error('Account is locked'));
+      mockLogin.mockRejectedValue(new Error('Account is locked'));
 
       const response = await request(app)
         .post('/api/auth/login')
@@ -224,7 +231,7 @@ describe('Authentication Routes', () => {
 
   describe('POST /api/auth/logout', () => {
     it('should logout user successfully', async () => {
-      mockAuthService.logout.mockResolvedValue(undefined);
+      mockLogout.mockResolvedValue(undefined);
 
       const response = await request(app)
         .post('/api/auth/logout')
@@ -233,7 +240,7 @@ describe('Authentication Routes', () => {
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
       expect(response.body.message).toBe('Logged out successfully');
-      expect(mockAuthService.logout).toHaveBeenCalledWith('session_123');
+      expect(mockLogout).toHaveBeenCalledWith('session_123');
     });
 
     it('should return 400 when no session cookie', async () => {
@@ -266,7 +273,7 @@ describe('Authentication Routes', () => {
         }
       };
       
-      mockAuthService.validateSession.mockResolvedValue(mockSessionData);
+      mockValidateSession.mockResolvedValue(mockSessionData);
 
       // Act
       const response = await request(app)
@@ -278,11 +285,11 @@ describe('Authentication Routes', () => {
       expect(response.body.success).toBe(true);
       expect(response.body.data.user).toBeDefined();
       expect(response.body.data.user.id).toBe('user_123');
-      expect(mockAuthService.validateSession).toHaveBeenCalledWith('session_123');
+      expect(mockValidateSession).toHaveBeenCalledWith('session_123');
     });
 
     it('should return 401 for invalid session', async () => {
-      mockAuthService.validateSession.mockResolvedValue(null);
+      mockValidateSession.mockResolvedValue(null);
 
       const response = await request(app)
         .get('/api/auth/session')

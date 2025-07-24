@@ -1,14 +1,31 @@
 import express from 'express';
 import request from 'supertest';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { characterRoutes } from './routes';
-import { CharacterService } from '../services/CharacterService';
 
-// Mock the service and middleware
-vi.mock('../services/CharacterService');
+// Use vi.hoisted to ensure mocks are available during hoisting
+const { mockCreate, mockFindByPartyId, mockFindById, mockUpdate, mockDelete } = vi.hoisted(() => ({
+  mockCreate: vi.fn(),
+  mockFindByPartyId: vi.fn(),
+  mockFindById: vi.fn(),
+  mockUpdate: vi.fn(),
+  mockDelete: vi.fn(),
+}));
+
+// Mock the service and middleware before importing routes
+vi.mock('../services/CharacterService', () => ({
+  CharacterService: vi.fn().mockImplementation(() => ({
+    create: mockCreate,
+    findByPartyId: mockFindByPartyId,
+    findById: mockFindById,
+    update: mockUpdate,
+    delete: mockDelete,
+  }))
+}));
+
 vi.mock('@prisma/client', () => ({
   PrismaClient: vi.fn().mockImplementation(() => ({}))
 }));
+
 vi.mock('../auth/middleware', () => ({
   requireAuth: (req: any, res: any, next: any) => {
     req.user = { id: 'user123', email: 'test@example.com' };
@@ -16,24 +33,19 @@ vi.mock('../auth/middleware', () => ({
   }
 }));
 
+// Import routes after mocking
+import { characterRoutes } from './routes';
+
 describe('Character Routes', () => {
   let app: express.Application;
-  let mockCharacterService: any;
 
   beforeEach(() => {
     app = express();
     app.use(express.json());
-
-    mockCharacterService = {
-      create: vi.fn(),
-      findByPartyId: vi.fn(),
-      findById: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
-    };
-    (CharacterService as any).mockImplementation(() => mockCharacterService);
-
     app.use('/api/characters', characterRoutes);
+    
+    // Reset all mocks before each test
+    vi.clearAllMocks();
   });
 
   describe('POST /api/characters', () => {
@@ -66,11 +78,11 @@ describe('Character Routes', () => {
         proficiencyBonus: 3,
         features: [],
         equipment: [],
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: '2025-01-01T00:00:00.000Z',
+        updatedAt: '2025-01-01T00:00:00.000Z'
       };
 
-      mockCharacterService.create.mockResolvedValue(mockCreatedCharacter);
+      mockCreate.mockResolvedValue(mockCreatedCharacter);
 
       const response = await request(app)
         .post('/api/characters')
@@ -79,7 +91,7 @@ describe('Character Routes', () => {
       expect(response.status).toBe(201);
       expect(response.body.success).toBe(true);
       expect(response.body.data).toEqual(mockCreatedCharacter);
-      expect(mockCharacterService.create).toHaveBeenCalledWith('user123', newCharacter);
+      expect(mockCreate).toHaveBeenCalledWith('user123', newCharacter);
     });
 
     it('should return 400 for invalid character data', async () => {
@@ -128,8 +140,8 @@ describe('Character Routes', () => {
           maxHp: 45,
           currentHp: 45,
           abilities: { str: 10, dex: 14, con: 16, int: 20, wis: 15, cha: 12 },
-          createdAt: new Date(),
-          updatedAt: new Date()
+          createdAt: '2025-01-01T00:00:00.000Z',
+          updatedAt: '2025-01-01T00:00:00.000Z'
         },
         {
           id: 'char2',
@@ -143,12 +155,12 @@ describe('Character Routes', () => {
           maxHp: 32,
           currentHp: 32,
           abilities: { str: 12, dex: 18, con: 14, int: 13, wis: 16, cha: 11 },
-          createdAt: new Date(),
-          updatedAt: new Date()
+          createdAt: '2025-01-01T00:00:00.000Z',
+          updatedAt: '2025-01-01T00:00:00.000Z'
         }
       ];
 
-      mockCharacterService.findByPartyId.mockResolvedValue(mockCharacters);
+      mockFindByPartyId.mockResolvedValue(mockCharacters);
 
       const response = await request(app)
         .get('/api/characters/party/party123');
@@ -156,11 +168,11 @@ describe('Character Routes', () => {
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
       expect(response.body.data).toEqual(mockCharacters);
-      expect(mockCharacterService.findByPartyId).toHaveBeenCalledWith('party123', 'user123');
+      expect(mockFindByPartyId).toHaveBeenCalledWith('party123', 'user123');
     });
 
     it('should return empty array when party has no characters', async () => {
-      mockCharacterService.findByPartyId.mockResolvedValue([]);
+      mockFindByPartyId.mockResolvedValue([]);
 
       const response = await request(app)
         .get('/api/characters/party/party123');
@@ -185,11 +197,11 @@ describe('Character Routes', () => {
         maxHp: 45,
         currentHp: 45,
         abilities: { str: 10, dex: 14, con: 16, int: 20, wis: 15, cha: 12 },
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: '2025-01-01T00:00:00.000Z',
+        updatedAt: '2025-01-01T00:00:00.000Z'
       };
 
-      mockCharacterService.findById.mockResolvedValue(mockCharacter);
+      mockFindById.mockResolvedValue(mockCharacter);
 
       const response = await request(app)
         .get('/api/characters/char123');
@@ -197,11 +209,11 @@ describe('Character Routes', () => {
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
       expect(response.body.data).toEqual(mockCharacter);
-      expect(mockCharacterService.findById).toHaveBeenCalledWith('char123', 'user123');
+      expect(mockFindById).toHaveBeenCalledWith('char123', 'user123');
     });
 
     it('should return 404 when character not found', async () => {
-      mockCharacterService.findById.mockResolvedValue(null);
+      mockFindById.mockResolvedValue(null);
 
       const response = await request(app)
         .get('/api/characters/nonexistent');
@@ -233,11 +245,11 @@ describe('Character Routes', () => {
         currentHp: 30,
         tempHp: 5,
         abilities: { str: 10, dex: 14, con: 16, int: 20, wis: 15, cha: 12 },
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: '2025-01-01T00:00:00.000Z',
+        updatedAt: '2025-01-01T00:00:00.000Z'
       };
 
-      mockCharacterService.update.mockResolvedValue(mockUpdatedCharacter);
+      mockUpdate.mockResolvedValue(mockUpdatedCharacter);
 
       const response = await request(app)
         .put('/api/characters/char123')
@@ -246,7 +258,7 @@ describe('Character Routes', () => {
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
       expect(response.body.data).toEqual(mockUpdatedCharacter);
-      expect(mockCharacterService.update).toHaveBeenCalledWith('char123', 'user123', updateData);
+      expect(mockUpdate).toHaveBeenCalledWith('char123', 'user123', updateData);
     });
 
     it('should return 404 when updating non-existent character', async () => {
@@ -254,7 +266,7 @@ describe('Character Routes', () => {
         name: 'Updated Name'
       };
 
-      mockCharacterService.update.mockResolvedValue(null);
+      mockUpdate.mockResolvedValue(null);
 
       const response = await request(app)
         .put('/api/characters/nonexistent')
@@ -282,7 +294,7 @@ describe('Character Routes', () => {
 
   describe('DELETE /api/characters/:id', () => {
     it('should delete character successfully', async () => {
-      mockCharacterService.delete.mockResolvedValue(true);
+      mockDelete.mockResolvedValue(true);
 
       const response = await request(app)
         .delete('/api/characters/char123');
@@ -290,11 +302,11 @@ describe('Character Routes', () => {
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
       expect(response.body.message).toBe('Character deleted successfully');
-      expect(mockCharacterService.delete).toHaveBeenCalledWith('char123', 'user123');
+      expect(mockDelete).toHaveBeenCalledWith('char123', 'user123');
     });
 
     it('should return 404 when deleting non-existent character', async () => {
-      mockCharacterService.delete.mockResolvedValue(false);
+      mockDelete.mockResolvedValue(false);
 
       const response = await request(app)
         .delete('/api/characters/nonexistent');

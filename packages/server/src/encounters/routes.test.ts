@@ -1,10 +1,35 @@
 import { describe, it, expect, beforeEach, afterEach, vi, type MockedFunction } from 'vitest';
 import request from 'supertest';
-import { app } from '../index';
-import { EncounterService } from '../services/EncounterService';
+
+// Use vi.hoisted to ensure mocks are available during hoisting
+const { 
+  mockCreateEncounter, mockGetEncounterById, mockGetUserEncounters, 
+  mockUpdateEncounter, mockDeleteEncounter, mockAddParticipant, 
+  mockStartCombat, mockEndCombat 
+} = vi.hoisted(() => ({
+  mockCreateEncounter: vi.fn(),
+  mockGetEncounterById: vi.fn(),
+  mockGetUserEncounters: vi.fn(),
+  mockUpdateEncounter: vi.fn(),
+  mockDeleteEncounter: vi.fn(),
+  mockAddParticipant: vi.fn(),
+  mockStartCombat: vi.fn(),
+  mockEndCombat: vi.fn(),
+}));
 
 // Mock EncounterService
-vi.mock('../services/EncounterService');
+vi.mock('../services/EncounterService', () => ({
+  EncounterService: vi.fn().mockImplementation(() => ({
+    createEncounter: mockCreateEncounter,
+    getEncounterById: mockGetEncounterById,
+    getUserEncounters: mockGetUserEncounters,
+    updateEncounter: mockUpdateEncounter,
+    deleteEncounter: mockDeleteEncounter,
+    addParticipant: mockAddParticipant,
+    startCombat: mockStartCombat,
+    endCombat: mockEndCombat,
+  }))
+}));
 
 // Mock authentication middleware
 vi.mock('../auth/middleware', () => ({
@@ -31,6 +56,8 @@ vi.mock('../middleware/rate-limiting', async (importOriginal) => {
   };
 });
 
+import { app } from '../index';
+
 describe('Encounter Routes', () => {
   const mockEncounter = {
     id: '674f1234567890abcdef1234',
@@ -48,30 +75,7 @@ describe('Encounter Routes', () => {
     updatedAt: new Date('2024-01-01'),
   };
 
-  let mockEncounterService: {
-    createEncounter: MockedFunction<any>;
-    getEncounterById: MockedFunction<any>;
-    getUserEncounters: MockedFunction<any>;
-    updateEncounter: MockedFunction<any>;
-    deleteEncounter: MockedFunction<any>;
-    addParticipant: MockedFunction<any>;
-    startCombat: MockedFunction<any>;
-    endCombat: MockedFunction<any>;
-  };
-
   beforeEach(() => {
-    mockEncounterService = {
-      createEncounter: vi.fn(),
-      getEncounterById: vi.fn(),
-      getUserEncounters: vi.fn(),
-      updateEncounter: vi.fn(),
-      deleteEncounter: vi.fn(),
-      addParticipant: vi.fn(),
-      startCombat: vi.fn(),
-      endCombat: vi.fn(),
-    };
-    
-    (EncounterService as any).mockImplementation(() => mockEncounterService);
     vi.clearAllMocks();
   });
 
@@ -81,7 +85,7 @@ describe('Encounter Routes', () => {
 
   describe('POST /api/encounters', () => {
     it('should create a new encounter with valid data', async () => {
-      mockEncounterService.createEncounter.mockResolvedValue(mockEncounter);
+      mockCreateEncounter.mockResolvedValue(mockEncounter);
 
       const response = await request(app)
         .post('/api/encounters')
@@ -139,7 +143,7 @@ describe('Encounter Routes', () => {
   describe('GET /api/encounters', () => {
     it('should return all encounters for authenticated user', async () => {
       const mockEncounters = [mockEncounter];
-      mockEncounterService.getUserEncounters.mockResolvedValue(mockEncounters);
+      mockGetUserEncounters.mockResolvedValue(mockEncounters);
 
       const response = await request(app)
         .get('/api/encounters');
@@ -151,7 +155,7 @@ describe('Encounter Routes', () => {
     });
 
     it('should return empty array when user has no encounters', async () => {
-      mockEncounterService.getUserEncounters.mockResolvedValue([]);
+      mockGetUserEncounters.mockResolvedValue([]);
 
       const response = await request(app)
         .get('/api/encounters');
@@ -164,7 +168,7 @@ describe('Encounter Routes', () => {
 
   describe('GET /api/encounters/:id', () => {
     it('should return specific encounter for owner', async () => {
-      mockEncounterService.getEncounterById.mockResolvedValue(mockEncounter);
+      mockGetEncounterById.mockResolvedValue(mockEncounter);
 
       const response = await request(app)
         .get(`/api/encounters/${mockEncounter.id}`);
@@ -175,7 +179,7 @@ describe('Encounter Routes', () => {
     });
 
     it('should return 404 for non-existent encounter', async () => {
-      mockEncounterService.getEncounterById.mockResolvedValue(null);
+      mockGetEncounterById.mockResolvedValue(null);
 
       const response = await request(app)
         .get('/api/encounters/674f1234567890abcdef9999');
@@ -190,7 +194,7 @@ describe('Encounter Routes', () => {
         ...mockEncounter,
         userId: '674f1234567890abcdef9999', // Different user
       };
-      mockEncounterService.getEncounterById.mockResolvedValue(otherUserEncounter);
+      mockGetEncounterById.mockResolvedValue(otherUserEncounter);
 
       const response = await request(app)
         .get(`/api/encounters/${mockEncounter.id}`);
@@ -218,7 +222,7 @@ describe('Encounter Routes', () => {
         description: 'An updated epic battle',
       };
 
-      mockEncounterService.updateEncounter.mockResolvedValue(updatedEncounter);
+      mockUpdateEncounter.mockResolvedValue(updatedEncounter);
 
       const response = await request(app)
         .put(`/api/encounters/${mockEncounter.id}`)
@@ -261,7 +265,7 @@ describe('Encounter Routes', () => {
 
   describe('DELETE /api/encounters/:id', () => {
     it('should delete encounter successfully', async () => {
-      mockEncounterService.deleteEncounter.mockResolvedValue(undefined);
+      mockDeleteEncounter.mockResolvedValue(undefined);
 
       const response = await request(app)
         .delete(`/api/encounters/${mockEncounter.id}`);
@@ -296,7 +300,7 @@ describe('Encounter Routes', () => {
         }],
       };
 
-      mockEncounterService.addParticipant.mockResolvedValue(encounterWithParticipant);
+      mockAddParticipant.mockResolvedValue(encounterWithParticipant);
 
       const response = await request(app)
         .post(`/api/encounters/${mockEncounter.id}/participants`)
@@ -357,7 +361,7 @@ describe('Encounter Routes', () => {
         isActive: true,
       };
 
-      mockEncounterService.startCombat.mockResolvedValue(activeEncounter);
+      mockStartCombat.mockResolvedValue(activeEncounter);
 
       const response = await request(app)
         .post(`/api/encounters/${mockEncounter.id}/start`);
@@ -386,7 +390,7 @@ describe('Encounter Routes', () => {
         isActive: false,
       };
 
-      mockEncounterService.endCombat.mockResolvedValue(completedEncounter);
+      mockEndCombat.mockResolvedValue(completedEncounter);
 
       const response = await request(app)
         .post(`/api/encounters/${mockEncounter.id}/end`);
