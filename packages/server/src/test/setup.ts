@@ -6,21 +6,112 @@ vi.mock('@prisma/client', () => ({
     user: {
       create: vi.fn(),
       findUnique: vi.fn(),
+      findMany: vi.fn(),
       update: vi.fn(),
-      delete: vi.fn()
+      delete: vi.fn(),
+      count: vi.fn()
     },
     session: {
       create: vi.fn(),
       findUnique: vi.fn(),
+      findMany: vi.fn(),
       delete: vi.fn(),
       deleteMany: vi.fn()
+    },
+    party: {
+      create: vi.fn(),
+      findUnique: vi.fn(),
+      findMany: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      count: vi.fn()
+    },
+    character: {
+      create: vi.fn(),
+      findUnique: vi.fn(),
+      findMany: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      count: vi.fn()
+    },
+    encounter: {
+      create: vi.fn(),
+      findUnique: vi.fn(),
+      findMany: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      count: vi.fn()
+    },
+    participant: {
+      create: vi.fn(),
+      findUnique: vi.fn(),
+      findMany: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      count: vi.fn()
+    },
+    creature: {
+      create: vi.fn(),
+      findUnique: vi.fn(),
+      findMany: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      count: vi.fn()
+    },
+    subscription: {
+      create: vi.fn(),
+      findUnique: vi.fn(),
+      findMany: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      count: vi.fn()
+    },
+    usage: {
+      create: vi.fn(),
+      findUnique: vi.fn(),
+      findMany: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      count: vi.fn()
+    },
+    payment: {
+      create: vi.fn(),
+      findUnique: vi.fn(),
+      findMany: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      count: vi.fn()
+    },
+    processedEvent: {
+      create: vi.fn(),
+      findUnique: vi.fn(),
+      findMany: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      count: vi.fn()
+    },
+    lairAction: {
+      create: vi.fn(),
+      findUnique: vi.fn(),
+      findMany: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      count: vi.fn()
+    },
+    combatLog: {
+      create: vi.fn(),
+      findUnique: vi.fn(),
+      findMany: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      count: vi.fn()
     },
     $disconnect: vi.fn()
   }))
 }));
 
 // Mock environment variables
-process.env.DATABASE_URL = 'test://localhost:5432/test';
+process.env.DATABASE_URL = 'mongodb://localhost:27017/dnd_tracker_test';
 process.env.NODE_ENV = 'test';
 
 // Global test utilities
