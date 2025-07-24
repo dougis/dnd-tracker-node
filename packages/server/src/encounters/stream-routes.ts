@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { param, validationResult } from 'express-validator';
 import { requireAuth } from '../auth/middleware';
-import { encounterService, tierBasedRateLimit, formatSSEData } from './utils';
+import { encounterService, tierBasedRateLimit, writeSSEData } from './utils';
 
 const router = Router();
 
@@ -74,7 +74,7 @@ router.get('/:id/stream', tierBasedRateLimit, requireAuth, [
       encounterId: id,
       timestamp: new Date().toISOString()
     };
-    res.write(formatSSEData(welcomeData));
+    writeSSEData(res, welcomeData);
 
     // Send current encounter state
     const encounterData = {
@@ -96,7 +96,7 @@ router.get('/:id/stream', tierBasedRateLimit, requireAuth, [
       },
       timestamp: new Date().toISOString()
     };
-    res.write(formatSSEData(encounterData));
+    writeSSEData(res, encounterData);
 
     // Keep connection alive with heartbeat
     const heartbeatInterval = setInterval(() => {
@@ -104,7 +104,7 @@ router.get('/:id/stream', tierBasedRateLimit, requireAuth, [
         type: 'heartbeat',
         timestamp: new Date().toISOString()
       };
-      res.write(formatSSEData(heartbeat));
+      writeSSEData(res, heartbeat);
     }, 30000); // Send heartbeat every 30 seconds
 
     // Clean up on client disconnect

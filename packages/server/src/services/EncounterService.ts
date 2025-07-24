@@ -271,10 +271,18 @@ export class EncounterService {
   }
 
   /**
+   * Validate combat start requirements
+   */
+  private validateCombatStart(encounter: EncounterWithDetails): void {
+    if (encounter.participants.length === 0) {
+      throw new Error('Cannot start combat with no participants');
+    }
+  }
+
+  /**
    * Start combat for encounter
    */
   async startCombat(encounterId: string, userId: string): Promise<EncounterWithDetails> {
-    // Verify encounter ownership
     const encounter = await this.getEncounterById(encounterId);
 
     if (!encounter) {
@@ -285,13 +293,8 @@ export class EncounterService {
       throw new Error('Not authorized to modify this encounter');
     }
 
-    if (encounter.participants.length === 0) {
-      throw new Error('Cannot start combat with no participants');
-    }
+    this.validateCombatStart(encounter);
 
-    // Note: Initiative order is calculated when needed for display
-
-    // Update encounter status
     return this.prisma.encounter.update({
       where: { id: encounterId },
       data: {
@@ -316,19 +319,7 @@ export class EncounterService {
    * End combat for encounter
    */
   async endCombat(encounterId: string, userId: string): Promise<EncounterWithDetails> {
-    // Verify encounter ownership
-    const encounter = await this.prisma.encounter.findUnique({
-      where: { id: encounterId },
-      select: { userId: true },
-    });
-
-    if (!encounter) {
-      throw new Error('Encounter not found');
-    }
-
-    if (encounter.userId !== userId) {
-      throw new Error('Not authorized to modify this encounter');
-    }
+    await this.verifyEncounterOwnership(encounterId, userId);
 
     return this.prisma.encounter.update({
       where: { id: encounterId },

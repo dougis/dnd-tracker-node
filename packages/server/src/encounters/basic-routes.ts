@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { body, param, validationResult } from 'express-validator';
 import { requireAuth } from '../auth/middleware';
-import { encounterService, tierBasedRateLimit } from './utils';
+import { encounterService, tierBasedRateLimit, sendEncounterResponse, sendErrorResponse } from './utils';
 
 const router = Router();
 
@@ -37,41 +37,16 @@ router.post('/', tierBasedRateLimit, requireAuth, [
 
     // Create encounter
     const encounter = await encounterService.createEncounter(userId, name, description);
-
-    res.status(201).json({
-      success: true,
-      data: {
-        encounter: {
-          id: encounter.id,
-          name: encounter.name,
-          description: encounter.description,
-          status: encounter.status,
-          round: encounter.round,
-          turn: encounter.turn,
-          isActive: encounter.isActive,
-          participants: encounter.participants,
-          lairActions: encounter.lairActions,
-          createdAt: encounter.createdAt.toISOString(),
-          updatedAt: encounter.updatedAt.toISOString()
-        }
-      },
-      message: 'Encounter created successfully'
-    });
+    sendEncounterResponse(res, encounter, 'Encounter created successfully', 201);
   } catch (error: any) {
     console.error('Encounter creation error:', error);
     
     if (error.message.includes('required') || error.message.includes('characters')) {
-      res.status(400).json({
-        success: false,
-        message: error.message
-      });
+      sendErrorResponse(res, error, 400);
       return;
     }
 
-    res.status(500).json({
-      success: false,
-      message: 'Internal server error creating encounter'
-    });
+    sendErrorResponse(res, 'Internal server error creating encounter', 500);
   }
 });
 
