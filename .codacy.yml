@@ -1,0 +1,8 @@
+---
+exclude_patterns:
+  - "**/*.md"
+  - "**/CLAUDE.md"
+  - "**/docs/**"
+  - "**/README.md"
+  - "**/CHANGELOG.md"
+  - "**/LICENSE.md"

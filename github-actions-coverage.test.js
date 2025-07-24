@@ -1,3 +1,4 @@
+/* eslint-env node */
 import { describe, it, expect, beforeEach } from 'vitest';
 import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
@@ -122,7 +123,8 @@ describe('GitHub Actions Coverage Integration', () => {
         const coverageFile = join(process.cwd(), 'packages', pkg, 'coverage', 'clover.xml');
         if (existsSync(coverageFile)) {
           const content = readFileSync(coverageFile, 'utf-8');
-          expect(content).toContain('clover version');
+          // Check for proper clover XML format (newer format uses clover="x.x.x")
+          expect(content).toMatch(/clover="[\d.]+"/);
         }
       });
     });
@@ -136,13 +138,14 @@ describe('GitHub Actions Coverage Integration', () => {
           const content = readFileSync(coverageFile, 'utf-8');
           const coverageData = JSON.parse(content);
           
-          // Verify coverage data structure contains metrics
+          // Verify coverage data structure contains metrics (V8 format)
           Object.values(coverageData).forEach((fileData) => {
             if (fileData && typeof fileData === 'object') {
-              expect(fileData).toHaveProperty('lines');
-              expect(fileData).toHaveProperty('functions');
-              expect(fileData).toHaveProperty('statements');
-              expect(fileData).toHaveProperty('branches');
+              // V8 coverage format uses different property names
+              expect(fileData).toHaveProperty('s'); // statements
+              expect(fileData).toHaveProperty('f'); // functions
+              expect(fileData).toHaveProperty('b'); // branches
+              expect(fileData).toHaveProperty('path'); // path property is always present
             }
           });
         }
