@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { validationResult } from 'express-validator';
 import { EncounterService } from '../services/EncounterService';
 import { createTierBasedRateLimit } from '../middleware/rate-limiting';
 
@@ -110,7 +111,6 @@ export function sendErrorResponse(res: any, error: any, statusCode: number) {
  * @returns true if validation passed, false if failed (response already sent)
  */
 export function handleValidationErrors(req: any, res: any): boolean {
-  const { validationResult } = require('express-validator');
   const errors = validationResult(req);
   
   if (!errors.isEmpty()) {
