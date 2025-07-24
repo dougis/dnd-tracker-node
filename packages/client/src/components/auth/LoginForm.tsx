@@ -14,7 +14,7 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 
 interface LoginFormProps {
-  onSubmit: (data: LoginFormData) => void | Promise<void>;
+  onSubmit: (data: LoginFormData, event?: React.BaseSyntheticEvent) => void | Promise<void>;
   error?: string;
   isLoading?: boolean;
   signUpLink?: ReactNode;
@@ -27,6 +27,7 @@ export function LoginForm({ onSubmit, error, isLoading = false, signUpLink }: Lo
     formState: { errors },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
+    mode: 'onSubmit',
   });
 
   return (

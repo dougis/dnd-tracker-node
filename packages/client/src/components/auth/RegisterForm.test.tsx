@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, act, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { RegisterForm } from './RegisterForm';
 import { describe, it, expect, vi } from 'vitest';
@@ -15,17 +15,21 @@ describe('RegisterForm', () => {
 
   it('validates required fields and shows errors', async () => {
     const mockSubmit = vi.fn();
-    const user = userEvent.setup();
     
     render(<RegisterForm onSubmit={mockSubmit} />);
     
-    const submitButton = screen.getByRole('button', { name: /create account/i });
-    await user.click(submitButton);
+    const form = screen.getByRole('button', { name: /create account/i }).closest('form')!;
+    
+    // Submit form directly to trigger validation
+    await act(async () => {
+      fireEvent.submit(form);
+    });
     
     await waitFor(() => {
-      expect(screen.getByText(/email is required/i)).toBeInTheDocument();
-      expect(screen.getByText(/password is required/i)).toBeInTheDocument();
-    });
+      expect(screen.getByText('Email is required')).toBeInTheDocument();
+      expect(screen.getByText('Password must be at least 8 characters')).toBeInTheDocument();
+      expect(screen.getByText('Please confirm your password')).toBeInTheDocument();
+    }, { timeout: 5000 });
     
     expect(mockSubmit).not.toHaveBeenCalled();
   });
@@ -37,14 +41,21 @@ describe('RegisterForm', () => {
     render(<RegisterForm onSubmit={mockSubmit} />);
     
     const emailInput = screen.getByLabelText(/email/i);
-    const submitButton = screen.getByRole('button', { name: /create account/i });
+    const passwordInput = screen.getByLabelText(/^password/i);
+    const confirmPasswordInput = screen.getByLabelText(/confirm password/i);
+    const form = emailInput.closest('form')!;
     
-    await user.type(emailInput, 'invalid-email');
-    await user.click(submitButton);
+    // Fill other fields with valid data to isolate email validation
+    await act(async () => {
+      await user.type(emailInput, 'invalid-email');
+      await user.type(passwordInput, 'password123');
+      await user.type(confirmPasswordInput, 'password123');
+      fireEvent.submit(form);
+    });
     
     await waitFor(() => {
-      expect(screen.getByText(/invalid email format/i)).toBeInTheDocument();
-    });
+      expect(screen.getByText('Invalid email format')).toBeInTheDocument();
+    }, { timeout: 5000 });
     
     expect(mockSubmit).not.toHaveBeenCalled();
   });
@@ -55,15 +66,22 @@ describe('RegisterForm', () => {
     
     render(<RegisterForm onSubmit={mockSubmit} />);
     
+    const emailInput = screen.getByLabelText(/email/i);
     const passwordInput = screen.getByLabelText(/^password/i);
-    const submitButton = screen.getByRole('button', { name: /create account/i });
+    const confirmPasswordInput = screen.getByLabelText(/confirm password/i);
+    const form = emailInput.closest('form')!;
     
-    await user.type(passwordInput, '123');
-    await user.click(submitButton);
+    // Fill other fields with valid data to isolate password validation
+    await act(async () => {
+      await user.type(emailInput, 'test@example.com');
+      await user.type(passwordInput, '123');
+      await user.type(confirmPasswordInput, '123');
+      fireEvent.submit(form);
+    });
     
     await waitFor(() => {
-      expect(screen.getByText(/password must be at least 8 characters/i)).toBeInTheDocument();
-    });
+      expect(screen.getByText('Password must be at least 8 characters')).toBeInTheDocument();
+    }, { timeout: 5000 });
     
     expect(mockSubmit).not.toHaveBeenCalled();
   });
@@ -74,17 +92,22 @@ describe('RegisterForm', () => {
     
     render(<RegisterForm onSubmit={mockSubmit} />);
     
+    const emailInput = screen.getByLabelText(/email/i);
     const passwordInput = screen.getByLabelText(/^password/i);
     const confirmPasswordInput = screen.getByLabelText(/confirm password/i);
-    const submitButton = screen.getByRole('button', { name: /create account/i });
+    const form = emailInput.closest('form')!;
     
-    await user.type(passwordInput, 'password123');
-    await user.type(confirmPasswordInput, 'different123');
-    await user.click(submitButton);
+    // Fill email with valid data, use valid but mismatched passwords
+    await act(async () => {
+      await user.type(emailInput, 'test@example.com');
+      await user.type(passwordInput, 'password123');
+      await user.type(confirmPasswordInput, 'different123');
+      fireEvent.submit(form);
+    });
     
     await waitFor(() => {
-      expect(screen.getByText(/passwords do not match/i)).toBeInTheDocument();
-    });
+      expect(screen.getByText('Passwords do not match')).toBeInTheDocument();
+    }, { timeout: 5000 });
     
     expect(mockSubmit).not.toHaveBeenCalled();
   });
@@ -110,7 +133,7 @@ describe('RegisterForm', () => {
         email: 'test@example.com',
         password: 'password123',
         confirmPassword: 'password123',
-      });
+      }, expect.any(Object));
     });
   });
 

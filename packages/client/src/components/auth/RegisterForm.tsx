@@ -18,7 +18,7 @@ const registerSchema = z.object({
 type RegisterFormData = z.infer<typeof registerSchema>;
 
 interface RegisterFormProps {
-  onSubmit: (data: RegisterFormData) => void | Promise<void>;
+  onSubmit: (data: RegisterFormData, event?: React.BaseSyntheticEvent) => void | Promise<void>;
   error?: string;
   isLoading?: boolean;
   signInLink?: ReactNode;
@@ -31,6 +31,7 @@ export function RegisterForm({ onSubmit, error, isLoading = false, signInLink }:
     formState: { errors },
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
+    mode: 'onSubmit',
   });
 
   return (

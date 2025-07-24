@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, act, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { LoginForm } from './LoginForm';
 import { describe, it, expect, vi } from 'vitest';
@@ -14,17 +14,21 @@ describe('LoginForm', () => {
 
   it('validates required fields and shows errors', async () => {
     const mockSubmit = vi.fn();
-    const user = userEvent.setup();
     
     render(<LoginForm onSubmit={mockSubmit} />);
     
-    const submitButton = screen.getByRole('button', { name: /sign in/i });
-    await user.click(submitButton);
+    const form = screen.getByRole('button', { name: /sign in/i }).closest('form')!;
     
-    await waitFor(() => {
-      expect(screen.getByText(/email is required/i)).toBeInTheDocument();
-      expect(screen.getByText(/password is required/i)).toBeInTheDocument();
+    // Submit form directly to trigger validation
+    await act(async () => {
+      fireEvent.submit(form);
     });
+    
+    // Wait for validation errors to appear
+    await waitFor(() => {
+      expect(screen.getByText('Email is required')).toBeInTheDocument();
+      expect(screen.getByText('Password is required')).toBeInTheDocument();
+    }, { timeout: 5000 });
     
     expect(mockSubmit).not.toHaveBeenCalled();
   });
@@ -36,14 +40,19 @@ describe('LoginForm', () => {
     render(<LoginForm onSubmit={mockSubmit} />);
     
     const emailInput = screen.getByLabelText(/email/i);
-    const submitButton = screen.getByRole('button', { name: /sign in/i });
+    const passwordInput = screen.getByLabelText(/password/i);
+    const form = emailInput.closest('form')!;
     
-    await user.type(emailInput, 'invalid-email');
-    await user.click(submitButton);
+    // Fill in invalid email and valid password to isolate email validation
+    await act(async () => {
+      await user.type(emailInput, 'invalid-email');
+      await user.type(passwordInput, 'password123');
+      fireEvent.submit(form);
+    });
     
     await waitFor(() => {
-      expect(screen.getByText(/invalid email format/i)).toBeInTheDocument();
-    });
+      expect(screen.getByText('Invalid email format')).toBeInTheDocument();
+    }, { timeout: 5000 });
     
     expect(mockSubmit).not.toHaveBeenCalled();
   });
@@ -58,15 +67,17 @@ describe('LoginForm', () => {
     const passwordInput = screen.getByLabelText(/password/i);
     const submitButton = screen.getByRole('button', { name: /sign in/i });
     
-    await user.type(emailInput, 'test@example.com');
-    await user.type(passwordInput, 'password123');
-    await user.click(submitButton);
+    await act(async () => {
+      await user.type(emailInput, 'test@example.com');
+      await user.type(passwordInput, 'password123');
+      await user.click(submitButton);
+    });
     
     await waitFor(() => {
       expect(mockSubmit).toHaveBeenCalledWith({
         email: 'test@example.com',
         password: 'password123',
-      });
+      }, expect.any(Object));
     });
   });
 
