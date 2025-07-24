@@ -283,8 +283,7 @@ export class EncounterService {
       throw new Error('Cannot start combat with no participants');
     }
 
-    // Calculate initiative order
-    const orderedParticipants = this.calculateInitiativeOrder(encounter.participants);
+    // Note: Initiative order is calculated when needed for display
 
     // Update encounter status
     return this.prisma.encounter.update({
