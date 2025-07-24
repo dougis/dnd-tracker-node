@@ -2,7 +2,9 @@
 exclude_patterns:
   - "**/*.md"
   - "**/CLAUDE.md"
+  - "CLAUDE.md"
   - "**/docs/**"
   - "**/README.md"
   - "**/CHANGELOG.md"
   - "**/LICENSE.md"
+  - "packages/server/src/services/*.test.ts"
