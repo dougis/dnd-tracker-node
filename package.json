@@ -17,7 +17,8 @@
     "clean": "npm run clean --workspaces --if-present",
     "start": "npm run start --workspace=packages/server",
     "start:client": "npm run start --workspace=packages/client",
-    "start:server": "npm run start --workspace=packages/server"
+    "start:server": "npm run start --workspace=packages/server",
+    "db:seed": "npm run db:seed --workspace=packages/server"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",
