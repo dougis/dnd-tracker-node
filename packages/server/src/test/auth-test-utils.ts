@@ -76,9 +76,3 @@ export function createTestUserData() {
   };
 }
 
-export function createTestLoginData() {
-  return {
-    email: 'test@example.com',
-    password: 'correctpassword',
-  };
-}
