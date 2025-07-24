@@ -1,10 +1,13 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code (claude.ai/code) when working with
+code in this repository.
 
 ## Project Overview
 
-This is a D&D Encounter Tracker - a Node.js/React full-stack web application for Dungeon Masters to manage combat encounters with initiative tracking, HP/AC management, character management, and lair actions support.
+This is a D&D Encounter Tracker - a Node.js/React full-stack web application
+for Dungeon Masters to manage combat encounters with initiative tracking,
+HP/AC management, character management, and lair actions support.
 
 ### Key Features
 
@@ -18,6 +21,7 @@ This is a D&D Encounter Tracker - a Node.js/React full-stack web application for
 ## Technology Stack
 
 **Backend (packages/server):**
+
 - Express.js with TypeScript and ES modules
 - MongoDB with Prisma ORM (not Mongoose)
 - Session-based authentication with Argon2 password hashing
@@ -26,6 +30,7 @@ This is a D&D Encounter Tracker - a Node.js/React full-stack web application for
 - Production security middleware stack
 
 **Frontend (packages/client):**
+
 - React 18 with TypeScript
 - TanStack Router for routing
 - TanStack Query for server state management
@@ -35,12 +40,14 @@ This is a D&D Encounter Tracker - a Node.js/React full-stack web application for
 - Vite for build tooling
 
 **Shared (packages/shared):**
+
 - Common types and Zod validation schemas
 - Shared between client and server packages
 
 ## Development Commands
 
 **Root level (all packages):**
+
 ```bash
 npm run build        # Build all packages
 npm run dev         # Start all packages in development
@@ -52,6 +59,7 @@ npm run typecheck   # TypeScript compilation check
 ```
 
 **Individual package commands:**
+
 ```bash
 # Server (packages/server)
 npm run dev --workspace=@dnd-tracker/server    # Start Express server with nodemon
@@ -70,28 +78,33 @@ npm test -- --testPathPatterns="ServiceName.test.ts"
 ## Architecture Overview
 
 ### Monorepo Structure
+
 - **npm workspaces** manage three packages: server, client, shared
 - Shared package contains common types and Zod schemas
 - TypeScript ES modules throughout with proper import/export
 
 ### Service Layer Pattern
+
 - **Dependency injection** - Services receive PrismaClient in constructor
 - **UserService** - User CRUD, profile management, statistics
 - **AuthService** - Registration, login, session management, account lockout
 - **EncounterService** - Combat encounter management with participants
 
 ### Authentication Architecture
+
 - **Session-based auth** with secure HTTP-only cookies
 - **Account lockout** after failed login attempts
 - **Argon2** password hashing (not bcrypt)
 - **Session validation middleware** for protected routes
 
 ### Database Layer
+
 - **Prisma ORM** with MongoDB (not Mongoose)
 - Models: User, UserStats, Session, Character, Encounter, Participant
 - Proper relationships with include patterns for data fetching
 
 ### Rate Limiting System
+
 - **Redis backend** for distributed rate limiting
 - **Tier-based limits** - Different limits per user subscription tier
 - **Route-specific limits** - Login, registration, and general API limits
@@ -99,12 +112,14 @@ npm test -- --testPathPatterns="ServiceName.test.ts"
 ## Testing Patterns
 
 ### Vitest Configuration
+
 - **Mock Prisma clients** with vi.fn() for database operations
 - **Service dependency injection** enables easy mocking in tests
 - **beforeEach/afterEach** with vi.clearAllMocks() and vi.resetAllMocks()
 - **Coverage reporting** with @vitest/coverage-v8
 
 ### Mock Patterns
+
 ```typescript
 // Service mocking pattern
 const mockPrisma = {
@@ -119,6 +134,7 @@ const userService = new UserService(mockPrisma);
 ```
 
 ### Frontend Testing
+
 - **React Testing Library** with jsdom environment
 - **User event testing** with @testing-library/user-event
 - **Component integration tests** rather than unit tests
@@ -137,10 +153,14 @@ const userService = new UserService(mockPrisma);
 ### Automated Code Review Process
 
 - **Automatic Merging**: PRs are automatically merged when all checks pass
-- **Required Checks**: Build, tests, linting, TypeScript compilation, Codacy quality gates
-- **Manual Review Override**: Can be disabled for critical changes requiring human review
-- **Check Monitoring**: System waits for checks to complete before making merge decisions
-- **Failure Handling**: Failed checks must be addressed before re-attempting merge
+- **Required Checks**: Build, tests, linting, TypeScript compilation,
+  Codacy quality gates
+- **Manual Review Override**: Can be disabled for critical changes requiring
+  human review
+- **Check Monitoring**: System waits for checks to complete before making
+  merge decisions
+- **Failure Handling**: Failed checks must be addressed before re-attempting
+  merge
 
 ### Merge and Cleanup
 
@@ -250,11 +270,14 @@ test(character): add comprehensive validation tests
 
 - Always check the status of any opened PR and merge if all checks pass
 - Always run `npm run lint:fix` before committing code
-- Always run `npm run lint:fix` and `npm run test:ci` before pushing code to remote, if any test fails it must be fixed
-- **Before pushing commits to remote the following commands must pass with no errors**
+- Always run `npm run lint:fix` and `npm run test:ci` before pushing code to
+  remote, if any test fails it must be fixed
+- **Before pushing commits to remote the following commands must pass with no
+  errors**
   - npm run lint:fix
   - npm run test:ci
   - npm run build
 - if any errors exist in the commands above they must be fixed
 
-This codebase follows modern full-stack patterns with proper separation of concerns, comprehensive testing, and production-ready security implementations.
+This codebase follows modern full-stack patterns with proper separation of
+concerns, comprehensive testing, and production-ready security implementations.
