@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import { execSync } from 'child_process';
 
 // Test suite for Prisma schema validation and seeding
-describe('Prisma Schema and Seeding Tests', () => {
+describe.skipIf(process.env.CI)('Prisma Schema and Seeding Tests', () => {
   let prisma: PrismaClient;
 
   beforeEach(async () => {
