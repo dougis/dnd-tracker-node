@@ -63,15 +63,7 @@ export class EncounterService {
         turn: 0,
         isActive: false,
       },
-      include: {
-        participants: {
-          include: {
-            character: true,
-            creature: true,
-          },
-        },
-        lairActions: true,
-      },
+      include: this.getEncounterInclude(),
     });
   }
 
@@ -81,15 +73,7 @@ export class EncounterService {
   async getEncounterById(encounterId: string): Promise<EncounterWithDetails | null> {
     return this.prisma.encounter.findUnique({
       where: { id: encounterId },
-      include: {
-        participants: {
-          include: {
-            character: true,
-            creature: true,
-          },
-        },
-        lairActions: true,
-      },
+      include: this.getEncounterInclude(),
     });
   }
 
@@ -99,15 +83,7 @@ export class EncounterService {
   async getUserEncounters(userId: string): Promise<EncounterWithDetails[]> {
     return this.prisma.encounter.findMany({
       where: { userId },
-      include: {
-        participants: {
-          include: {
-            character: true,
-            creature: true,
-          },
-        },
-        lairActions: true,
-      },
+      include: this.getEncounterInclude(),
       orderBy: { updatedAt: 'desc' },
     });
   }
@@ -182,15 +158,7 @@ export class EncounterService {
     return this.prisma.encounter.update({
       where: { id: encounterId },
       data: updateData,
-      include: {
-        participants: {
-          include: {
-            character: true,
-            creature: true,
-          },
-        },
-        lairActions: true,
-      },
+      include: this.getEncounterInclude(),
     });
   }
 
@@ -198,19 +166,7 @@ export class EncounterService {
    * Delete encounter
    */
   async deleteEncounter(encounterId: string, userId: string): Promise<void> {
-    // Verify ownership
-    const encounter = await this.prisma.encounter.findUnique({
-      where: { id: encounterId },
-      select: { userId: true },
-    });
-
-    if (!encounter) {
-      throw new Error('Encounter not found');
-    }
-
-    if (encounter.userId !== userId) {
-      throw new Error('Not authorized to delete this encounter');
-    }
+    await this.verifyEncounterOwnership(encounterId, userId);
 
     await this.prisma.encounter.delete({
       where: { id: encounterId },
@@ -280,6 +236,21 @@ export class EncounterService {
   }
 
   /**
+   * Get standard encounter include pattern
+   */
+  private getEncounterInclude() {
+    return {
+      participants: {
+        include: {
+          character: true,
+          creature: true,
+        },
+      },
+      lairActions: true,
+    };
+  }
+
+  /**
    * Start combat for encounter
    */
   async startCombat(encounterId: string, userId: string): Promise<EncounterWithDetails> {
@@ -303,15 +274,7 @@ export class EncounterService {
         round: 1,
         turn: 0,
       },
-      include: {
-        participants: {
-          include: {
-            character: true,
-            creature: true,
-          },
-        },
-        lairActions: true,
-      },
+      include: this.getEncounterInclude(),
     });
   }
 
@@ -327,16 +290,54 @@ export class EncounterService {
         status: 'COMPLETED',
         isActive: false,
       },
-      include: {
-        participants: {
-          include: {
-            character: true,
-            creature: true,
-          },
-        },
-        lairActions: true,
-      },
+      include: this.getEncounterInclude(),
     });
+  }
+
+  /**
+   * Validate participant belongs to encounter
+   */
+  private async validateParticipantBelongsToEncounter(participantId: string, encounterId: string): Promise<any> {
+    const participant = await this.prisma.participant.findUnique({
+      where: { id: participantId },
+    });
+
+    if (!participant) {
+      throw new Error('Participant not found');
+    }
+
+    if (participant.encounterId !== encounterId) {
+      throw new Error('Participant does not belong to this encounter');
+    }
+
+    return participant;
+  }
+
+  /**
+   * Calculate new HP based on damage/healing data
+   */
+  private calculateNewHp(currentHp: number, maxHp: number, hpData: {
+    currentHp?: number;
+    damage?: number;
+    healing?: number;
+  }): number {
+    let newCurrentHp = currentHp;
+
+    // Apply damage or healing
+    if (hpData.damage !== undefined) {
+      newCurrentHp = Math.max(0, newCurrentHp - hpData.damage);
+    }
+
+    if (hpData.healing !== undefined) {
+      newCurrentHp = Math.min(maxHp, newCurrentHp + hpData.healing);
+    }
+
+    // Direct HP set overrides calculations
+    if (hpData.currentHp !== undefined) {
+      newCurrentHp = Math.max(0, Math.min(maxHp, hpData.currentHp));
+    }
+
+    return newCurrentHp;
   }
 
   /**
@@ -353,48 +354,10 @@ export class EncounterService {
       healing?: number;
     }
   ): Promise<EncounterWithDetails> {
-    // Verify encounter ownership
-    const encounter = await this.prisma.encounter.findUnique({
-      where: { id: encounterId },
-      select: { userId: true },
-    });
+    await this.verifyEncounterOwnership(encounterId, userId);
+    const participant = await this.validateParticipantBelongsToEncounter(participantId, encounterId);
 
-    if (!encounter) {
-      throw new Error('Encounter not found');
-    }
-
-    if (encounter.userId !== userId) {
-      throw new Error('Not authorized to modify this encounter');
-    }
-
-    // Get current participant data
-    const participant = await this.prisma.participant.findUnique({
-      where: { id: participantId },
-    });
-
-    if (!participant) {
-      throw new Error('Participant not found');
-    }
-
-    if (participant.encounterId !== encounterId) {
-      throw new Error('Participant does not belong to this encounter');
-    }
-
-    let newCurrentHp = participant.currentHp;
-
-    // Apply damage or healing
-    if (hpData.damage !== undefined) {
-      newCurrentHp = Math.max(0, newCurrentHp - hpData.damage);
-    }
-
-    if (hpData.healing !== undefined) {
-      newCurrentHp = Math.min(participant.maxHp, newCurrentHp + hpData.healing);
-    }
-
-    // Direct HP set overrides calculations
-    if (hpData.currentHp !== undefined) {
-      newCurrentHp = Math.max(0, Math.min(participant.maxHp, hpData.currentHp));
-    }
+    const newCurrentHp = this.calculateNewHp(participant.currentHp, participant.maxHp, hpData);
 
     // Update participant
     await this.prisma.participant.update({
