@@ -26,7 +26,7 @@ for (const pkg of packages) {
     }
 
     // Run ESLint on the package
-    const result = execSync(`npm run lint --workspace=@dnd-tracker/${path.basename(pkg)}`, { 
+    execSync(`npm run lint --workspace=@dnd-tracker/${path.basename(pkg)}`, { 
       encoding: 'utf8',
       cwd: process.cwd()
     });
