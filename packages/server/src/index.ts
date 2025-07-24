@@ -5,6 +5,7 @@ import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import { createServer } from 'http';
 import { authRoutes } from './auth/routes';
+import { encounterRoutes } from './encounters/routes';
 
 const app = express();
 const server = createServer(app);
@@ -34,6 +35,9 @@ app.get('/api/test', (req, res) => {
 
 // Authentication routes
 app.use('/api/auth', authRoutes);
+
+// Encounter routes
+app.use('/api/encounters', encounterRoutes);
 
 // Global error handler
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
