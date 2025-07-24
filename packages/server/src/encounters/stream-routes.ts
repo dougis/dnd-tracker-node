@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
-import { param, validationResult } from 'express-validator';
+import { param } from 'express-validator';
 import { requireAuth } from '../auth/middleware';
-import { encounterService, tierBasedRateLimit, writeSSEData } from './utils';
+import { encounterService, tierBasedRateLimit, writeSSEData, handleValidationErrors } from './utils';
 
 const router = Router();
 
@@ -15,16 +15,7 @@ router.get('/:id/stream', tierBasedRateLimit, requireAuth, [
     .withMessage('Invalid encounter ID format')
 ], async (req: Request, res: Response): Promise<void> => {
   try {
-    // Check validation results
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-        errors: errors.array()
-      });
-      return;
-    }
+    if (!handleValidationErrors(req, res)) return;
 
     const { id } = req.params;
     const userId = req.user!.id;

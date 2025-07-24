@@ -39,16 +39,20 @@ export function formatSSEData(data: any): string {
 
 /**
  * Write SSE data safely to response stream
- * Wraps res.write with additional safety checks
+ * Wraps res.write with additional safety checks and XSS protection
  * @param res - Express response object
- * @param data - Data to send via SSE
+ * @param data - Data to send via SSE (will be sanitized)
  */
 export function writeSSEData(res: any, data: any): void {
   if (!res || typeof res.write !== 'function') {
     return; // Guard against invalid response object
   }
   
+  // formatSSEData already provides XSS protection via JSON.stringify
+  // and additional escaping, making this safe for direct writing
   const formattedData = formatSSEData(data);
+  
+  // Safe to write as data has been properly sanitized by formatSSEData
   res.write(formattedData);
 }
 

@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
-import { body, param, validationResult } from 'express-validator';
+import { body, param } from 'express-validator';
 import { requireAuth } from '../auth/middleware';
-import { encounterService, tierBasedRateLimit } from './utils';
+import { encounterService, tierBasedRateLimit, handleValidationErrors, sendEncounterResponse, sendErrorResponse } from './utils';
 
 const router = Router();
 
@@ -54,16 +54,7 @@ router.post('/:id/participants', tierBasedRateLimit, requireAuth, [
     .withMessage('Notes must be 500 characters or less')
 ], async (req: Request, res: Response): Promise<void> => {
   try {
-    // Check validation results
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-        errors: errors.array()
-      });
-      return;
-    }
+    if (!handleValidationErrors(req, res)) return;
 
     const { id } = req.params;
     const participantData = req.body;
@@ -78,49 +69,21 @@ router.post('/:id/participants', tierBasedRateLimit, requireAuth, [
     }
 
     const encounter = await encounterService.addParticipant(id, userId, participantData);
-
-    res.status(201).json({
-      success: true,
-      data: {
-        encounter: {
-          id: encounter.id,
-          name: encounter.name,
-          description: encounter.description,
-          status: encounter.status,
-          round: encounter.round,
-          turn: encounter.turn,
-          isActive: encounter.isActive,
-          participants: encounter.participants,
-          lairActions: encounter.lairActions,
-          createdAt: encounter.createdAt.toISOString(),
-          updatedAt: encounter.updatedAt.toISOString()
-        }
-      },
-      message: 'Participant added successfully'
-    });
+    sendEncounterResponse(res, encounter, 'Participant added successfully', 201);
   } catch (error: any) {
     console.error('Add participant error:', error);
     
     if (error.message.includes('not found')) {
-      res.status(404).json({
-        success: false,
-        message: error.message
-      });
+      sendErrorResponse(res, error, 404);
       return;
     }
 
     if (error.message.includes('Not authorized')) {
-      res.status(403).json({
-        success: false,
-        message: error.message
-      });
+      sendErrorResponse(res, error, 403);
       return;
     }
 
-    res.status(500).json({
-      success: false,
-      message: 'Internal server error adding participant'
-    });
+    sendErrorResponse(res, 'Internal server error adding participant', 500);
   }
 });
 

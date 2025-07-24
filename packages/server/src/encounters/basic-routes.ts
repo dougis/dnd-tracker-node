@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
-import { body, param, validationResult } from 'express-validator';
+import { body, param } from 'express-validator';
 import { requireAuth } from '../auth/middleware';
-import { encounterService, tierBasedRateLimit, sendEncounterResponse, sendErrorResponse } from './utils';
+import { encounterService, tierBasedRateLimit, sendEncounterResponse, sendErrorResponse, handleValidationErrors } from './utils';
 
 const router = Router();
 
@@ -21,16 +21,7 @@ router.post('/', tierBasedRateLimit, requireAuth, [
     .withMessage('Description must be 1000 characters or less')
 ], async (req: Request, res: Response): Promise<void> => {
   try {
-    // Check validation results
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-        errors: errors.array()
-      });
-      return;
-    }
+    if (!handleValidationErrors(req, res)) return;
 
     const { name, description } = req.body;
     const userId = req.user!.id;
@@ -96,16 +87,7 @@ router.get('/:id', tierBasedRateLimit, requireAuth, [
     .withMessage('Invalid encounter ID format')
 ], async (req: Request, res: Response): Promise<void> => {
   try {
-    // Check validation results
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-        errors: errors.array()
-      });
-      return;
-    }
+    if (!handleValidationErrors(req, res)) return;
 
     const { id } = req.params;
     const userId = req.user!.id;
@@ -188,16 +170,7 @@ router.put('/:id', tierBasedRateLimit, requireAuth, [
     .withMessage('Invalid status')
 ], async (req: Request, res: Response): Promise<void> => {
   try {
-    // Check validation results
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-        errors: errors.array()
-      });
-      return;
-    }
+    if (!handleValidationErrors(req, res)) return;
 
     const { id } = req.params;
     const { name, description, status } = req.body;
@@ -276,16 +249,7 @@ router.delete('/:id', tierBasedRateLimit, requireAuth, [
     .withMessage('Invalid encounter ID format')
 ], async (req: Request, res: Response): Promise<void> => {
   try {
-    // Check validation results
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-        errors: errors.array()
-      });
-      return;
-    }
+    if (!handleValidationErrors(req, res)) return;
 
     const { id } = req.params;
     const userId = req.user!.id;
