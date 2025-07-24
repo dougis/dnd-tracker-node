@@ -1,128 +1,48 @@
 import { vi } from 'vitest';
 
-// Mock Prisma Client globally
-vi.mock('@prisma/client', () => ({
-  PrismaClient: vi.fn(() => ({
-    user: {
-      create: vi.fn(),
-      findUnique: vi.fn(),
-      findMany: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
-      deleteMany: vi.fn(),
-      count: vi.fn()
-    },
-    session: {
-      create: vi.fn(),
-      findUnique: vi.fn(),
-      findMany: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
-      deleteMany: vi.fn(),
-      count: vi.fn()
-    },
-    encounter: {
-      create: vi.fn(),
-      findUnique: vi.fn(),
-      findMany: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
-      deleteMany: vi.fn(),
-      count: vi.fn()
-    },
-    participant: {
-      create: vi.fn(),
-      findUnique: vi.fn(),
-      findMany: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
-      deleteMany: vi.fn(),
-      count: vi.fn()
-    },
-    character: {
-      create: vi.fn(),
-      findUnique: vi.fn(),
-      findMany: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
-      deleteMany: vi.fn(),
-      count: vi.fn()
-    },
-    creature: {
-      create: vi.fn(),
-      findUnique: vi.fn(),
-      findMany: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
-      deleteMany: vi.fn(),
-      count: vi.fn()
-    },
-    party: {
-      create: vi.fn(),
-      findUnique: vi.fn(),
-      findMany: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
-      deleteMany: vi.fn(),
-      count: vi.fn()
-    },
-    lairAction: {
-      create: vi.fn(),
-      findUnique: vi.fn(),
-      findMany: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
-      deleteMany: vi.fn(),
-      count: vi.fn()
-    },
-    combatLog: {
-      create: vi.fn(),
-      findUnique: vi.fn(),
-      findMany: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
-      deleteMany: vi.fn(),
-      count: vi.fn()
-    },
-    subscription: {
-      create: vi.fn(),
-      findUnique: vi.fn(),
-      findMany: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
-      deleteMany: vi.fn(),
-      count: vi.fn()
-    },
-    usage: {
-      create: vi.fn(),
-      findUnique: vi.fn(),
-      findMany: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
-      deleteMany: vi.fn(),
-      count: vi.fn()
-    },
-    processedEvent: {
-      create: vi.fn(),
-      findUnique: vi.fn(),
-      findMany: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
-      deleteMany: vi.fn(),
-      count: vi.fn()
-    },
-    payment: {
-      create: vi.fn(),
-      findUnique: vi.fn(),
-      findMany: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
-      deleteMany: vi.fn(),
-      count: vi.fn()
-    },
+/**
+ * Create standard CRUD mock methods for a Prisma model
+ * @returns Object with standard Prisma model methods
+ */
+function createModelMock() {
+  return {
+    create: vi.fn(),
+    findUnique: vi.fn(),
+    findMany: vi.fn(),
+    update: vi.fn(),
+    delete: vi.fn(),
+    deleteMany: vi.fn(),
+    count: vi.fn()
+  };
+}
+
+/**
+ * Generate mock Prisma client with all models
+ * @returns Mock Prisma client
+ */
+function createPrismaClientMock() {
+  const models = [
+    'user', 'session', 'encounter', 'participant', 'character', 
+    'creature', 'party', 'lairAction', 'combatLog', 'subscription', 
+    'usage', 'processedEvent', 'payment'
+  ];
+
+  const mockClient: any = {
     $disconnect: vi.fn(),
     $connect: vi.fn()
-  })),
+  };
+
+  // Add all models with standard CRUD methods
+  models.forEach(model => {
+    mockClient[model] = createModelMock();
+  });
+
+  return mockClient;
+}
+
+// Mock Prisma Client globally
+vi.mock('@prisma/client', () => ({
+  PrismaClient: vi.fn(() => createPrismaClientMock()),
   SubscriptionTier: {
     FREE: 'FREE',
     BASIC: 'BASIC',

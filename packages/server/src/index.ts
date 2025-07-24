@@ -5,7 +5,7 @@ import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import { createServer } from 'http';
 import { authRoutes } from './auth/routes';
-import { encounterRoutes } from './encounters/routes';
+import encounterRoutes from './encounters';
 import { validateProductionEnvironment } from './startup/checks';
 
 const app = express();

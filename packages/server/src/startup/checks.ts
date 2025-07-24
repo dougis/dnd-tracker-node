@@ -18,11 +18,10 @@ export interface ValidationResult {
 }
 
 /**
- * Check Redis connection in production environment
- * @returns Promise<CheckResult> - Result of the Redis connection check
+ * Validate Redis configuration for production environment
+ * @returns CheckResult - Result of the configuration validation
  */
-export async function checkRedisConnection(): Promise<CheckResult> {
-  // Skip Redis check in non-production environments
+function validateRedisConfiguration(): CheckResult {
   if (process.env.NODE_ENV !== 'production') {
     return {
       success: true,
@@ -39,21 +38,83 @@ export async function checkRedisConnection(): Promise<CheckResult> {
     };
   }
 
+  return { success: true, message: 'Redis configuration valid' };
+}
+
+/**
+ * Create and configure Redis client
+ * @returns Redis client instance
+ */
+function createRedisClient() {
+  return createClient({
+    url: process.env.REDIS_URL!,
+    password: process.env.REDIS_PASSWORD || 'redispassword'
+  });
+}
+
+/**
+ * Attempt to disconnect Redis client safely
+ * @param client - Redis client to disconnect
+ */
+async function safeDisconnect(client: any): Promise<void> {
+  if (client) {
+    try {
+      await client.disconnect();
+    } catch (disconnectError) {
+      console.warn('Warning: Failed to disconnect Redis client:', disconnectError);
+    }
+  }
+}
+
+/**
+ * Handle Redis connection errors with appropriate messaging
+ * @param error - The error that occurred
+ * @param client - The Redis client (may be null)
+ * @param isConnected - Whether connection was established
+ * @returns CheckResult with appropriate error message
+ */
+function handleRedisError(error: any, client: any, isConnected: boolean): CheckResult {
+  const errorMessage = error.message || 'Unknown error';
+  
+  if (!client) {
+    return {
+      success: false,
+      message: `Failed to create Redis client: ${errorMessage}`
+    };
+  }
+
+  if (isConnected) {
+    return {
+      success: false,
+      message: `Redis ping failed: ${errorMessage}`
+    };
+  }
+
+  return {
+    success: false,
+    message: `Failed to connect to Redis: ${errorMessage}`
+  };
+}
+
+/**
+ * Check Redis connection in production environment
+ * @returns Promise<CheckResult> - Result of the Redis connection check
+ */
+export async function checkRedisConnection(): Promise<CheckResult> {
+  // Validate configuration first
+  const configCheck = validateRedisConfiguration();
+  if (!configCheck.success) {
+    return configCheck;
+  }
+
   let client = null;
   let isConnected = false;
   
   try {
-    // Create Redis client
-    client = createClient({
-      url: redisUrl,
-      password: process.env.REDIS_PASSWORD || 'redispassword'
-    });
-
-    // Connect to Redis
+    client = createRedisClient();
     await client.connect();
     isConnected = true;
     
-    // Test the connection with ping
     await client.ping();
     
     console.log('✅ Redis connection successful');
@@ -63,36 +124,9 @@ export async function checkRedisConnection(): Promise<CheckResult> {
       message: 'Redis connection successful'
     };
   } catch (error: any) {
-    const errorMessage = error.message || 'Unknown error';
-    
-    if (!client) {
-      return {
-        success: false,
-        message: `Failed to create Redis client: ${errorMessage}`
-      };
-    }
-
-    // If we connected successfully but ping failed, it's a ping issue
-    if (isConnected) {
-      return {
-        success: false,
-        message: `Redis ping failed: ${errorMessage}`
-      };
-    }
-
-    return {
-      success: false,
-      message: `Failed to connect to Redis: ${errorMessage}`
-    };
+    return handleRedisError(error, client, isConnected);
   } finally {
-    // Always attempt to close the connection
-    if (client) {
-      try {
-        await client.disconnect();
-      } catch (disconnectError) {
-        console.warn('Warning: Failed to disconnect Redis client:', disconnectError);
-      }
-    }
+    await safeDisconnect(client);
   }
 }
 

@@ -18,6 +18,7 @@ This is a D&D Encounter Tracker - a Node.js/React full-stack web application for
 ## Technology Stack
 
 **Backend (packages/server):**
+
 - Express.js with TypeScript and ES modules
 - MongoDB with Prisma ORM (not Mongoose)
 - Session-based authentication with Argon2 password hashing
@@ -26,6 +27,7 @@ This is a D&D Encounter Tracker - a Node.js/React full-stack web application for
 - Production security middleware stack
 
 **Frontend (packages/client):**
+
 - React 18 with TypeScript
 - TanStack Router for routing
 - TanStack Query for server state management
@@ -35,6 +37,7 @@ This is a D&D Encounter Tracker - a Node.js/React full-stack web application for
 - Vite for build tooling
 
 **Shared (packages/shared):**
+
 - Common types and Zod validation schemas
 - Shared between client and server packages
 
@@ -70,28 +73,33 @@ npm test -- --testPathPatterns="ServiceName.test.ts"
 ## Architecture Overview
 
 ### Monorepo Structure
+
 - **npm workspaces** manage three packages: server, client, shared
 - Shared package contains common types and Zod schemas
 - TypeScript ES modules throughout with proper import/export
 
 ### Service Layer Pattern
+
 - **Dependency injection** - Services receive PrismaClient in constructor
 - **UserService** - User CRUD, profile management, statistics
 - **AuthService** - Registration, login, session management, account lockout
 - **EncounterService** - Combat encounter management with participants
 
 ### Authentication Architecture
+
 - **Session-based auth** with secure HTTP-only cookies
 - **Account lockout** after failed login attempts
 - **Argon2** password hashing (not bcrypt)
 - **Session validation middleware** for protected routes
 
 ### Database Layer
+
 - **Prisma ORM** with MongoDB (not Mongoose)
 - Models: User, UserStats, Session, Character, Encounter, Participant
 - Proper relationships with include patterns for data fetching
 
 ### Rate Limiting System
+
 - **Redis backend** for distributed rate limiting
 - **Tier-based limits** - Different limits per user subscription tier
 - **Route-specific limits** - Login, registration, and general API limits
@@ -99,12 +107,14 @@ npm test -- --testPathPatterns="ServiceName.test.ts"
 ## Testing Patterns
 
 ### Vitest Configuration
+
 - **Mock Prisma clients** with vi.fn() for database operations
 - **Service dependency injection** enables easy mocking in tests
 - **beforeEach/afterEach** with vi.clearAllMocks() and vi.resetAllMocks()
 - **Coverage reporting** with @vitest/coverage-v8
 
 ### Mock Patterns
+
 ```typescript
 // Service mocking pattern
 const mockPrisma = {
@@ -119,6 +129,7 @@ const userService = new UserService(mockPrisma);
 ```
 
 ### Frontend Testing
+
 - **React Testing Library** with jsdom environment
 - **User event testing** with @testing-library/user-event
 - **Component integration tests** rather than unit tests

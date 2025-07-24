@@ -35,7 +35,7 @@ vi.mock('helmet', () => ({ default: vi.fn() }));
 vi.mock('compression', () => ({ default: vi.fn() }));
 vi.mock('cookie-parser', () => ({ default: vi.fn() }));
 vi.mock('../auth/routes', () => ({ authRoutes: {} }));
-vi.mock('../encounters/routes', () => ({ encounterRoutes: {} }));
+vi.mock('../encounters', () => ({ default: {} }));
 
 describe('Server Startup', () => {
   const originalEnv = process.env;
