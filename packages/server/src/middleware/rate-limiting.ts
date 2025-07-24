@@ -14,11 +14,10 @@ interface UserTier {
   tier: 'free' | 'basic' | 'premium' | 'pro' | 'enterprise';
 }
 
-declare global {
-  namespace Express {
-    interface Request {
-      user?: UserTier;
-    }
+// Extend Express Request interface
+declare module 'express-serve-static-core' {
+  interface Request {
+    user?: UserTier;
   }
 }
 
