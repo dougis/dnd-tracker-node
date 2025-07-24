@@ -4,6 +4,6 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
-    include: ['config.test.js'],
+    include: ['config.test.js', 'github-actions-coverage.test.js'],
   },
 });
