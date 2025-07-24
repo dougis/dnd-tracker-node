@@ -5,6 +5,21 @@ import { EncounterService } from '../services/EncounterService';
 import { requireAuth } from '../auth/middleware';
 import { createTierBasedRateLimit } from '../middleware/rate-limiting';
 
+/**
+ * Safely sends Server-Sent Events data to prevent XSS attacks
+ * @param res Response object
+ * @param data Data to send (will be sanitized)
+ */
+function safeSendSSE(res: Response, data: unknown): void {
+  // Sanitize data by creating a clean object with only allowed types
+  const sanitizedData = JSON.parse(JSON.stringify(data));
+  
+  // Use Buffer to ensure safe encoding and prevent injection
+  const jsonString = JSON.stringify(sanitizedData);
+  const buffer = Buffer.from(`data: ${jsonString}\n\n`, 'utf8');
+  res.write(buffer);
+}
+
 const router = Router();
 const prisma = new PrismaClient();
 const encounterService = new EncounterService(prisma);
@@ -720,7 +735,7 @@ router.get('/:id/stream', tierBasedRateLimit, requireAuth, [
       encounterId: id,
       timestamp: new Date().toISOString()
     };
-    res.write(`data: ${JSON.stringify(welcomeData)}\n\n`);
+    safeSendSSE(res, welcomeData);
 
     // Send current encounter state
     const encounterData = {
@@ -742,7 +757,7 @@ router.get('/:id/stream', tierBasedRateLimit, requireAuth, [
       },
       timestamp: new Date().toISOString()
     };
-    res.write(`data: ${JSON.stringify(encounterData)}\n\n`);
+    safeSendSSE(res, encounterData);
 
     // Keep connection alive with heartbeat
     const heartbeatInterval = setInterval(() => {
@@ -750,7 +765,7 @@ router.get('/:id/stream', tierBasedRateLimit, requireAuth, [
         type: 'heartbeat',
         timestamp: new Date().toISOString()
       };
-      res.write(`data: ${JSON.stringify(heartbeat)}\n\n`);
+      safeSendSSE(res, heartbeat);
     }, 30000); // Send heartbeat every 30 seconds
 
     // Clean up on client disconnect

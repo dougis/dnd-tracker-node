@@ -113,18 +113,9 @@ export class EncounterService {
   }
 
   /**
-   * Update encounter basic information
+   * Validates encounter update data
    */
-  async updateEncounter(
-    encounterId: string,
-    userId: string,
-    data: {
-      name?: string;
-      description?: string;
-      status?: EncounterStatus;
-    }
-  ): Promise<EncounterWithDetails> {
-    // Validation
+  private validateEncounterUpdateData(data: { name?: string; description?: string; status?: EncounterStatus }): void {
     if (data.name !== undefined) {
       if (!data.name || data.name.trim().length === 0) {
         throw new Error('Encounter name is required');
@@ -133,8 +124,12 @@ export class EncounterService {
         throw new Error('Encounter name must be 100 characters or less');
       }
     }
+  }
 
-    // Verify ownership
+  /**
+   * Verifies encounter ownership
+   */
+  private async verifyEncounterOwnership(encounterId: string, userId: string): Promise<void> {
     const encounter = await this.prisma.encounter.findUnique({
       where: { id: encounterId },
       select: { userId: true },
@@ -147,7 +142,12 @@ export class EncounterService {
     if (encounter.userId !== userId) {
       throw new Error('Not authorized to modify this encounter');
     }
+  }
 
+  /**
+   * Builds update data object
+   */
+  private buildUpdateData(data: { name?: string; description?: string; status?: EncounterStatus }): any {
     const updateData: any = {};
     if (data.name !== undefined) {
       updateData.name = data.name.trim();
@@ -158,6 +158,24 @@ export class EncounterService {
     if (data.status !== undefined) {
       updateData.status = data.status;
     }
+    return updateData;
+  }
+
+  /**
+   * Update encounter basic information
+   */
+  async updateEncounter(
+    encounterId: string,
+    userId: string,
+    data: {
+      name?: string;
+      description?: string;
+      status?: EncounterStatus;
+    }
+  ): Promise<EncounterWithDetails> {
+    this.validateEncounterUpdateData(data);
+    await this.verifyEncounterOwnership(encounterId, userId);
+    const updateData = this.buildUpdateData(data);
 
     return this.prisma.encounter.update({
       where: { id: encounterId },
@@ -178,19 +196,7 @@ export class EncounterService {
    * Delete encounter
    */
   async deleteEncounter(encounterId: string, userId: string): Promise<void> {
-    // Verify ownership
-    const encounter = await this.prisma.encounter.findUnique({
-      where: { id: encounterId },
-      select: { userId: true },
-    });
-
-    if (!encounter) {
-      throw new Error('Encounter not found');
-    }
-
-    if (encounter.userId !== userId) {
-      throw new Error('Not authorized to delete this encounter');
-    }
+    await this.verifyEncounterOwnership(encounterId, userId);
 
     await this.prisma.encounter.delete({
       where: { id: encounterId },
@@ -205,19 +211,7 @@ export class EncounterService {
     userId: string,
     participantData: ParticipantCreateData
   ): Promise<EncounterWithDetails> {
-    // Verify encounter ownership
-    const encounter = await this.prisma.encounter.findUnique({
-      where: { id: encounterId },
-      select: { userId: true },
-    });
-
-    if (!encounter) {
-      throw new Error('Encounter not found');
-    }
-
-    if (encounter.userId !== userId) {
-      throw new Error('Not authorized to modify this encounter');
-    }
+    await this.verifyEncounterOwnership(encounterId, userId);
 
     // Add participant
     await this.prisma.participant.create({
