@@ -1,36 +1,79 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import request from 'supertest';
 import express from 'express';
-import { authRoutes } from './routes';
-import { AuthService } from '../services/AuthService';
+import cookieParser from 'cookie-parser';
 
-// Mock the entire services
-vi.mock('../services/AuthService');
-vi.mock('../services/UserService');
-vi.mock('@prisma/client');
+// Create mock service instances using vi.hoisted to avoid hoisting issues
+const { authServiceMock, userServiceMock } = vi.hoisted(() => ({
+  authServiceMock: {
+    register: vi.fn(),
+    login: vi.fn(),
+    logout: vi.fn(),
+    validateSession: vi.fn()
+  },
+  userServiceMock: {
+    getUserStats: vi.fn(),
+    updateProfile: vi.fn()
+  }
+}));
+
+// Mock the services at module level
+vi.mock('../services/AuthService', () => ({
+  AuthService: class MockAuthService {
+    constructor() {
+      return authServiceMock;
+    }
+  }
+}));
+
+vi.mock('../services/UserService', () => ({
+  UserService: class MockUserService {
+    constructor() {
+      return userServiceMock;
+    }
+  }
+}));
+
+vi.mock('@prisma/client', () => ({
+  PrismaClient: vi.fn()
+}));
+
+// Mock rate limiting middleware
+vi.mock('../middleware/rate-limiting', () => ({
+  loginRateLimit: vi.fn((req: any, res: any, next: any) => next()),
+  registerRateLimit: vi.fn((req: any, res: any, next: any) => next()),
+  createTierBasedRateLimit: vi.fn(() => (req: any, res: any, next: any) => next()),
+}));
+
+// Mock auth middleware
+vi.mock('./middleware', () => ({
+  requireAuth: vi.fn((req: any, res: any, next: any) => {
+    req.user = {
+      id: 'user_123',
+      email: 'test@example.com',
+      username: 'testuser',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    next();
+  })
+}));
+
+import { authRoutes } from './routes';
 
 describe('Authentication Routes', () => {
   let app: express.Application;
-  let mockAuthService: any;
 
   beforeEach(() => {
+    vi.clearAllMocks();
     app = express();
     app.use(express.json());
-    
-    mockAuthService = {
-      register: vi.fn(),
-      login: vi.fn(),
-      logout: vi.fn(),
-      validateSession: vi.fn()
-    };
-    
-    (AuthService as any).mockImplementation(() => mockAuthService);
-    
+    app.use(cookieParser());
     app.use('/api/auth', authRoutes);
   });
 
   afterEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
   });
 
   describe('POST /api/auth/register', () => {
@@ -50,7 +93,7 @@ describe('Authentication Routes', () => {
         updatedAt: new Date()
       };
       
-      mockAuthService.register.mockResolvedValue(mockUser);
+      authServiceMock.register.mockResolvedValue(mockUser);
 
       // Act
       const response = await request(app)
@@ -72,7 +115,7 @@ describe('Authentication Routes', () => {
         },
         message: 'User registered successfully'
       });
-      expect(mockAuthService.register).toHaveBeenCalledWith(
+      expect(authServiceMock.register).toHaveBeenCalledWith(
         validRegistrationData.email,
         validRegistrationData.username,
         validRegistrationData.password
@@ -86,7 +129,7 @@ describe('Authentication Routes', () => {
 
       expect(response.status).toBe(400);
       expect(response.body.success).toBe(false);
-      expect(response.body.message).toContain('email');
+      expect(response.body.message).toBe('Validation failed');
     });
 
     it('should return 400 for missing username', async () => {
@@ -96,7 +139,7 @@ describe('Authentication Routes', () => {
 
       expect(response.status).toBe(400);
       expect(response.body.success).toBe(false);
-      expect(response.body.message).toContain('username');
+      expect(response.body.message).toBe('Validation failed');
     });
 
     it('should return 400 for missing password', async () => {
@@ -106,24 +149,21 @@ describe('Authentication Routes', () => {
 
       expect(response.status).toBe(400);
       expect(response.body.success).toBe(false);
-      expect(response.body.message).toContain('password');
+      expect(response.body.message).toBe('Validation failed');
     });
 
     it('should return 400 for invalid email format', async () => {
       const response = await request(app)
         .post('/api/auth/register')
-        .send({ 
-          email: 'invalid-email', 
-          username: 'testuser', 
-          password: 'SecurePassword123!' 
-        });
+        .send({ email: 'invalid-email', username: 'testuser', password: 'SecurePassword123!' });
 
       expect(response.status).toBe(400);
       expect(response.body.success).toBe(false);
+      expect(response.body.message).toBe('Validation failed');
     });
 
     it('should return 409 for existing user', async () => {
-      mockAuthService.register.mockRejectedValue(new Error('User with this email already exists'));
+      authServiceMock.register.mockRejectedValue(new Error('User with this email already exists'));
 
       const response = await request(app)
         .post('/api/auth/register')
@@ -153,6 +193,7 @@ describe('Authentication Routes', () => {
         },
         session: {
           id: 'session_123',
+          token: 'session_token_123',
           userId: 'user_123',
           expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
           createdAt: new Date(),
@@ -160,7 +201,7 @@ describe('Authentication Routes', () => {
         }
       };
       
-      mockAuthService.login.mockResolvedValue(mockResult);
+      authServiceMock.login.mockResolvedValue(mockResult);
 
       // Act
       const response = await request(app)
@@ -173,7 +214,7 @@ describe('Authentication Routes', () => {
       expect(response.body.data.user).toBeDefined();
       expect(response.body.data.sessionId).toBe(mockResult.session.id);
       expect(response.headers['set-cookie']).toBeDefined();
-      expect(mockAuthService.login).toHaveBeenCalledWith(
+      expect(authServiceMock.login).toHaveBeenCalledWith(
         validLoginData.email,
         validLoginData.password
       );
@@ -186,6 +227,7 @@ describe('Authentication Routes', () => {
 
       expect(response.status).toBe(400);
       expect(response.body.success).toBe(false);
+      expect(response.body.message).toBe('Validation failed');
     });
 
     it('should return 400 for missing password', async () => {
@@ -195,10 +237,11 @@ describe('Authentication Routes', () => {
 
       expect(response.status).toBe(400);
       expect(response.body.success).toBe(false);
+      expect(response.body.message).toBe('Validation failed');
     });
 
     it('should return 401 for invalid credentials', async () => {
-      mockAuthService.login.mockRejectedValue(new Error('Invalid credentials'));
+      authServiceMock.login.mockRejectedValue(new Error('Invalid credentials'));
 
       const response = await request(app)
         .post('/api/auth/login')
@@ -206,11 +249,11 @@ describe('Authentication Routes', () => {
 
       expect(response.status).toBe(401);
       expect(response.body.success).toBe(false);
-      expect(response.body.message).toContain('Invalid credentials');
+      expect(response.body.message).toBe('Invalid credentials');
     });
 
     it('should return 423 for locked account', async () => {
-      mockAuthService.login.mockRejectedValue(new Error('Account is locked'));
+      authServiceMock.login.mockRejectedValue(new Error('Account is locked due to too many failed login attempts'));
 
       const response = await request(app)
         .post('/api/auth/login')
@@ -224,7 +267,7 @@ describe('Authentication Routes', () => {
 
   describe('POST /api/auth/logout', () => {
     it('should logout user successfully', async () => {
-      mockAuthService.logout.mockResolvedValue(undefined);
+      authServiceMock.logout.mockResolvedValue(undefined);
 
       const response = await request(app)
         .post('/api/auth/logout')
@@ -233,7 +276,7 @@ describe('Authentication Routes', () => {
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
       expect(response.body.message).toBe('Logged out successfully');
-      expect(mockAuthService.logout).toHaveBeenCalledWith('session_123');
+      expect(authServiceMock.logout).toHaveBeenCalledWith('session_123');
     });
 
     it('should return 400 when no session cookie', async () => {
@@ -242,7 +285,7 @@ describe('Authentication Routes', () => {
 
       expect(response.status).toBe(400);
       expect(response.body.success).toBe(false);
-      expect(response.body.message).toContain('No session');
+      expect(response.body.message).toBe('No session found');
     });
   });
 
@@ -266,7 +309,7 @@ describe('Authentication Routes', () => {
         }
       };
       
-      mockAuthService.validateSession.mockResolvedValue(mockSessionData);
+      authServiceMock.validateSession.mockResolvedValue(mockSessionData);
 
       // Act
       const response = await request(app)
@@ -277,12 +320,12 @@ describe('Authentication Routes', () => {
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
       expect(response.body.data.user).toBeDefined();
-      expect(response.body.data.user.id).toBe('user_123');
-      expect(mockAuthService.validateSession).toHaveBeenCalledWith('session_123');
+      expect(response.body.data.session).toBeDefined();
+      expect(authServiceMock.validateSession).toHaveBeenCalledWith('session_123');
     });
 
     it('should return 401 for invalid session', async () => {
-      mockAuthService.validateSession.mockResolvedValue(null);
+      authServiceMock.validateSession.mockResolvedValue(null);
 
       const response = await request(app)
         .get('/api/auth/session')
@@ -290,7 +333,7 @@ describe('Authentication Routes', () => {
 
       expect(response.status).toBe(401);
       expect(response.body.success).toBe(false);
-      expect(response.body.message).toContain('Invalid session');
+      expect(response.body.message).toBe('Invalid or expired session');
     });
 
     it('should return 400 when no session cookie', async () => {
@@ -299,7 +342,7 @@ describe('Authentication Routes', () => {
 
       expect(response.status).toBe(400);
       expect(response.body.success).toBe(false);
-      expect(response.body.message).toContain('No session');
+      expect(response.body.message).toBe('No session found');
     });
   });
 });

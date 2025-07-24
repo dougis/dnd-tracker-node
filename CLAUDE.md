@@ -1,10 +1,13 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code (claude.ai/code) when working with
+code in this repository.
 
 ## Project Overview
 
-This is a D&D Encounter Tracker - a Node/React full-stack web application for Dungeon Masters to manage combat
+This is a D&D Encounter Tracker - a Node.js/React full-stack web application
+for Dungeon Masters to manage combat encounters with initiative tracking,
+HP/AC management, character management, and lair actions support.
 
 ### Key Features
 
@@ -17,28 +20,157 @@ This is a D&D Encounter Tracker - a Node/React full-stack web application for Du
 
 ## Technology Stack
 
+**Backend (packages/server):**
+
+- Express.js with TypeScript and ES modules
+- MongoDB with Prisma ORM (not Mongoose)
+- Session-based authentication with Argon2 password hashing
+- Redis-backed rate limiting with tier-based limits
+- Express-validator for input validation
+- Production security middleware stack
+
+**Frontend (packages/client):**
+
+- React 18 with TypeScript
+- TanStack Router for routing
+- TanStack Query for server state management
+- Zustand for client state management
+- Tailwind CSS + shadcn/ui (Radix UI primitives)
+- React Hook Form with Zod validation
+- Vite for build tooling
+
+**Shared (packages/shared):**
+
+- Common types and Zod validation schemas
+- Shared between client and server packages
+
 ## Development Commands
 
-5. **Automated Code Review Process**
+**Root level (all packages):**
 
-   - **Automatic Merging**: PRs are automatically merged when all checks pass
-   - **Required Checks**: Build, tests, linting, TypeScript compilation,
-     Codacy quality gates
-   - **Manual Review Override**: Can be disabled for critical changes requiring
-     human review
-   - **Check Monitoring**: System waits for checks to complete before making
-     merge decisions
-   - **Failure Handling**: Failed checks must be addressed before re-attempting merge
+```bash
+npm run build        # Build all packages
+npm run dev         # Start all packages in development
+npm run test        # Run tests across all packages
+npm run test:ci     # Run tests with coverage
+npm run lint        # Lint all packages
+npm run lint:fix    # Fix linting issues
+npm run typecheck   # TypeScript compilation check
+```
 
-6. **Merge and Cleanup**
+**Individual package commands:**
 
-   ```bash
-   # After successful merge (automatic or manual), clean up locally
-   git checkout main
-   git pull origin main
-   git branch -d feature/issue-{number}-{description}
-   git remote prune origin
-   ```
+```bash
+# Server (packages/server)
+npm run dev --workspace=@dnd-tracker/server    # Start Express server with nodemon
+npm run build --workspace=@dnd-tracker/server  # Build TypeScript to dist/
+npm run start --workspace=@dnd-tracker/server  # Start production server
+
+# Client (packages/client)  
+npm run dev --workspace=@dnd-tracker/client    # Start Vite dev server
+npm run build --workspace=@dnd-tracker/client  # Build for production
+npm run preview --workspace=@dnd-tracker/client # Preview production build
+
+# Run single test file
+npm test -- --testPathPatterns="ServiceName.test.ts"
+```
+
+## Architecture Overview
+
+### Monorepo Structure
+
+- **npm workspaces** manage three packages: server, client, shared
+- Shared package contains common types and Zod schemas
+- TypeScript ES modules throughout with proper import/export
+
+### Service Layer Pattern
+
+- **Dependency injection** - Services receive PrismaClient in constructor
+- **UserService** - User CRUD, profile management, statistics
+- **AuthService** - Registration, login, session management, account lockout
+- **EncounterService** - Combat encounter management with participants
+
+### Authentication Architecture
+
+- **Session-based auth** with secure HTTP-only cookies
+- **Account lockout** after failed login attempts
+- **Argon2** password hashing (not bcrypt)
+- **Session validation middleware** for protected routes
+
+### Database Layer
+
+- **Prisma ORM** with MongoDB (not Mongoose)
+- Models: User, UserStats, Session, Character, Encounter, Participant
+- Proper relationships with include patterns for data fetching
+
+### Rate Limiting System
+
+- **Redis backend** for distributed rate limiting
+- **Tier-based limits** - Different limits per user subscription tier
+- **Route-specific limits** - Login, registration, and general API limits
+
+## Testing Patterns
+
+### Vitest Configuration
+
+- **Mock Prisma clients** with vi.fn() for database operations
+- **Service dependency injection** enables easy mocking in tests
+- **beforeEach/afterEach** with vi.clearAllMocks() and vi.resetAllMocks()
+- **Coverage reporting** with @vitest/coverage-v8
+
+### Mock Patterns
+
+```typescript
+// Service mocking pattern
+const mockPrisma = {
+  user: {
+    create: vi.fn(),
+    findUnique: vi.fn(),
+    update: vi.fn(),
+  }
+} as unknown as PrismaClient;
+
+const userService = new UserService(mockPrisma);
+```
+
+### Frontend Testing
+
+- **React Testing Library** with jsdom environment
+- **User event testing** with @testing-library/user-event
+- **Component integration tests** rather than unit tests
+
+## Security Implementation
+
+- **Helmet.js** for security headers
+- **CORS** configuration for cross-origin requests  
+- **Input validation** with express-validator on all routes
+- **Rate limiting** prevents brute force attacks
+- **Secure session cookies** with httpOnly, secure, sameSite
+- **Account lockout** mechanism in AuthService
+
+## Development Workflow
+
+### Automated Code Review Process
+
+- **Automatic Merging**: PRs are automatically merged when all checks pass
+- **Required Checks**: Build, tests, linting, TypeScript compilation,
+  Codacy quality gates
+- **Manual Review Override**: Can be disabled for critical changes requiring
+  human review
+- **Check Monitoring**: System waits for checks to complete before making
+  merge decisions
+- **Failure Handling**: Failed checks must be addressed before re-attempting
+  merge
+
+### Merge and Cleanup
+
+```bash
+# After successful merge (automatic or manual), clean up locally
+git checkout main
+git pull origin main
+git branch -d feature/issue-{number}-{description}
+git remote prune origin
+```
 
 ### Commit Message Standards
 
@@ -104,10 +236,10 @@ test(character): add comprehensive validation tests
 
 - Follow global coding conventions
 - Use TypeScript strictly with proper type definitions
-- Follow Next.js 15 App Router patterns
+- **Express.js patterns** (not Next.js) - RESTful API architecture
 - Implement proper error handling and loading states
 - Follow shadcn/ui component patterns for consistency
-- Use Mongoose for all database operations
+- **Use Prisma** for all database operations (not Mongoose)
 
 ### Quality Gates
 
@@ -117,90 +249,35 @@ test(character): add comprehensive validation tests
 - Performance optimization checks
 - Codacy scans should be performed on all code changes
 
-## Current Status
+## Important Implementation Notes
 
-- ✅ **Phase 1 Foundation Complete:** All project setup and foundational work finished
-- 🚀 **Active Development:** Foundation layer fully implemented, moving to Phase 2
-- 📋 **Total Progress:** 13 of 46 MVP issues completed (28% complete)
-- 📊 **Phase 1 Achievement:** 100% of foundation infrastructure completed
-- ✅ **Foundation Stack:** Next.js 15, TypeScript, Tailwind CSS, shadcn/ui, MongoDB, Jest testing, Vercel deployment
+- **ES modules** - Use import/export, not require()
+- **TypeScript strict mode** - Proper typing required
+- **Zod validation** - Used in shared package for runtime validation
+- **Error handling** - Custom error classes with proper HTTP status codes
+- **Environment variables** - Managed through .env files
+- **Session management** - 30-day expiration with sliding window
 
-## Completed Work
+## Production Features
 
-### Phase 1: Project Foundation (100% Complete) ✅
-
-**Status:** All foundation issues COMPLETED and MERGED
-**Completion Date:** June 2025
-
-### Foundation Infrastructure (13 Issues Completed)
-
-#### **Week 1 - Core Project Setup:**
-
-- ✅ **Issue #2:** Next.js 15 project with TypeScript setup
-- ✅ **Issue #3:** Development environment (ESLint, Prettier, VS Code)
-- ✅ **Issue #4:** Version control and branching strategy
-- ✅ **Issue #8:** MongoDB Atlas cluster setup
-- ✅ **Issue #45:** Jest testing framework with React Testing Library
-
-#### **Week 2 - UI Foundation & Database:**
-
-- ✅ **Issue #5:** Tailwind CSS installation and configuration
-- ✅ **Issue #6:** shadcn/ui component library setup
-- ✅ **Issue #7:** Design system foundations (colors, typography, themes)
-- ✅ **Issue #9:** Mongoose ODM installation and configuration
-- ✅ **Issue #46:** Automated deployment pipeline with Vercel
-
-#### **Week 3 - Core Components:**
-
-- ✅ **Issue #40:** Application layout and navigation system
-- ✅ **Issue #43:** Form component library with validation
-- ✅ **Issue #44:** Modal and dialog system
-
-### Previous Service Layer Work
-
-#### **Issue #17: User Service Layer Implementation** ✅
-
-**Status:** COMPLETED and MERGED (December 2024)
-
-### Achievements
-
-- **Modular Architecture:** Split UserService into focused modules
-- **Comprehensive Testing:** 32 tests with 88%+ coverage
-- **Quality Compliance:** Resolved Codacy complexity warnings
-- **Testing Framework:** Established robust testing patterns
-
-### Technical Implementation
-
-- Full CRUD operations for user management
-- Authentication and password management workflows
-- Comprehensive input validation with Zod schemas
-- Centralized error handling with custom error classes
-- MongoDB integration with proper error handling
-
-## Development Progress Summary
-
-### Completed Foundation Stack
-
-- ✅ Next.js 15 with App Router and TypeScript
-- ✅ Tailwind CSS with custom design system
-- ✅ shadcn/ui component library
-- ✅ MongoDB Atlas with Mongoose ODM
-- ✅ Jest testing framework with React Testing Library
-- ✅ ESLint, Prettier, and development tooling
-- ✅ Vercel deployment with GitHub Actions CI/CD
-- ✅ Application layout and navigation
-- ✅ Form components and modal system
-- ✅ User service layer with comprehensive testing
-
-**Next Phase:** Continue with Phase 2 authentication and data layer issues
+- **Tier-based subscription model** with 5 pricing tiers
+- **Production-ready rate limiting** with Redis backend
+- **Account security** with lockout mechanisms
+- **Comprehensive logging** and error tracking
+- **Secure deployment** configuration ready
 
 ### Workflow Memories
 
 - Always check the status of any opened PR and merge if all checks pass
 - Always run `npm run lint:fix` before committing code
-- Always run `npm run lint:fix` and `npm run test:ci` before pushing code to remote, if any test fails it must be fixed
-- **Before pushing commits to remote the following commands must pass with no errors**
+- Always run `npm run lint:fix` and `npm run test:ci` before pushing code to
+  remote, if any test fails it must be fixed
+- **Before pushing commits to remote the following commands must pass with no
+  errors**
   - npm run lint:fix
   - npm run test:ci
   - npm run build
 - if any errors exist in the commands above they must be fixed
+
+This codebase follows modern full-stack patterns with proper separation of
+concerns, comprehensive testing, and production-ready security implementations.
