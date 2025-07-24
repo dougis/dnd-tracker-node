@@ -1,3 +1,6 @@
+/* eslint-env mongo */
+/* global db, print */
+
 // MongoDB initialization script for development
 // This script creates the development database and a development user
 
