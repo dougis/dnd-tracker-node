@@ -1,4 +1,4 @@
-import { vi, expect } from 'vitest';
+import { vi } from 'vitest';
 import { AuthService } from '../services/auth.js';
 
 export interface MockUser {
