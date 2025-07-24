@@ -6,17 +6,147 @@ vi.mock('@prisma/client', () => ({
     user: {
       create: vi.fn(),
       findUnique: vi.fn(),
+      findMany: vi.fn(),
       update: vi.fn(),
-      delete: vi.fn()
+      delete: vi.fn(),
+      deleteMany: vi.fn(),
+      count: vi.fn()
     },
     session: {
       create: vi.fn(),
       findUnique: vi.fn(),
+      findMany: vi.fn(),
+      update: vi.fn(),
       delete: vi.fn(),
-      deleteMany: vi.fn()
+      deleteMany: vi.fn(),
+      count: vi.fn()
     },
-    $disconnect: vi.fn()
-  }))
+    encounter: {
+      create: vi.fn(),
+      findUnique: vi.fn(),
+      findMany: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      deleteMany: vi.fn(),
+      count: vi.fn()
+    },
+    participant: {
+      create: vi.fn(),
+      findUnique: vi.fn(),
+      findMany: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      deleteMany: vi.fn(),
+      count: vi.fn()
+    },
+    character: {
+      create: vi.fn(),
+      findUnique: vi.fn(),
+      findMany: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      deleteMany: vi.fn(),
+      count: vi.fn()
+    },
+    creature: {
+      create: vi.fn(),
+      findUnique: vi.fn(),
+      findMany: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      deleteMany: vi.fn(),
+      count: vi.fn()
+    },
+    party: {
+      create: vi.fn(),
+      findUnique: vi.fn(),
+      findMany: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      deleteMany: vi.fn(),
+      count: vi.fn()
+    },
+    lairAction: {
+      create: vi.fn(),
+      findUnique: vi.fn(),
+      findMany: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      deleteMany: vi.fn(),
+      count: vi.fn()
+    },
+    combatLog: {
+      create: vi.fn(),
+      findUnique: vi.fn(),
+      findMany: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      deleteMany: vi.fn(),
+      count: vi.fn()
+    },
+    subscription: {
+      create: vi.fn(),
+      findUnique: vi.fn(),
+      findMany: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      deleteMany: vi.fn(),
+      count: vi.fn()
+    },
+    usage: {
+      create: vi.fn(),
+      findUnique: vi.fn(),
+      findMany: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      deleteMany: vi.fn(),
+      count: vi.fn()
+    },
+    processedEvent: {
+      create: vi.fn(),
+      findUnique: vi.fn(),
+      findMany: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      deleteMany: vi.fn(),
+      count: vi.fn()
+    },
+    payment: {
+      create: vi.fn(),
+      findUnique: vi.fn(),
+      findMany: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      deleteMany: vi.fn(),
+      count: vi.fn()
+    },
+    $disconnect: vi.fn(),
+    $connect: vi.fn()
+  })),
+  SubscriptionTier: {
+    FREE: 'FREE',
+    BASIC: 'BASIC',
+    PREMIUM: 'PREMIUM',
+    PRO: 'PRO',
+    ENTERPRISE: 'ENTERPRISE'
+  },
+  CreatureSize: {
+    TINY: 'TINY',
+    SMALL: 'SMALL',
+    MEDIUM: 'MEDIUM',
+    LARGE: 'LARGE',
+    HUGE: 'HUGE',
+    GARGANTUAN: 'GARGANTUAN'
+  },
+  ParticipantType: {
+    CHARACTER: 'CHARACTER',
+    CREATURE: 'CREATURE'
+  },
+  EncounterStatus: {
+    PLANNING: 'PLANNING',
+    ACTIVE: 'ACTIVE',
+    COMPLETED: 'COMPLETED'
+  }
 }));
 
 // Mock environment variables

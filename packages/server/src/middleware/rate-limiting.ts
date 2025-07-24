@@ -9,17 +9,7 @@ interface RateLimitConfig {
   blockDuration: number;
 }
 
-interface UserTier {
-  id: string;
-  tier: 'free' | 'basic' | 'premium' | 'pro' | 'enterprise';
-}
-
-// Extend Express Request interface
-declare module 'express-serve-static-core' {
-  interface Request {
-    user?: UserTier;
-  }
-}
+// Note: Request interface is extended in auth/middleware.ts - we use that definition
 
 // Rate limit configurations for different tiers
 const TIER_LIMITS = {
