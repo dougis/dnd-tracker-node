@@ -7,6 +7,7 @@ import { createServer } from 'http';
 import { authRoutes } from './auth/routes';
 import { partyRoutes } from './party/routes';
 import { characterRoutes } from './character/routes';
+import { encounterRoutes } from './encounters/routes';
 
 const app = express();
 const server = createServer(app);
@@ -40,6 +41,9 @@ app.use('/api/auth', authRoutes);
 // Party and Character routes
 app.use('/api/parties', partyRoutes);
 app.use('/api/characters', characterRoutes);
+
+// Encounter routes
+app.use('/api/encounters', encounterRoutes);
 
 // Global error handler
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
