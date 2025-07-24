@@ -10,7 +10,7 @@
     "build": "npm run build --workspaces --if-present",
     "dev": "npm run dev --workspaces --if-present",
     "test": "vitest && npm run test --workspaces --if-present",
-    "test:ci": "vitest run && npm run test:ci --workspaces --if-present",
+    "test:ci": "npm run test:ci --workspaces --if-present && vitest run",
     "lint": "npm run lint --workspaces --if-present",
     "lint:fix": "npm run lint:fix --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
