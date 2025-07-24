@@ -4,11 +4,11 @@ import express, { Request, Response } from 'express';
 import cookieParser from 'cookie-parser';
 import { authRoutes, setAuthService } from './auth.js';
 import { AuthService } from '../services/auth.js';
-import { createMockUser, createMockSession, createMockAuthService, createTestUserData, expectValidationError } from '../test/auth-test-utils.js';
+import { createMockUser, createMockSession, createMockAuthService, createTestUserData } from '../test/auth-test-utils.js';
 
 describe('Auth Routes', () => {
   let app: express.Application;
-  let mockAuthService: AuthService;
+  let mockAuthService: Partial<AuthService>;
 
   const mockUser = createMockUser();
   const mockSession = createMockSession();
@@ -24,7 +24,7 @@ describe('Auth Routes', () => {
     mockAuthService = createMockAuthService();
     
     // Set the mock service
-    setAuthService(mockAuthService);
+    setAuthService(mockAuthService as AuthService);
     
     app.use('/auth', authRoutes);
   });

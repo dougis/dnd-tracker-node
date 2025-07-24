@@ -57,7 +57,7 @@ export function createMockSession(overrides: Partial<MockSession> = {}): MockSes
   };
 }
 
-export function createMockAuthService(): AuthService {
+export function createMockAuthService(): Partial<AuthService> {
   return {
     registerUser: vi.fn(),
     authenticateUser: vi.fn(),
@@ -65,7 +65,7 @@ export function createMockAuthService(): AuthService {
     validateSession: vi.fn(),
     invalidateSession: vi.fn(),
     isAccountLocked: vi.fn(),
-  } as AuthService;
+  };
 }
 
 export function createTestUserData() {
@@ -81,24 +81,4 @@ export function createTestLoginData() {
     email: 'test@example.com',
     password: 'correctpassword',
   };
-}
-
-export function expectValidationError(response: any, field: string, message: string) {
-  expect(response.status).toBe(400);
-  expect(response.body.errors).toContainEqual(
-    expect.objectContaining({
-      path: field,
-      msg: message,
-    })
-  );
-}
-
-export function expectAuthenticationResult(result: any, user: MockUser) {
-  expect(result).toEqual(expect.objectContaining({
-    id: user.id,
-    email: user.email,
-    username: user.username,
-    isEmailVerified: user.isEmailVerified,
-    isAdmin: user.isAdmin,
-  }));
 }

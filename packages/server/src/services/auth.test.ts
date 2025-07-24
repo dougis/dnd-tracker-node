@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi, beforeAll, afterAll } from 'vites
 import { PrismaClient } from '@prisma/client';
 import { AuthService } from './auth.js';
 import * as argon2 from 'argon2';
-import { createMockUser, createTestUserData, createTestLoginData } from '../test/auth-test-utils.js';
+import { createMockUser, createTestUserData } from '../test/auth-test-utils.js';
 
 // Mock argon2
 vi.mock('argon2');

@@ -8,7 +8,7 @@ describe('Auth Middleware', () => {
   let mockRequest: Partial<Request>;
   let mockResponse: Partial<Response>;
   let mockNext: NextFunction;
-  let mockAuthService: AuthService;
+  let mockAuthService: Partial<AuthService>;
 
   const mockUser = createMockUser();
   const mockSession = createMockSession();
@@ -34,7 +34,7 @@ describe('Auth Middleware', () => {
     mockAuthService = createMockAuthService();
     
     // Set the mock service
-    setAuthService(mockAuthService);
+    setAuthService(mockAuthService as AuthService);
   });
 
   describe('requireAuth', () => {
