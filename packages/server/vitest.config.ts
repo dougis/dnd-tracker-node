@@ -4,5 +4,16 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html', 'clover'],
+      reportsDirectory: './coverage',
+      exclude: [
+        'node_modules/',
+        'prisma/',
+        '**/*.test.ts',
+        '**/*.spec.ts',
+      ],
+    },
   },
 });
