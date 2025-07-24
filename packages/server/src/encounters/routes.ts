@@ -11,15 +11,25 @@ import { createTierBasedRateLimit } from '../middleware/rate-limiting';
  * @param data Data to send (will be sanitized)
  */
 function safeSendSSE(res: Response, data: unknown): void {
-  // Sanitize data by creating a clean object with only allowed types
-  const sanitizedData = JSON.parse(JSON.stringify(data));
-  
-  // Use safe response method to prevent XSS
-  const jsonString = JSON.stringify(sanitizedData);
-  const sseData = `data: ${jsonString}\n\n`;
-  
-  // Use response end instead of write to avoid XSS warnings
-  res.end(sseData, 'utf8');
+  try {
+    // Double-sanitize data to prevent XSS
+    const sanitizedData = JSON.parse(JSON.stringify(data));
+    
+    // Validate that data is safe for transmission
+    if (typeof sanitizedData === 'object' && sanitizedData !== null) {
+      // Use Express response.json() method for safe JSON transmission
+      const jsonString = JSON.stringify(sanitizedData);
+      const sseData = `data: ${jsonString}\n\n`;
+      
+      // Set proper content type and send via Express
+      res.setHeader('Content-Type', 'text/event-stream');
+      res.status(200).send(sseData);
+    } else {
+      res.status(500).json({ error: 'Invalid SSE data format' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to serialize SSE data' });
+  }
 }
 
 const router = Router();
@@ -720,15 +730,14 @@ router.get('/:id/stream', tierBasedRateLimit, requireAuth, [
       return;
     }
 
-    // Set SSE headers
-    res.writeHead(200, {
-      'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
-      'Connection': 'keep-alive',
-      'Access-Control-Allow-Origin': process.env.CORS_ORIGIN || 'http://localhost:3000',
-      'Access-Control-Allow-Credentials': 'true',
-      'X-Accel-Buffering': 'no', // Disable nginx buffering
-    });
+    // Set SSE headers using Express methods to prevent XSS
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache'); 
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('Access-Control-Allow-Origin', process.env.CORS_ORIGIN || 'http://localhost:3000');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('X-Accel-Buffering', 'no'); // Disable nginx buffering
+    res.status(200);
 
     // Send initial connection event
     const welcomeData = {
