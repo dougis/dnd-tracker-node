@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import request from 'supertest';
 import express from 'express';
+import cookieParser from 'cookie-parser';
 
 // Create mock service instances using vi.hoisted to avoid hoisting issues
 const { authServiceMock, userServiceMock } = vi.hoisted(() => ({
@@ -67,6 +68,7 @@ describe('Authentication Routes', () => {
     vi.clearAllMocks();
     app = express();
     app.use(express.json());
+    app.use(cookieParser());
     app.use('/api/auth', authRoutes);
   });
 
