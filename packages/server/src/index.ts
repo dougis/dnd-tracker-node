@@ -5,6 +5,8 @@ import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import { createServer } from 'http';
 import { authRoutes } from './auth/routes';
+import { partyRoutes } from './party/routes';
+import { characterRoutes } from './character/routes';
 
 const app = express();
 const server = createServer(app);
@@ -34,6 +36,10 @@ app.get('/api/test', (req, res) => {
 
 // Authentication routes
 app.use('/api/auth', authRoutes);
+
+// Party and Character routes
+app.use('/api/parties', partyRoutes);
+app.use('/api/characters', characterRoutes);
 
 // Global error handler
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
