@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import request from 'supertest';
 import express from 'express';
+import cookieParser from 'cookie-parser';
 
 // Use vi.hoisted to ensure mocks are available during hoisting
 const { mockRegister, mockLogin, mockLogout, mockValidateSession } = vi.hoisted(() => ({
@@ -23,6 +24,13 @@ vi.mock('../services/AuthService', () => ({
 vi.mock('../services/UserService');
 vi.mock('@prisma/client');
 
+// Mock rate limiting middleware
+vi.mock('../middleware/rate-limiting', () => ({
+  loginRateLimit: (req: any, res: any, next: any) => next(),
+  registerRateLimit: (req: any, res: any, next: any) => next(),
+  createTierBasedRateLimit: () => (req: any, res: any, next: any) => next()
+}));
+
 import { authRoutes } from './routes';
 
 describe('Authentication Routes', () => {
@@ -31,6 +39,7 @@ describe('Authentication Routes', () => {
   beforeEach(() => {
     app = express();
     app.use(express.json());
+    app.use(cookieParser()); // Add cookie parser middleware
     app.use('/api/auth', authRoutes);
     
     vi.clearAllMocks();
@@ -93,7 +102,9 @@ describe('Authentication Routes', () => {
 
       expect(response.status).toBe(400);
       expect(response.body.success).toBe(false);
-      expect(response.body.message).toContain('email');
+      expect(response.body.message).toBe('Validation failed');
+      expect(response.body.errors).toBeDefined();
+      expect(response.body.errors.some((error: any) => error.path === 'email')).toBe(true);
     });
 
     it('should return 400 for missing username', async () => {
@@ -103,7 +114,9 @@ describe('Authentication Routes', () => {
 
       expect(response.status).toBe(400);
       expect(response.body.success).toBe(false);
-      expect(response.body.message).toContain('username');
+      expect(response.body.message).toBe('Validation failed');
+      expect(response.body.errors).toBeDefined();
+      expect(response.body.errors.some((error: any) => error.path === 'username')).toBe(true);
     });
 
     it('should return 400 for missing password', async () => {
@@ -113,7 +126,9 @@ describe('Authentication Routes', () => {
 
       expect(response.status).toBe(400);
       expect(response.body.success).toBe(false);
-      expect(response.body.message).toContain('password');
+      expect(response.body.message).toBe('Validation failed');
+      expect(response.body.errors).toBeDefined();
+      expect(response.body.errors.some((error: any) => error.path === 'password')).toBe(true);
     });
 
     it('should return 400 for invalid email format', async () => {
@@ -297,7 +312,7 @@ describe('Authentication Routes', () => {
 
       expect(response.status).toBe(401);
       expect(response.body.success).toBe(false);
-      expect(response.body.message).toContain('Invalid session');
+      expect(response.body.message).toContain('Invalid or expired session');
     });
 
     it('should return 400 when no session cookie', async () => {

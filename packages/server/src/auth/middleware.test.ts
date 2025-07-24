@@ -1,16 +1,28 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Request, Response, NextFunction } from 'express';
-import { requireAuth, optionalAuth } from './middleware';
-import { AuthService } from '../services/AuthService';
 
-// Mock AuthService
-vi.mock('../services/AuthService');
+// Mock AuthService before importing middleware
+const { mockValidateSession } = vi.hoisted(() => ({
+  mockValidateSession: vi.fn()
+}));
+
+vi.mock('../services/AuthService', () => ({
+  AuthService: vi.fn().mockImplementation(() => ({
+    validateSession: mockValidateSession
+  }))
+}));
+
+// Mock PrismaClient
+vi.mock('@prisma/client', () => ({
+  PrismaClient: vi.fn()
+}));
+
+import { requireAuth, optionalAuth } from './middleware';
 
 describe('Authentication Middleware', () => {
   let mockReq: Partial<Request>;
   let mockRes: Partial<Response>;
   let mockNext: NextFunction;
-  let mockAuthService: any;
 
   beforeEach(() => {
     mockReq = {
@@ -24,12 +36,6 @@ describe('Authentication Middleware', () => {
     };
     
     mockNext = vi.fn();
-    
-    mockAuthService = {
-      validateSession: vi.fn()
-    };
-    
-    (AuthService as any).mockImplementation(() => mockAuthService);
   });
 
   afterEach(() => {
@@ -58,14 +64,17 @@ describe('Authentication Middleware', () => {
         }
       };
       
-      mockAuthService.validateSession.mockResolvedValue(mockSessionData);
+      mockValidateSession.mockResolvedValue(mockSessionData);
 
       // Act
       await requireAuth(mockReq as Request, mockRes as Response, mockNext);
 
       // Assert
-      expect(mockAuthService.validateSession).toHaveBeenCalledWith('valid_session_123');
-      expect(mockReq.user).toEqual(mockSessionData.user);
+      expect(mockValidateSession).toHaveBeenCalledWith('valid_session_123');
+      expect(mockReq.user).toEqual({
+        ...mockSessionData.user,
+        tier: 'free'
+      });
       expect(mockReq.session).toEqual(mockSessionData.session);
       expect(mockNext).toHaveBeenCalled();
       expect(mockRes.status).not.toHaveBeenCalled();
@@ -90,13 +99,13 @@ describe('Authentication Middleware', () => {
     it('should return 401 for invalid session', async () => {
       // Arrange
       mockReq.cookies = { session_id: 'invalid_session' };
-      mockAuthService.validateSession.mockResolvedValue(null);
+      mockValidateSession.mockResolvedValue(null);
 
       // Act
       await requireAuth(mockReq as Request, mockRes as Response, mockNext);
 
       // Assert
-      expect(mockAuthService.validateSession).toHaveBeenCalledWith('invalid_session');
+      expect(mockValidateSession).toHaveBeenCalledWith('invalid_session');
       expect(mockRes.status).toHaveBeenCalledWith(401);
       expect(mockRes.json).toHaveBeenCalledWith({
         success: false,
@@ -108,7 +117,7 @@ describe('Authentication Middleware', () => {
     it('should return 500 for authentication service error', async () => {
       // Arrange
       mockReq.cookies = { session_id: 'valid_session_123' };
-      mockAuthService.validateSession.mockRejectedValue(new Error('Database error'));
+      mockValidateSession.mockRejectedValue(new Error('Database error'));
 
       // Act
       await requireAuth(mockReq as Request, mockRes as Response, mockNext);
@@ -144,14 +153,17 @@ describe('Authentication Middleware', () => {
         }
       };
       
-      mockAuthService.validateSession.mockResolvedValue(mockSessionData);
+      mockValidateSession.mockResolvedValue(mockSessionData);
 
       // Act
       await requireAuth(mockReq as Request, mockRes as Response, mockNext);
 
       // Assert
-      expect(mockAuthService.validateSession).toHaveBeenCalledWith('valid_session_123');
-      expect(mockReq.user).toEqual(mockSessionData.user);
+      expect(mockValidateSession).toHaveBeenCalledWith('valid_session_123');
+      expect(mockReq.user).toEqual({
+        ...mockSessionData.user,
+        tier: 'free'
+      });
       expect(mockNext).toHaveBeenCalled();
     });
   });
@@ -178,14 +190,17 @@ describe('Authentication Middleware', () => {
         }
       };
       
-      mockAuthService.validateSession.mockResolvedValue(mockSessionData);
+      mockValidateSession.mockResolvedValue(mockSessionData);
 
       // Act
       await optionalAuth(mockReq as Request, mockRes as Response, mockNext);
 
       // Assert
-      expect(mockAuthService.validateSession).toHaveBeenCalledWith('valid_session_123');
-      expect(mockReq.user).toEqual(mockSessionData.user);
+      expect(mockValidateSession).toHaveBeenCalledWith('valid_session_123');
+      expect(mockReq.user).toEqual({
+        ...mockSessionData.user,
+        tier: 'free'
+      });
       expect(mockReq.session).toEqual(mockSessionData.session);
       expect(mockNext).toHaveBeenCalled();
       expect(mockRes.status).not.toHaveBeenCalled();
@@ -199,7 +214,7 @@ describe('Authentication Middleware', () => {
       await optionalAuth(mockReq as Request, mockRes as Response, mockNext);
 
       // Assert
-      expect(mockAuthService.validateSession).not.toHaveBeenCalled();
+      expect(mockValidateSession).not.toHaveBeenCalled();
       expect(mockReq.user).toBeUndefined();
       expect(mockNext).toHaveBeenCalled();
       expect(mockRes.status).not.toHaveBeenCalled();
@@ -208,13 +223,13 @@ describe('Authentication Middleware', () => {
     it('should call next() without user for invalid session', async () => {
       // Arrange
       mockReq.cookies = { session_id: 'invalid_session' };
-      mockAuthService.validateSession.mockResolvedValue(null);
+      mockValidateSession.mockResolvedValue(null);
 
       // Act
       await optionalAuth(mockReq as Request, mockRes as Response, mockNext);
 
       // Assert
-      expect(mockAuthService.validateSession).toHaveBeenCalledWith('invalid_session');
+      expect(mockValidateSession).toHaveBeenCalledWith('invalid_session');
       expect(mockReq.user).toBeUndefined();
       expect(mockNext).toHaveBeenCalled();
       expect(mockRes.status).not.toHaveBeenCalled();
@@ -223,7 +238,7 @@ describe('Authentication Middleware', () => {
     it('should call next() without user for service error', async () => {
       // Arrange
       mockReq.cookies = { session_id: 'valid_session_123' };
-      mockAuthService.validateSession.mockRejectedValue(new Error('Database error'));
+      mockValidateSession.mockRejectedValue(new Error('Database error'));
 
       // Act
       await optionalAuth(mockReq as Request, mockRes as Response, mockNext);
