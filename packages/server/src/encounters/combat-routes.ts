@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { param } from 'express-validator';
 import { requireAuth } from '../auth/middleware';
-import { encounterService, tierBasedRateLimit, handleValidationErrors, sendEncounterResponse, sendErrorResponse } from './utils';
+import { encounterService, tierBasedRateLimit, handleValidationErrors } from './utils';
 
 const router = Router();
 

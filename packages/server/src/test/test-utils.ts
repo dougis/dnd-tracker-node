@@ -56,7 +56,7 @@ export const mockUserData = {
 
 // Express app setup helper
 export const setupExpressApp = (router: any) => {
-  const express = require('express');
+  const express = require('express'); // eslint-disable-line
   const app = express();
   app.use(express.json());
   app.use('/api', router);
