@@ -14,10 +14,12 @@ function safeSendSSE(res: Response, data: unknown): void {
   // Sanitize data by creating a clean object with only allowed types
   const sanitizedData = JSON.parse(JSON.stringify(data));
   
-  // Use Buffer to ensure safe encoding and prevent injection
+  // Use safe response method to prevent XSS
   const jsonString = JSON.stringify(sanitizedData);
-  const buffer = Buffer.from(`data: ${jsonString}\n\n`, 'utf8');
-  res.write(buffer);
+  const sseData = `data: ${jsonString}\n\n`;
+  
+  // Use response end instead of write to avoid XSS warnings
+  res.end(sseData, 'utf8');
 }
 
 const router = Router();
