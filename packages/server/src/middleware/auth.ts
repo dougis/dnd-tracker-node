@@ -34,7 +34,7 @@ function extractToken(req: Request): string | null {
   return null;
 }
 
-function setCookieIfFresh(res: Response, session: any): void {
+function setCookieIfFresh(res: Response, session: { fresh?: boolean; token?: string } | null): void {
   if (session?.fresh) {
     res.cookie('session', session.token, {
       httpOnly: true,

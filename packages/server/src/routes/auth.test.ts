@@ -1,38 +1,17 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import request from 'supertest';
-import express from 'express';
+import express, { Request, Response } from 'express';
 import cookieParser from 'cookie-parser';
 import { authRoutes, setAuthService } from './auth.js';
 import { AuthService } from '../services/auth.js';
+import { createMockUser, createMockSession, createMockAuthService, createTestUserData, expectValidationError } from '../test/auth-test-utils.js';
 
 describe('Auth Routes', () => {
   let app: express.Application;
   let mockAuthService: AuthService;
 
-  const mockUser = {
-    id: 'user123',
-    email: 'test@example.com',
-    username: 'testuser',
-    passwordHash: 'hashedpassword',
-    failedLoginAttempts: 0,
-    lockedUntil: null,
-    isEmailVerified: false,
-    isAdmin: false,
-    lastLoginAt: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
-
-  const mockSession = {
-    id: 'session123',
-    token: 'sessiontoken123',
-    userId: 'user123',
-    expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
-    ipAddress: '192.168.1.1',
-    userAgent: 'test-agent',
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
+  const mockUser = createMockUser();
+  const mockSession = createMockSession();
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -42,14 +21,7 @@ describe('Auth Routes', () => {
     app.use(cookieParser());
     
     // Create mock AuthService instance
-    mockAuthService = {
-      registerUser: vi.fn(),
-      authenticateUser: vi.fn(),
-      createSession: vi.fn(),
-      validateSession: vi.fn(),
-      invalidateSession: vi.fn(),
-      isAccountLocked: vi.fn(),
-    } as any;
+    mockAuthService = createMockAuthService();
     
     // Set the mock service
     setAuthService(mockAuthService);
@@ -59,11 +31,7 @@ describe('Auth Routes', () => {
 
   describe('POST /auth/register', () => {
     it('should register new user successfully', async () => {
-      const userData = {
-        email: 'newuser@example.com',
-        username: 'newuser',
-        password: 'SecurePass123!',
-      };
+      const userData = createTestUserData();
 
       mockAuthService.registerUser = vi.fn().mockResolvedValue({
         ...mockUser,
@@ -381,7 +349,7 @@ describe('Auth Routes', () => {
       setAuthService(mockAuthService);
       
       // Create a test endpoint that simulates authenticated user
-      testApp.get('/auth/me', (req: any, res: any) => {
+      testApp.get('/auth/me', (req: Request, res: Response) => {
         // Simulate authenticated user
         const user = {
           id: mockUser.id,

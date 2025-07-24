@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Request, Response, NextFunction } from 'express';
 import { requireAuth, optionalAuth, setAuthService } from './auth.js';
 import { AuthService } from '../services/auth.js';
+import { createMockUser, createMockSession, createMockAuthService } from '../test/auth-test-utils.js';
 
 describe('Auth Middleware', () => {
   let mockRequest: Partial<Request>;
@@ -9,21 +10,8 @@ describe('Auth Middleware', () => {
   let mockNext: NextFunction;
   let mockAuthService: AuthService;
 
-  const mockUser = {
-    id: 'user123',
-    email: 'test@example.com',
-    username: 'testuser',
-    isEmailVerified: false,
-    isAdmin: false,
-  };
-
-  const mockSession = {
-    id: 'session123',
-    token: 'sessiontoken123',
-    userId: 'user123',
-    expiresAt: new Date(Date.now() + 1000 * 60 * 60), // 1 hour
-    fresh: true,
-  };
+  const mockUser = createMockUser();
+  const mockSession = createMockSession();
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -43,11 +31,7 @@ describe('Auth Middleware', () => {
     mockNext = vi.fn();
     
     // Create mock AuthService instance
-    mockAuthService = {
-      validateSession: vi.fn(),
-      createSession: vi.fn(),
-      invalidateSession: vi.fn(),
-    } as any;
+    mockAuthService = createMockAuthService();
     
     // Set the mock service
     setAuthService(mockAuthService);

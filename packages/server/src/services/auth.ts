@@ -12,6 +12,13 @@ export interface AuthenticationResult {
   lastLoginAt: Date | null;
 }
 
+export interface DatabaseUserAttributes {
+  email: string;
+  username: string;
+  isEmailVerified: boolean;
+  isAdmin: boolean;
+}
+
 export interface SessionData {
   id: string;
   token: string;
@@ -41,7 +48,7 @@ export class AuthService {
           httpOnly: true,
         },
       },
-      getUserAttributes: (attributes: any) => {
+      getUserAttributes: (attributes: DatabaseUserAttributes) => {
         return {
           email: attributes.email,
           username: attributes.username,
@@ -67,8 +74,8 @@ export class AuthService {
       });
 
       return this.sanitizeUser(user);
-    } catch (error: any) {
-      if (error.message?.includes('Unique constraint') || error.code === 'P2002') {
+    } catch (error: unknown) {
+      if (error instanceof Error && (error.message?.includes('Unique constraint') || (error as { code?: string }).code === 'P2002')) {
         throw new Error('User with this email or username already exists');
       }
       throw error;
@@ -188,11 +195,9 @@ export class AuthService {
 }
 
 // Extend Express Request interface for TypeScript
-declare global {
-  namespace Express {
-    interface Request {
-      user?: AuthenticationResult;
-      session?: SessionData;
-    }
+declare module 'express-serve-static-core' {
+  interface Request {
+    user?: AuthenticationResult;
+    session?: SessionData;
   }
 }

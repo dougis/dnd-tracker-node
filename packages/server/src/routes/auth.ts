@@ -61,7 +61,7 @@ function getClientInfo(req: Request): { ipAddress: string; userAgent: string } {
     req.ip || 
     req.connection.remoteAddress || 
     req.socket.remoteAddress || 
-    (req.connection as any)?.socket?.remoteAddress || 
+    (req.connection as { socket?: { remoteAddress?: string } })?.socket?.remoteAddress || 
     '127.0.0.1';
 
   const userAgent = req.get('User-Agent') || 'Unknown';
@@ -88,8 +88,8 @@ router.post('/register', registerValidation, async (req: Request, res: Response)
         isAdmin: user.isAdmin,
       },
     });
-  } catch (error: any) {
-    if (error.message.includes('already exists')) {
+  } catch (error: unknown) {
+    if (error instanceof Error && error.message.includes('already exists')) {
       res.status(409).json({ error: error.message });
     } else {
       console.error('Registration error:', error);
@@ -127,11 +127,16 @@ router.post('/login', loginValidation, async (req: Request, res: Response): Prom
         isAdmin: user.isAdmin,
       },
     });
-  } catch (error: any) {
-    if (error.message.includes('Invalid email or password')) {
-      res.status(401).json({ error: error.message });
-    } else if (error.message.includes('Account is locked')) {
-      res.status(423).json({ error: error.message });
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      if (error.message.includes('Invalid email or password')) {
+        res.status(401).json({ error: error.message });
+      } else if (error.message.includes('Account is locked')) {
+        res.status(423).json({ error: error.message });
+      } else {
+        console.error('Login error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+      }
     } else {
       console.error('Login error:', error);
       res.status(500).json({ error: 'Internal server error' });
@@ -150,7 +155,7 @@ router.post('/logout', async (req: Request, res: Response): Promise<void> => {
     res.clearCookie('session');
 
     res.status(200).json({ message: 'Logout successful' });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Logout error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
@@ -173,7 +178,7 @@ router.get('/me', requireAuth, async (req: Request, res: Response): Promise<void
         isAdmin: req.user.isAdmin,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Get user error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }

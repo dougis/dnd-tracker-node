@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi, beforeAll, afterAll } from 'vites
 import { PrismaClient } from '@prisma/client';
 import { AuthService } from './auth.js';
 import * as argon2 from 'argon2';
+import { createMockUser, createTestUserData, createTestLoginData } from '../test/auth-test-utils.js';
 
 // Mock argon2
 vi.mock('argon2');
@@ -21,19 +22,7 @@ describe('AuthService', () => {
   let prisma: PrismaClient;
   let authService: AuthService;
 
-  const mockUser = {
-    id: 'user123',
-    email: 'test@example.com',
-    username: 'testuser',
-    passwordHash: 'hashedpassword',
-    failedLoginAttempts: 0,
-    lockedUntil: null,
-    isEmailVerified: false,
-    isAdmin: false,
-    lastLoginAt: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
+  const mockUser = createMockUser();
 
   beforeAll(() => {
     prisma = new PrismaClient();
@@ -50,11 +39,7 @@ describe('AuthService', () => {
 
   describe('registerUser', () => {
     it('should successfully register a new user with hashed password', async () => {
-      const userData = {
-        email: 'newuser@example.com',
-        username: 'newuser',
-        password: 'SecurePass123!',
-      };
+      const userData = createTestUserData();
 
       mockArgon2.hash.mockResolvedValue('hashedpassword');
       
