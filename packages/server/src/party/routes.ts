@@ -6,7 +6,8 @@ import { validationSets } from '../utils/validationHelpers';
 import { 
   handleValidationErrors, 
   sendSuccessResponse, 
-  sendNotFoundResponse, 
+  sendNotFoundResponse,
+  sendErrorResponse, 
   asyncHandler 
 } from '../utils/routeHelpers';
 
@@ -53,7 +54,11 @@ router.get('/', asyncHandler(async (req: Request, res: Response): Promise<void> 
  */
 router.get('/:id', asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
-  const userId = req.user!.id;
+  if (!id) {
+    sendErrorResponse(res, new Error('Party ID is required'), 'Party ID is required', 400);
+    return;
+  }
+  const userId = (req.user as any).id as string;
   
   const party = await partyService.findById(id, userId);
   if (!party) {
@@ -75,7 +80,11 @@ router.put(
     if (handleValidationErrors(req, res)) return;
 
     const { id } = req.params;
-    const userId = req.user!.id;
+    if (!id) {
+      sendErrorResponse(res, new Error('Party ID is required'), 'Party ID is required', 400);
+      return;
+    }
+    const userId = (req.user as any).id as string;
     const updateData = req.body;
 
     const party = await partyService.update(id, userId, updateData);
@@ -94,7 +103,11 @@ router.put(
  */
 router.delete('/:id', asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
-  const userId = req.user!.id;
+  if (!id) {
+    sendErrorResponse(res, new Error('Party ID is required'), 'Party ID is required', 400);
+    return;
+  }
+  const userId = (req.user as any).id as string;
   
   const deleted = await partyService.delete(id, userId);
   if (!deleted) {

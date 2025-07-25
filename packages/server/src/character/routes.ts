@@ -6,6 +6,7 @@ import {
   handleValidationErrors, 
   sendSuccessResponse, 
   sendNotFoundResponse,
+  sendErrorResponse,
   asyncHandler
 } from '../utils/routeHelpers';
 import { validationSets } from '../utils/validationHelpers';
@@ -41,7 +42,11 @@ router.post(
  */
 router.get('/party/:partyId', asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { partyId } = req.params;
-  const userId = req.user!.id;
+  if (!partyId) {
+    sendErrorResponse(res, new Error('Party ID is required'), 'Party ID is required', 400);
+    return;
+  }
+  const userId = (req.user as any).id as string;
 
   const characters = await characterService.findByPartyId(partyId, userId);
   sendSuccessResponse(res, characters, 'Characters retrieved successfully');
@@ -53,7 +58,11 @@ router.get('/party/:partyId', asyncHandler(async (req: Request, res: Response): 
  */
 router.get('/:id', asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
-  const userId = req.user!.id;
+  if (!id) {
+    sendErrorResponse(res, new Error('Character ID is required'), 'Character ID is required', 400);
+    return;
+  }
+  const userId = (req.user as any).id as string;
 
   const character = await characterService.findById(id, userId);
   if (!character) {
@@ -75,7 +84,11 @@ router.put(
     if (handleValidationErrors(req, res)) return;
 
     const { id } = req.params;
-    const userId = req.user!.id;
+    if (!id) {
+      sendErrorResponse(res, new Error('Character ID is required'), 'Character ID is required', 400);
+      return;
+    }
+    const userId = (req.user as any).id as string;
     const updateData = req.body;
 
     const character = await characterService.update(id, userId, updateData);
@@ -94,7 +107,11 @@ router.put(
  */
 router.delete('/:id', asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
-  const userId = req.user!.id;
+  if (!id) {
+    sendErrorResponse(res, new Error('Character ID is required'), 'Character ID is required', 400);
+    return;
+  }
+  const userId = (req.user as any).id as string;
 
   const deleted = await characterService.delete(id, userId);
   if (!deleted) {

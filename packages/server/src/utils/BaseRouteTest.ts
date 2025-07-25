@@ -7,7 +7,7 @@ import { createTestApp } from './testHelpers';
  * Base class for testing CRUD routes with common patterns
  */
 export abstract class BaseRouteTest<TService, TCreateData, TUpdateData, TEntity> {
-  protected app: express.Application;
+  protected app!: express.Application;
   protected mockService: TService;
   protected basePath: string;
 
@@ -36,7 +36,7 @@ export abstract class BaseRouteTest<TService, TCreateData, TUpdateData, TEntity>
 
     const response = await request(this.app)
       .post('/')
-      .send(createData)
+      .send(createData as any)
       .expect(201);
 
     expect(response.body).toEqual({
@@ -79,7 +79,7 @@ export abstract class BaseRouteTest<TService, TCreateData, TUpdateData, TEntity>
 
     const response = await request(this.app)
       .post('/')
-      .send(createData)
+      .send(createData as any)
       .expect(500);
 
     expect(response.body).toEqual({
@@ -141,7 +141,7 @@ export abstract class BaseRouteTest<TService, TCreateData, TUpdateData, TEntity>
 
     const response = await request(this.app)
       .put(`/${entityId}`)
-      .send(updateData)
+      .send(updateData as any)
       .expect(200);
 
     expect(response.body).toEqual({

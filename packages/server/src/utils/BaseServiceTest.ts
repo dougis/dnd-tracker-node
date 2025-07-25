@@ -4,7 +4,7 @@ import { expect, vi } from 'vitest';
  * Base class for testing service layer with common patterns
  */
 export abstract class BaseServiceTest<TService, TCreateData, TUpdateData, TEntity> {
-  protected service: TService;
+  protected service!: TService;
   protected mockPrisma: any;
 
   constructor(
@@ -43,7 +43,7 @@ export abstract class BaseServiceTest<TService, TCreateData, TUpdateData, TEntit
 
     expect(result).toEqual(expectedResult);
     expect(this.mockPrisma[mockPrismaMethod].create).toHaveBeenCalledWith({
-      data: expect.objectContaining(createData)
+      data: expect.objectContaining(createData as any)
     });
   }
 
@@ -127,7 +127,7 @@ export abstract class BaseServiceTest<TService, TCreateData, TUpdateData, TEntit
     expect(result).toEqual(expectedResult);
     expect(this.mockPrisma[mockPrismaMethod].update).toHaveBeenCalledWith({
       where: { id: entityId },
-      data: expect.objectContaining(updateData)
+      data: expect.objectContaining(updateData as any)
     });
   }
 

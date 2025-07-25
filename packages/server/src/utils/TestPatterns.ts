@@ -209,6 +209,7 @@ export class TestPatterns {
 
     expect(response.body).toEqual({
       success: true,
+      data: null,
       message: `${entityType} deleted successfully`
     });
   }

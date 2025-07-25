@@ -83,8 +83,8 @@ export class PrismaMockFactory {
     
     // Make all operations throw the specified error
     Object.keys(mock).forEach(method => {
-      if (typeof mock[method] === 'function') {
-        mock[method].mockRejectedValue(new Error(errorMessage));
+      if (typeof (mock as any)[method] === 'function') {
+        (mock as any)[method].mockRejectedValue(new Error(errorMessage));
       }
     });
 
