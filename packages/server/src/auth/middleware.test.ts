@@ -360,7 +360,7 @@ describe('Authentication Middleware', () => {
     it('should return 401 for unauthenticated user', () => {
       // Arrange
       const middleware = requirePermission('read:posts');
-      mockReq.user = undefined;
+      delete mockReq.user;
 
       // Act
       middleware(mockReq as Request, mockRes as Response, mockNext);
@@ -471,7 +471,7 @@ describe('Authentication Middleware', () => {
     it('should return 401 for unauthenticated user', () => {
       // Arrange
       const middleware = requireOwnership();
-      mockReq.user = undefined;
+      delete mockReq.user;
       mockReq.params = { userId: 'user_123' };
 
       // Act

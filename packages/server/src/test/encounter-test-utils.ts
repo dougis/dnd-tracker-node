@@ -110,7 +110,7 @@ export const expectErrorResponse = (response: any, statusCode: number, message: 
 };
 
 // Helper for successful encounter response assertions
-export const expectEncounterResponse = (response: any, expectedEncounter: MockEncounter) => {
+export const expectEncounterResponse = (response: any, expectedEncounter: any) => {
   expect(response.status).toBe(200);
   expect(response.body).toEqual({
     success: true,
@@ -121,7 +121,7 @@ export const expectEncounterResponse = (response: any, expectedEncounter: MockEn
 };
 
 // Helper for successful list response assertions
-export const expectEncounterListResponse = (response: any, expectedEncounters: MockEncounter[]) => {
+export const expectEncounterListResponse = (response: any, expectedEncounters: any[]) => {
   expect(response.status).toBe(200);
   expect(response.body).toEqual({
     success: true,
@@ -130,7 +130,7 @@ export const expectEncounterListResponse = (response: any, expectedEncounters: M
 };
 
 // Helper for successful encounter creation response
-export const expectEncounterCreationResponse = (response: any, expectedEncounter: MockEncounter, message = 'Encounter created successfully') => {
+export const expectEncounterCreationResponse = (response: any, expectedEncounter: any, message = 'Encounter created successfully') => {
   expect(response.status).toBe(201);
   expect(response.body).toEqual({
     success: true,

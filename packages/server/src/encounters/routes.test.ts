@@ -109,7 +109,6 @@ describe('Encounter Routes', () => {
         .post('/api/encounters')
         .send(validEncounterData);
 
-      // API response excludes userId and uses ISO string dates
       const expectedApiEncounter = {
         id: mockEncounter.id,
         name: mockEncounter.name,
@@ -239,7 +238,6 @@ describe('Encounter Routes', () => {
       const response = await request(app)
         .get('/api/encounters');
 
-      // API response excludes userId and uses ISO string dates
       const expectedApiEncounters = mockEncounters.map(encounter => ({
         id: encounter.id,
         name: encounter.name,
@@ -275,7 +273,6 @@ describe('Encounter Routes', () => {
       const response = await request(app)
         .get('/api/encounters/507f1f77bcf86cd799439011');
 
-      // API response excludes userId and uses ISO string dates
       const expectedApiEncounter = {
         id: mockEncounter.id,
         name: mockEncounter.name,
