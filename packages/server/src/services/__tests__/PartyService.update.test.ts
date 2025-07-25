@@ -11,6 +11,25 @@ describe('PartyService - update operations', () => {
     description: 'Updated description'
   };
 
+  // Helper function to set up common test scenario
+  const setupUpdateTest = (mockReturnValue?: any) => {
+    const existingParty = createMockParty();
+    const returnValue = mockReturnValue || createMockParty();
+    
+    vi.spyOn(partyService, 'findById').mockResolvedValue(existingParty);
+    mockPrisma.party.update = vi.fn().mockResolvedValue(returnValue);
+    
+    return { existingParty, returnValue };
+  };
+
+  // Helper function to verify update call with expected data
+  const expectUpdateCall = (expectedData: any) => {
+    expect(mockPrisma.party.update).toHaveBeenCalledWith({
+      where: { id: 'party_123' },
+      data: expectedData,
+    });
+  };
+
   beforeEach(() => {
     mockPrisma = createMockPrisma();
     partyService = new PartyService(mockPrisma);
@@ -23,28 +42,19 @@ describe('PartyService - update operations', () => {
 
   describe('update', () => {
     it('should update party successfully', async () => {
-      const existingParty = createMockParty();
       const updatedParty = createMockParty({
         name: 'Updated Party',
         description: 'Updated description'
       });
-
-      vi.spyOn(partyService, 'findById').mockResolvedValue(existingParty);
-      mockPrisma.party.update = vi.fn().mockResolvedValue(updatedParty);
+      const { returnValue } = setupUpdateTest(updatedParty);
 
       const result = await partyService.update('party_123', 'user_123', validUpdateData);
 
       expect(partyService.findById).toHaveBeenCalledWith('party_123', 'user_123');
-      expect(mockPrisma.party.update).toHaveBeenCalledWith({
-        where: {
-          id: 'party_123',
-        },
-        data: {
-          name: 'Updated Party',
-          description: 'Updated description',
-        },
+      expectUpdateCall({
+        name: 'Updated Party',
+        description: 'Updated description',
       });
-
       expect(result).toEqual(updatedParty);
     });
 
@@ -58,118 +68,82 @@ describe('PartyService - update operations', () => {
     });
 
     it('should update only name when provided', async () => {
-      const existingParty = createMockParty();
       const updateDataNameOnly: UpdatePartyData = {
         name: 'Only Name Updated'
       };
-
-      vi.spyOn(partyService, 'findById').mockResolvedValue(existingParty);
-      mockPrisma.party.update = vi.fn().mockResolvedValue(createMockParty());
+      setupUpdateTest();
 
       await partyService.update('party_123', 'user_123', updateDataNameOnly);
 
-      expect(mockPrisma.party.update).toHaveBeenCalledWith({
-        where: { id: 'party_123' },
-        data: {
-          name: 'Only Name Updated',
-        },
+      expectUpdateCall({
+        name: 'Only Name Updated',
       });
     });
 
     it('should update only description when provided', async () => {
-      const existingParty = createMockParty();
       const updateDataDescriptionOnly: UpdatePartyData = {
         description: 'Only Description Updated'
       };
-
-      vi.spyOn(partyService, 'findById').mockResolvedValue(existingParty);
-      mockPrisma.party.update = vi.fn().mockResolvedValue(createMockParty());
+      setupUpdateTest();
 
       await partyService.update('party_123', 'user_123', updateDataDescriptionOnly);
 
-      expect(mockPrisma.party.update).toHaveBeenCalledWith({
-        where: { id: 'party_123' },
-        data: {
-          description: 'Only Description Updated',
-        },
+      expectUpdateCall({
+        description: 'Only Description Updated',
       });
     });
 
     it('should update archive status when provided', async () => {
-      const existingParty = createMockParty();
       const updateDataArchived: UpdatePartyData = {
         isArchived: true
       };
-
-      vi.spyOn(partyService, 'findById').mockResolvedValue(existingParty);
-      mockPrisma.party.update = vi.fn().mockResolvedValue(createMockParty());
+      setupUpdateTest();
 
       await partyService.update('party_123', 'user_123', updateDataArchived);
 
-      expect(mockPrisma.party.update).toHaveBeenCalledWith({
-        where: { id: 'party_123' },
-        data: {
-          isArchived: true,
-        },
+      expectUpdateCall({
+        isArchived: true,
       });
     });
 
     it('should trim string fields appropriately', async () => {
-      const existingParty = createMockParty();
       const updateDataWithSpaces: UpdatePartyData = {
         name: '  Trimmed Name  ',
         description: '  Trimmed Description  '
       };
-
-      vi.spyOn(partyService, 'findById').mockResolvedValue(existingParty);
-      mockPrisma.party.update = vi.fn().mockResolvedValue(createMockParty());
+      setupUpdateTest();
 
       await partyService.update('party_123', 'user_123', updateDataWithSpaces);
 
-      expect(mockPrisma.party.update).toHaveBeenCalledWith({
-        where: { id: 'party_123' },
-        data: {
-          name: 'Trimmed Name',
-          description: 'Trimmed Description',
-        },
+      expectUpdateCall({
+        name: 'Trimmed Name',
+        description: 'Trimmed Description',
       });
     });
 
     it('should convert empty description to null', async () => {
-      const existingParty = createMockParty();
       const updateDataEmptyDescription: UpdatePartyData = {
         description: ''
       };
-
-      vi.spyOn(partyService, 'findById').mockResolvedValue(existingParty);
-      mockPrisma.party.update = vi.fn().mockResolvedValue(createMockParty());
+      setupUpdateTest();
 
       await partyService.update('party_123', 'user_123', updateDataEmptyDescription);
 
-      expect(mockPrisma.party.update).toHaveBeenCalledWith({
-        where: { id: 'party_123' },
-        data: {
-          description: null,
-        },
+      expectUpdateCall({
+        description: null,
       });
     });
 
     it('should convert whitespace-only description to null', async () => {
-      const existingParty = createMockParty();
       const updateDataWhitespaceDescription: UpdatePartyData = {
         description: '   '
       };
-
-      vi.spyOn(partyService, 'findById').mockResolvedValue(existingParty);
-      mockPrisma.party.update = vi.fn().mockResolvedValue(createMockParty());
+      setupUpdateTest();
 
       await partyService.update('party_123', 'user_123', updateDataWhitespaceDescription);
 
-      expect(mockPrisma.party.update).toHaveBeenCalledWith({
-        where: { id: 'party_123' },
-        data: {
-          description: null,
-        },
+      expectUpdateCall({
+        description: null,
       });
     });
 
