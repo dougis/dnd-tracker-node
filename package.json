@@ -2,6 +2,7 @@
   "name": "dnd-tracker-node",
   "version": "1.0.0",
   "description": "D&D Encounter Tracker - Full Stack Node.js Application",
+  "type": "module",
   "private": true,
   "workspaces": [
     "packages/*"
