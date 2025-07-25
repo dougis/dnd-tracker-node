@@ -198,6 +198,25 @@ export const mockPrismaCreate = (mockPrisma: any, result: any) => {
   mockPrisma.encounter.create.mockResolvedValue(result);
 };
 
+// Helper to transform MockEncounter to API response format (excluding userId, converting dates)
+export const createExpectedApiEncounter = (encounter: MockEncounter) => ({
+  id: encounter.id,
+  name: encounter.name,
+  description: encounter.description,
+  status: encounter.status,
+  round: encounter.round,
+  turn: encounter.turn,
+  isActive: encounter.isActive,
+  participants: encounter.participants,
+  lairActions: encounter.lairActions,
+  createdAt: encounter.createdAt.toISOString(),
+  updatedAt: encounter.updatedAt.toISOString()
+});
+
+// Helper to transform array of MockEncounter to API response format
+export const createExpectedApiEncounters = (encounters: MockEncounter[]) => 
+  encounters.map(createExpectedApiEncounter);
+
 export const mockPrismaFindMany = (mockPrisma: any, result: any[]) => {
   mockPrisma.encounter.findMany.mockResolvedValue(result);
 };
@@ -213,3 +232,68 @@ export const mockPrismaUpdate = (mockPrisma: any, result: any) => {
 export const mockPrismaDelete = (mockPrisma: any) => {
   mockPrisma.encounter.delete.mockResolvedValue({});
 };
+
+// Helper for creating participants with initiative/roll values for combat tests
+export const createCombatParticipant = (id: string, initiative: number, initiativeRoll?: number | null, isActive = true): MockParticipant => 
+  createMockParticipant({ id, initiative, initiativeRoll, isActive });
+
+// Helper for creating multiple combat participants quickly
+export const createCombatParticipants = (participantData: Array<{ id: string; initiative: number; initiativeRoll?: number | null; isActive?: boolean }>): MockParticipant[] =>
+  participantData.map(data => createCombatParticipant(data.id, data.initiative, data.initiativeRoll, data.isActive));
+
+// Standard Prisma include pattern for encounter operations with participants and lairActions
+export const standardEncounterInclude = {
+  participants: {
+    include: {
+      character: true,
+      creature: true,
+    },
+  },
+  lairActions: true,
+};
+
+// Helper for creating participant data for add participant tests
+export const createParticipantData = (overrides = {}) => ({
+  type: 'CHARACTER' as const,
+  characterId: 'character_123',
+  name: 'Test Character',
+  initiative: 15,
+  initiativeRoll: 12,
+  currentHp: 25,
+  maxHp: 25,
+  tempHp: 0,
+  ac: 16,
+  conditions: [],
+  notes: 'Test notes',
+  ...overrides,
+});
+
+// Helper for basic participant data with minimal required fields
+export const createBasicParticipantData = (overrides = {}) => ({
+  type: 'CHARACTER' as const,
+  name: 'Test',
+  initiative: 10,
+  currentHp: 10,
+  maxHp: 10,
+  ac: 10,
+  ...overrides,
+});
+
+// Helper for setting up common mocks in participant HP tests
+export const setupParticipantHpMocks = (mockPrisma: any, mockEncounter: any, mockParticipant: any) => {
+  mockPrisma.encounter.findUnique.mockResolvedValue({ userId: 'user_123' });
+  mockPrisma.participant.findUnique.mockResolvedValue(mockParticipant);
+  mockPrisma.participant.update.mockResolvedValue({});
+  return mockEncounter;
+};
+
+// Helper for standard encounter creation data
+export const createEncounterData = (userId: string, name: string, description?: string | null) => ({
+  userId,
+  name,
+  description: description ?? null,
+  status: 'PLANNING',
+  round: 1,
+  turn: 0,
+  isActive: false,
+});

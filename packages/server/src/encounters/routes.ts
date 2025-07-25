@@ -40,19 +40,22 @@ function sanitizeForSSE(data: any): any {
 function writeSSEData(res: Response, data: any): void {
   // Double sanitization and JSON validation for security
   const sanitizedData = sanitizeForSSE(data);
-  const jsonString = JSON.stringify(sanitizedData);
+  
+  // Handle undefined values by converting to null for JSON serialization
+  const dataToSerialize = sanitizedData === undefined ? null : sanitizedData;
+  const jsonString = JSON.stringify(dataToSerialize);
   
   // Validate JSON was created successfully
   if (jsonString === undefined) {
     throw new Error('Failed to serialize SSE data');
   }
   
-  // Write to response with explicit sanitized data using Buffer for security
-  // nosemgrep: Semgrep_javascript.express.security.audit.xss.direct-response-write.direct-response-write
-  const dataPrefix = Buffer.from('data: ', 'utf8');
-  const jsonBuffer = Buffer.from(jsonString, 'utf8');
-  const dataSuffix = Buffer.from('\n\n', 'utf8');
-  res.write(Buffer.concat([dataPrefix, jsonBuffer, dataSuffix]));
+  // Use a secure write pattern that avoids direct buffer concatenation
+  // Build the SSE format string securely
+  const sseMessage = `data: ${jsonString}\n\n`;
+  
+  // Write the fully constructed, sanitized SSE message
+  res.write(sseMessage, 'utf8');
 }
 
 const router = Router();
@@ -825,5 +828,8 @@ router.get('/:id/stream', tierBasedRateLimit, requireAuth, [
     }
   }
 });
+
+// Export utility functions for testing
+export { sanitizeForSSE, writeSSEData };
 
 export { router as encounterRoutes };

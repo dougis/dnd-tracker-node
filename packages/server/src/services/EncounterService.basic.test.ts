@@ -3,7 +3,9 @@ import { PrismaClient, EncounterStatus } from '@prisma/client';
 import { EncounterService } from './EncounterService';
 import { 
   createMockEncounter, 
-  encounterIncludePattern
+  encounterIncludePattern,
+  standardEncounterInclude,
+  createEncounterData
 } from '../test/encounter-test-utils';
 
 // Get mocked Prisma instance
@@ -29,15 +31,7 @@ describe('EncounterService - Basic Operations', () => {
       const result = await encounterService.createEncounter('user_123', 'Test Encounter', 'Test description');
 
       expect(mockPrisma.encounter.create).toHaveBeenCalledWith({
-        data: {
-          userId: 'user_123',
-          name: 'Test Encounter',
-          description: 'Test description',
-          status: EncounterStatus.PLANNING,
-          round: 1,
-          turn: 0,
-          isActive: false,
-        },
+        data: createEncounterData('user_123', 'Test Encounter', 'Test description'),
         include: encounterIncludePattern,
       });
       expect(result).toEqual(mockEncounter);
@@ -54,15 +48,7 @@ describe('EncounterService - Basic Operations', () => {
       await encounterService.createEncounter('user_123', 'Test Encounter');
 
       expect(mockPrisma.encounter.create).toHaveBeenCalledWith({
-        data: {
-          userId: 'user_123',
-          name: 'Test Encounter',
-          description: null,
-          status: EncounterStatus.PLANNING,
-          round: 1,
-          turn: 0,
-          isActive: false,
-        },
+        data: createEncounterData('user_123', 'Test Encounter', null),
         include: encounterIncludePattern,
       });
     });
@@ -113,15 +99,7 @@ describe('EncounterService - Basic Operations', () => {
 
       expect(mockPrisma.encounter.findUnique).toHaveBeenCalledWith({
         where: { id: 'encounter_123' },
-        include: {
-          participants: {
-            include: {
-              character: true,
-              creature: true,
-            },
-          },
-          lairActions: true,
-        },
+        include: standardEncounterInclude,
       });
       expect(result).toEqual(mockEncounter);
     });
@@ -144,15 +122,7 @@ describe('EncounterService - Basic Operations', () => {
 
       expect(mockPrisma.encounter.findMany).toHaveBeenCalledWith({
         where: { userId: 'user_123' },
-        include: {
-          participants: {
-            include: {
-              character: true,
-              creature: true,
-            },
-          },
-          lairActions: true,
-        },
+        include: standardEncounterInclude,
         orderBy: { updatedAt: 'desc' },
       });
       expect(result).toEqual(mockEncounters);
@@ -178,15 +148,7 @@ describe('EncounterService - Basic Operations', () => {
           description: 'Updated description',
           status: EncounterStatus.ACTIVE
         },
-        include: {
-          participants: {
-            include: {
-              character: true,
-              creature: true,
-            },
-          },
-          lairActions: true,
-        },
+        include: standardEncounterInclude,
       });
       expect(result).toEqual(mockEncounter);
     });

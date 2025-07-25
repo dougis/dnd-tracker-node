@@ -5,6 +5,7 @@ import {
   createMockRequest,
   createMockResponse,
   createMockNext,
+  createMockUser,
   AuthTestScenarios,
   expectAuthSuccess,
   expectAuthFailure,
@@ -114,27 +115,8 @@ describe('Authentication Middleware', () => {
   describe('optionalAuth middleware', () => {
     it('should set user for valid session', async () => {
       // Arrange
-      const mockUser = {
-        id: 'user_123',
-        email: 'test@example.com',
-        username: 'testuser',
-        tier: 'free',
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
-
-      const mockSessionData = {
-        user: mockUser,
-        session: {
-          id: 'session_123',
-          userId: 'user_123',
-          expiresAt: new Date(Date.now() + 60000),
-          createdAt: new Date(),
-          updatedAt: new Date()
-        }
-      };
-
-      mockReq.cookies = { session_id: 'valid_session_123' };
+      const mockSessionData = createMockSessionData();
+      Object.assign(mockReq, AuthTestScenarios.validCookieAuth);
       authServiceMock.validateSession.mockResolvedValue(mockSessionData);
 
       // Act
@@ -142,14 +124,14 @@ describe('Authentication Middleware', () => {
 
       // Assert
       expect(authServiceMock.validateSession).toHaveBeenCalledWith('valid_session_123');
-      expect(mockReq.user).toEqual(mockUser);
+      expect(mockReq.user).toEqual(mockSessionData.user);
       expect(mockNext).toHaveBeenCalled();
       expect(mockRes.status).not.toHaveBeenCalled();
     });
 
     it('should call next() for missing session cookie', async () => {
       // Arrange
-      mockReq.cookies = {};
+      Object.assign(mockReq, AuthTestScenarios.noCookieNoHeader);
 
       // Act
       await optionalAuth(mockReq as Request, mockRes as Response, mockNext);
@@ -194,28 +176,8 @@ describe('Authentication Middleware', () => {
   describe('requireAuth with Authorization header', () => {
     it('should authenticate using Bearer token from Authorization header', async () => {
       // Arrange
-      const mockUser = {
-        id: 'user_123',
-        email: 'test@example.com',
-        username: 'testuser',
-        tier: 'free',
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
-
-      const mockSessionData = {
-        user: mockUser,
-        session: {
-          id: 'session_123',
-          userId: 'user_123',
-          expiresAt: new Date(Date.now() + 60000),
-          createdAt: new Date(),
-          updatedAt: new Date()
-        }
-      };
-
-      mockReq.cookies = {}; // No cookie
-      mockReq.headers = { authorization: 'Bearer valid_token_123' };
+      const mockSessionData = createMockSessionData();
+      Object.assign(mockReq, AuthTestScenarios.validBearerAuth);
       authServiceMock.validateSession.mockResolvedValue(mockSessionData);
 
       // Act
@@ -223,15 +185,14 @@ describe('Authentication Middleware', () => {
 
       // Assert
       expect(authServiceMock.validateSession).toHaveBeenCalledWith('valid_token_123');
-      expect(mockReq.user).toEqual(mockUser);
+      expect(mockReq.user).toEqual(mockSessionData.user);
       expect(mockNext).toHaveBeenCalled();
       expect(mockRes.status).not.toHaveBeenCalled();
     });
 
     it('should return 401 for malformed Authorization header', async () => {
       // Arrange
-      mockReq.cookies = {};
-      mockReq.headers = { authorization: 'InvalidFormat token123' };
+      Object.assign(mockReq, AuthTestScenarios.invalidBearerFormat);
 
       // Act
       await requireAuth(mockReq as Request, mockRes as Response, mockNext);
@@ -248,28 +209,8 @@ describe('Authentication Middleware', () => {
 
     it('should prefer cookie over Authorization header when both present', async () => {
       // Arrange
-      const mockUser = {
-        id: 'user_123',
-        email: 'test@example.com',
-        username: 'testuser',
-        tier: 'free',
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
-
-      const mockSessionData = {
-        user: mockUser,
-        session: {
-          id: 'session_123',
-          userId: 'user_123',
-          expiresAt: new Date(Date.now() + 60000),
-          createdAt: new Date(),
-          updatedAt: new Date()
-        }
-      };
-
-      mockReq.cookies = { session_id: 'cookie_session' };
-      mockReq.headers = { authorization: 'Bearer header_token' };
+      const mockSessionData = createMockSessionData();
+      Object.assign(mockReq, AuthTestScenarios.cookieAndBearer);
       authServiceMock.validateSession.mockResolvedValue(mockSessionData);
 
       // Act
@@ -284,28 +225,8 @@ describe('Authentication Middleware', () => {
   describe('optionalAuth with Authorization header', () => {
     it('should authenticate using Bearer token from Authorization header', async () => {
       // Arrange
-      const mockUser = {
-        id: 'user_123',
-        email: 'test@example.com',
-        username: 'testuser',
-        tier: 'free',
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
-
-      const mockSessionData = {
-        user: mockUser,
-        session: {
-          id: 'session_123',
-          userId: 'user_123',
-          expiresAt: new Date(Date.now() + 60000),
-          createdAt: new Date(),
-          updatedAt: new Date()
-        }
-      };
-
-      mockReq.cookies = {}; // No cookie
-      mockReq.headers = { authorization: 'Bearer valid_token_123' };
+      const mockSessionData = createMockSessionData();
+      Object.assign(mockReq, AuthTestScenarios.validBearerAuth);
       authServiceMock.validateSession.mockResolvedValue(mockSessionData);
 
       // Act
@@ -313,15 +234,14 @@ describe('Authentication Middleware', () => {
 
       // Assert
       expect(authServiceMock.validateSession).toHaveBeenCalledWith('valid_token_123');
-      expect(mockReq.user).toEqual(mockUser);
+      expect(mockReq.user).toEqual(mockSessionData.user);
       expect(mockNext).toHaveBeenCalled();
       expect(mockRes.status).not.toHaveBeenCalled();
     });
 
     it('should call next() for malformed Authorization header', async () => {
       // Arrange
-      mockReq.cookies = {};
-      mockReq.headers = { authorization: 'InvalidFormat token123' };
+      Object.assign(mockReq, AuthTestScenarios.invalidBearerFormat);
 
       // Act
       await optionalAuth(mockReq as Request, mockRes as Response, mockNext);
@@ -338,16 +258,7 @@ describe('Authentication Middleware', () => {
     it('should call next() for authenticated user', () => {
       // Arrange
       const middleware = requirePermission('read:posts');
-      mockReq.user = {
-        id: 'user_123',
-        email: 'test@example.com',
-        username: 'testuser',
-        tier: 'free',
-        failedLoginAttempts: 0,
-        lockedUntil: null,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
+      mockReq.user = createMockUser();
 
       // Act
       middleware(mockReq as Request, mockRes as Response, mockNext);
@@ -377,16 +288,7 @@ describe('Authentication Middleware', () => {
     it('should handle different permission types', () => {
       // Arrange
       const middleware = requirePermission('write:comments');
-      mockReq.user = {
-        id: 'user_123',
-        email: 'test@example.com',
-        username: 'testuser',
-        tier: 'premium',
-        failedLoginAttempts: 0,
-        lockedUntil: null,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
+      mockReq.user = createMockUser({ tier: 'premium' });
 
       // Act
       middleware(mockReq as Request, mockRes as Response, mockNext);
@@ -401,16 +303,7 @@ describe('Authentication Middleware', () => {
     it('should call next() when user owns the resource (default userId param)', () => {
       // Arrange
       const middleware = requireOwnership();
-      mockReq.user = {
-        id: 'user_123',
-        email: 'test@example.com',
-        username: 'testuser',
-        tier: 'free',
-        failedLoginAttempts: 0,
-        lockedUntil: null,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
+      mockReq.user = createMockUser();
       mockReq.params = { userId: 'user_123' };
 
       // Act
@@ -424,16 +317,7 @@ describe('Authentication Middleware', () => {
     it('should call next() when user owns the resource (custom param)', () => {
       // Arrange
       const middleware = requireOwnership('ownerId');
-      mockReq.user = {
-        id: 'user_123',
-        email: 'test@example.com',
-        username: 'testuser',
-        tier: 'free',
-        failedLoginAttempts: 0,
-        lockedUntil: null,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
+      mockReq.user = createMockUser();
       mockReq.params = { ownerId: 'user_123' };
 
       // Act
@@ -447,16 +331,7 @@ describe('Authentication Middleware', () => {
     it('should call next() when user owns the resource (body param)', () => {
       // Arrange
       const middleware = requireOwnership();
-      mockReq.user = {
-        id: 'user_123',
-        email: 'test@example.com',
-        username: 'testuser',
-        tier: 'free',
-        failedLoginAttempts: 0,
-        lockedUntil: null,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
+      mockReq.user = createMockUser();
       mockReq.params = {};
       mockReq.body = { userId: 'user_123' };
 
@@ -489,16 +364,7 @@ describe('Authentication Middleware', () => {
     it('should return 403 when user does not own the resource', () => {
       // Arrange
       const middleware = requireOwnership();
-      mockReq.user = {
-        id: 'user_123',
-        email: 'test@example.com',
-        username: 'testuser',
-        tier: 'free',
-        failedLoginAttempts: 0,
-        lockedUntil: null,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
+      mockReq.user = createMockUser();
       mockReq.params = { userId: 'other_user_456' };
 
       // Act
@@ -516,16 +382,7 @@ describe('Authentication Middleware', () => {
     it('should handle missing resource userId', () => {
       // Arrange
       const middleware = requireOwnership();
-      mockReq.user = {
-        id: 'user_123',
-        email: 'test@example.com',
-        username: 'testuser',
-        tier: 'free',
-        failedLoginAttempts: 0,
-        lockedUntil: null,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
+      mockReq.user = createMockUser();
       mockReq.params = {};
       mockReq.body = {};
 

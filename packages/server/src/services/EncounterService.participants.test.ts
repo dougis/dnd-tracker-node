@@ -3,7 +3,10 @@ import { PrismaClient, ParticipantType } from '@prisma/client';
 import { EncounterService, ParticipantCreateData } from './EncounterService';
 import { 
   createMockEncounter,
-  createMockParticipant
+  createMockParticipant,
+  createParticipantData,
+  createBasicParticipantData,
+  setupParticipantHpMocks
 } from '../test/encounter-test-utils';
 
 // Get mocked Prisma instance
@@ -20,19 +23,7 @@ describe('EncounterService - Participant Management', () => {
   describe('addParticipant', () => {
     it('should add participant successfully', async () => {
       const mockEncounter = createMockEncounter();
-      const participantData: ParticipantCreateData = {
-        type: ParticipantType.CHARACTER,
-        characterId: 'character_123',
-        name: 'Test Character',
-        initiative: 15,
-        initiativeRoll: 12,
-        currentHp: 25,
-        maxHp: 25,
-        tempHp: 0,
-        ac: 16,
-        conditions: [],
-        notes: 'Test notes'
-      };
+      const participantData: ParticipantCreateData = createParticipantData();
 
       mockPrisma.encounter.findUnique.mockResolvedValue({ userId: 'user_123' });
       mockPrisma.participant.create.mockResolvedValue({});
@@ -64,14 +55,7 @@ describe('EncounterService - Participant Management', () => {
 
     it('should throw error when encounter not found', async () => {
       mockPrisma.encounter.findUnique.mockResolvedValue(null);
-      const participantData: ParticipantCreateData = {
-        type: ParticipantType.CHARACTER,
-        name: 'Test',
-        initiative: 10,
-        currentHp: 10,
-        maxHp: 10,
-        ac: 10
-      };
+      const participantData: ParticipantCreateData = createBasicParticipantData();
 
       await expect(encounterService.addParticipant('nonexistent', 'user_123', participantData))
         .rejects.toThrow('Encounter not found');
@@ -81,11 +65,9 @@ describe('EncounterService - Participant Management', () => {
   describe('updateParticipantHp', () => {
     it('should update participant HP with damage', async () => {
       const mockEncounter = createMockEncounter();
-      const mockParticipant = { ...createMockParticipant(), currentHp: 25, maxHp: 30 };
+      const mockParticipant = createMockParticipant({ currentHp: 25, maxHp: 30 });
       
-      mockPrisma.encounter.findUnique.mockResolvedValue({ userId: 'user_123' });
-      mockPrisma.participant.findUnique.mockResolvedValue(mockParticipant);
-      mockPrisma.participant.update.mockResolvedValue({});
+      setupParticipantHpMocks(mockPrisma, mockEncounter, mockParticipant);
       vi.spyOn(encounterService, 'getEncounterById').mockResolvedValue(mockEncounter);
 
       const result = await encounterService.updateParticipantHp(
@@ -107,11 +89,9 @@ describe('EncounterService - Participant Management', () => {
 
     it('should update participant HP with healing', async () => {
       const mockEncounter = createMockEncounter();
-      const mockParticipant = { ...createMockParticipant(), currentHp: 15, maxHp: 30 };
+      const mockParticipant = createMockParticipant({ currentHp: 15, maxHp: 30 });
       
-      mockPrisma.encounter.findUnique.mockResolvedValue({ userId: 'user_123' });
-      mockPrisma.participant.findUnique.mockResolvedValue(mockParticipant);
-      mockPrisma.participant.update.mockResolvedValue({});
+      setupParticipantHpMocks(mockPrisma, mockEncounter, mockParticipant);
       vi.spyOn(encounterService, 'getEncounterById').mockResolvedValue(mockEncounter);
 
       await encounterService.updateParticipantHp(
@@ -132,11 +112,9 @@ describe('EncounterService - Participant Management', () => {
 
     it('should not allow HP to go below 0', async () => {
       const mockEncounter = createMockEncounter();
-      const mockParticipant = { ...createMockParticipant(), currentHp: 5, maxHp: 30 };
+      const mockParticipant = createMockParticipant({ currentHp: 5, maxHp: 30 });
       
-      mockPrisma.encounter.findUnique.mockResolvedValue({ userId: 'user_123' });
-      mockPrisma.participant.findUnique.mockResolvedValue(mockParticipant);
-      mockPrisma.participant.update.mockResolvedValue({});
+      setupParticipantHpMocks(mockPrisma, mockEncounter, mockParticipant);
       vi.spyOn(encounterService, 'getEncounterById').mockResolvedValue(mockEncounter);
 
       await encounterService.updateParticipantHp(
@@ -157,11 +135,9 @@ describe('EncounterService - Participant Management', () => {
 
     it('should not allow healing above max HP', async () => {
       const mockEncounter = createMockEncounter();
-      const mockParticipant = { ...createMockParticipant(), currentHp: 25, maxHp: 30 };
+      const mockParticipant = createMockParticipant({ currentHp: 25, maxHp: 30 });
       
-      mockPrisma.encounter.findUnique.mockResolvedValue({ userId: 'user_123' });
-      mockPrisma.participant.findUnique.mockResolvedValue(mockParticipant);
-      mockPrisma.participant.update.mockResolvedValue({});
+      setupParticipantHpMocks(mockPrisma, mockEncounter, mockParticipant);
       vi.spyOn(encounterService, 'getEncounterById').mockResolvedValue(mockEncounter);
 
       await encounterService.updateParticipantHp(
@@ -197,10 +173,9 @@ describe('EncounterService - Participant Management', () => {
 
     it('should throw error when participant does not belong to encounter', async () => {
       mockPrisma.encounter.findUnique.mockResolvedValue({ userId: 'user_123' });
-      mockPrisma.participant.findUnique.mockResolvedValue({ 
-        ...createMockParticipant(), 
-        encounterId: 'other_encounter' 
-      });
+      mockPrisma.participant.findUnique.mockResolvedValue(
+        createMockParticipant({ encounterId: 'other_encounter' })
+      );
 
       await expect(encounterService.updateParticipantHp('participant_123', 'encounter_123', 'user_123', { damage: 5 }))
         .rejects.toThrow('Participant does not belong to this encounter');

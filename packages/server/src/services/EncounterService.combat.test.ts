@@ -3,7 +3,9 @@ import { PrismaClient, EncounterStatus } from '@prisma/client';
 import { EncounterService } from './EncounterService';
 import { 
   createMockEncounter,
-  createMockParticipant
+  createMockParticipant,
+  createCombatParticipants,
+  standardEncounterInclude
 } from '../test/encounter-test-utils';
 
 // Get mocked Prisma instance
@@ -19,11 +21,11 @@ describe('EncounterService - Combat Operations', () => {
 
   describe('calculateInitiativeOrder', () => {
     it('should sort participants by initiative (highest first)', () => {
-      const participants = [
-        { ...createMockParticipant(), id: 'p1', initiative: 10, initiativeRoll: 15 },
-        { ...createMockParticipant(), id: 'p2', initiative: 20, initiativeRoll: 10 },
-        { ...createMockParticipant(), id: 'p3', initiative: 15, initiativeRoll: 18 }
-      ];
+      const participants = createCombatParticipants([
+        { id: 'p1', initiative: 10, initiativeRoll: 15 },
+        { id: 'p2', initiative: 20, initiativeRoll: 10 },
+        { id: 'p3', initiative: 15, initiativeRoll: 18 }
+      ]);
 
       const result = encounterService.calculateInitiativeOrder(participants);
 
@@ -31,11 +33,11 @@ describe('EncounterService - Combat Operations', () => {
     });
 
     it('should use initiative roll as tiebreaker', () => {
-      const participants = [
-        { ...createMockParticipant(), id: 'p1', initiative: 15, initiativeRoll: 10 },
-        { ...createMockParticipant(), id: 'p2', initiative: 15, initiativeRoll: 18 },
-        { ...createMockParticipant(), id: 'p3', initiative: 15, initiativeRoll: 12 }
-      ];
+      const participants = createCombatParticipants([
+        { id: 'p1', initiative: 15, initiativeRoll: 10 },
+        { id: 'p2', initiative: 15, initiativeRoll: 18 },
+        { id: 'p3', initiative: 15, initiativeRoll: 12 }
+      ]);
 
       const result = encounterService.calculateInitiativeOrder(participants);
 
@@ -43,11 +45,11 @@ describe('EncounterService - Combat Operations', () => {
     });
 
     it('should filter out inactive participants', () => {
-      const participants = [
-        { ...createMockParticipant(), id: 'p1', initiative: 20, isActive: true },
-        { ...createMockParticipant(), id: 'p2', initiative: 15, isActive: false },
-        { ...createMockParticipant(), id: 'p3', initiative: 10, isActive: true }
-      ];
+      const participants = createCombatParticipants([
+        { id: 'p1', initiative: 20, isActive: true },
+        { id: 'p2', initiative: 15, isActive: false },
+        { id: 'p3', initiative: 10, isActive: true }
+      ]);
 
       const result = encounterService.calculateInitiativeOrder(participants);
 
@@ -55,10 +57,10 @@ describe('EncounterService - Combat Operations', () => {
     });
 
     it('should maintain stable sort for identical initiative values', () => {
-      const participants = [
-        { ...createMockParticipant(), id: 'p1', initiative: 15, initiativeRoll: null },
-        { ...createMockParticipant(), id: 'p2', initiative: 15, initiativeRoll: null }
-      ];
+      const participants = createCombatParticipants([
+        { id: 'p1', initiative: 15, initiativeRoll: null },
+        { id: 'p2', initiative: 15, initiativeRoll: null }
+      ]);
 
       const result = encounterService.calculateInitiativeOrder(participants);
 
@@ -87,15 +89,7 @@ describe('EncounterService - Combat Operations', () => {
           round: 1,
           turn: 0
         },
-        include: {
-          participants: {
-            include: {
-              character: true,
-              creature: true,
-            },
-          },
-          lairActions: true,
-        },
+        include: standardEncounterInclude,
       });
       expect(result).toEqual(mockEncounter);
     });
@@ -108,7 +102,7 @@ describe('EncounterService - Combat Operations', () => {
     });
 
     it('should throw error when user not authorized', async () => {
-      const mockEncounter = { ...createMockEncounter(), userId: 'other_user' };
+      const mockEncounter = createMockEncounter({ userId: 'other_user' });
       vi.spyOn(encounterService, 'getEncounterById').mockResolvedValue(mockEncounter);
 
       await expect(encounterService.startCombat('encounter_123', 'user_123'))
@@ -116,7 +110,7 @@ describe('EncounterService - Combat Operations', () => {
     });
 
     it('should throw error when no participants', async () => {
-      const mockEncounter = { ...createMockEncounter(), participants: [] };
+      const mockEncounter = createMockEncounter({ participants: [] });
       vi.spyOn(encounterService, 'getEncounterById').mockResolvedValue(mockEncounter);
 
       await expect(encounterService.startCombat('encounter_123', 'user_123'))
@@ -138,15 +132,7 @@ describe('EncounterService - Combat Operations', () => {
           status: EncounterStatus.COMPLETED,
           isActive: false
         },
-        include: {
-          participants: {
-            include: {
-              character: true,
-              creature: true,
-            },
-          },
-          lairActions: true,
-        },
+        include: standardEncounterInclude,
       });
       expect(result).toEqual(mockEncounter);
     });
