@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { expect, vi } from 'vitest';
 
 /**
  * Base class for testing service layer with common patterns

@@ -1,7 +1,7 @@
 import express from 'express';
 import request from 'supertest';
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { createTestApp, standardMocks } from './testHelpers';
+import { expect, vi } from 'vitest';
+import { createTestApp } from './testHelpers';
 
 /**
  * Base class for testing CRUD routes with common patterns
