@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { PartyService, CreatePartyData } from '../PartyService';
 import { createMockParty, createMockPrisma } from './PartyService.helpers';
+import { ServiceTestPatterns } from '../../utils/TestPatterns';
 
 describe('PartyService - create operations', () => {
   let partyService: PartyService;
@@ -28,19 +29,9 @@ describe('PartyService - create operations', () => {
         description: 'A group of brave adventurers'
       });
 
-      mockPrisma.party.create = vi.fn().mockResolvedValue(mockCreatedParty);
-
-      const result = await partyService.create('user_123', validCreateData);
-
-      expect(mockPrisma.party.create).toHaveBeenCalledWith({
-        data: {
-          userId: 'user_123',
-          name: 'Adventure Party',
-          description: 'A group of brave adventurers',
-        },
-      });
-
-      expect(result).toEqual(mockCreatedParty);
+      await ServiceTestPatterns.testSuccessfulCreate(
+        partyService, 'create', 'user_123', validCreateData, mockCreatedParty, mockPrisma, 'party'
+      );
     });
 
     it('should create party with minimal data (name only)', async () => {
@@ -53,19 +44,9 @@ describe('PartyService - create operations', () => {
         description: null
       });
 
-      mockPrisma.party.create = vi.fn().mockResolvedValue(expectedParty);
-
-      const result = await partyService.create('user_123', minimalData);
-
-      expect(mockPrisma.party.create).toHaveBeenCalledWith({
-        data: {
-          userId: 'user_123',
-          name: 'Simple Party',
-          description: null,
-        },
-      });
-
-      expect(result).toEqual(expectedParty);
+      await ServiceTestPatterns.testSuccessfulCreate(
+        partyService, 'create', 'user_123', minimalData, expectedParty, mockPrisma, 'party'
+      );
     });
 
     it('should trim name and description fields', async () => {
@@ -133,24 +114,23 @@ describe('PartyService - create operations', () => {
     it('should throw error for empty name', async () => {
       const invalidData = { ...validCreateData, name: '' };
 
-      await expect(partyService.create('user_123', invalidData))
-        .rejects.toThrow('Party name is required');
-
-      expect(mockPrisma.party.create).not.toHaveBeenCalled();
+      await ServiceTestPatterns.testValidationError(
+        partyService, 'create', 'user_123', invalidData, 'Party name is required'
+      );
     });
 
     it('should throw error for whitespace-only name', async () => {
       const invalidData = { ...validCreateData, name: '   ' };
 
-      await expect(partyService.create('user_123', invalidData))
-        .rejects.toThrow('Party name is required');
+      await ServiceTestPatterns.testValidationError(
+        partyService, 'create', 'user_123', invalidData, 'Party name is required'
+      );
     });
 
     it('should handle database errors during creation', async () => {
-      mockPrisma.party.create = vi.fn().mockRejectedValue(new Error('Database error'));
-
-      await expect(partyService.create('user_123', validCreateData))
-        .rejects.toThrow('Failed to create party: Database error');
+      await ServiceTestPatterns.testDatabaseError(
+        partyService, 'create', 'user_123', validCreateData, mockPrisma, 'party'
+      );
     });
 
     it('should handle generic errors during creation', async () => {

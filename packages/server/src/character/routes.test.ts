@@ -1,7 +1,7 @@
 import express from 'express';
-import request from 'supertest';
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, beforeEach, vi } from 'vitest';
 import { createTestApp, standardMocks } from '../utils/testHelpers';
+import { TestPatterns } from '../utils/TestPatterns';
 
 // Use vi.hoisted to ensure mocks are available during hoisting
 const { mockCreate, mockFindByPartyId, mockFindById, mockUpdate, mockDelete } = vi.hoisted(() => ({
@@ -39,7 +39,7 @@ describe('Character Routes', () => {
 
   describe('POST /api/characters', () => {
     it('should create a new character successfully', async () => {
-      const newCharacter = {
+      const createData = {
         partyId: 'party123',
         name: 'Gandalf',
         playerName: 'John Doe',
@@ -59,9 +59,9 @@ describe('Character Routes', () => {
         }
       };
       
-      const mockCreatedCharacter = {
+      const expectedResponse = {
         id: 'char123',
-        ...newCharacter,
+        ...createData,
         tempHp: 0,
         speed: 30,
         proficiencyBonus: 3,
@@ -71,46 +71,24 @@ describe('Character Routes', () => {
         updatedAt: '2025-01-01T00:00:00.000Z'
       };
 
-      mockCreate.mockResolvedValue(mockCreatedCharacter);
-
-      const response = await request(app)
-        .post('/api/characters')
-        .send(newCharacter);
-
-      expect(response.status).toBe(201);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data).toEqual(mockCreatedCharacter);
-      expect(mockCreate).toHaveBeenCalledWith('user123', newCharacter);
+      await TestPatterns.testSuccessfulCreation(
+        app, '/api/characters', createData, expectedResponse, mockCreate
+      );
     });
 
     it('should return 400 for invalid character data', async () => {
-      const invalidCharacter = {
+      const invalidData = {
         partyId: 'party123',
-        name: '', // Empty name should fail validation
+        name: '',
         race: 'Human'
       };
 
-      const response = await request(app)
-        .post('/api/characters')
-        .send(invalidCharacter);
-
-      expect(response.status).toBe(400);
-      expect(response.body.success).toBe(false);
-      expect(response.body.message).toBe('Validation failed');
+      await TestPatterns.testValidationFailure(app, '/api/characters', invalidData);
     });
 
     it('should return 400 for missing required fields', async () => {
-      const invalidCharacter = {
-        name: 'Test Character'
-        // Missing partyId and race
-      };
-
-      const response = await request(app)
-        .post('/api/characters')
-        .send(invalidCharacter);
-
-      expect(response.status).toBe(400);
-      expect(response.body.success).toBe(false);
+      const invalidData = { name: 'Test Character' };
+      await TestPatterns.testValidationFailure(app, '/api/characters', invalidData);
     });
   });
 
@@ -149,26 +127,15 @@ describe('Character Routes', () => {
         }
       ];
 
-      mockFindByPartyId.mockResolvedValue(mockCharacters);
-
-      const response = await request(app)
-        .get('/api/characters/party/party123');
-
-      expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data).toEqual(mockCharacters);
-      expect(mockFindByPartyId).toHaveBeenCalledWith('party123', 'user123');
+      await TestPatterns.testGetCollection(
+        app, '/api/characters/party/party123', mockCharacters, mockFindByPartyId, 'Characters'
+      );
     });
 
     it('should return empty array when party has no characters', async () => {
-      mockFindByPartyId.mockResolvedValue([]);
-
-      const response = await request(app)
-        .get('/api/characters/party/party123');
-
-      expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data).toEqual([]);
+      await TestPatterns.testGetCollection(
+        app, '/api/characters/party/party123', [], mockFindByPartyId, 'Characters'
+      );
     });
   });
 
@@ -190,26 +157,15 @@ describe('Character Routes', () => {
         updatedAt: '2025-01-01T00:00:00.000Z'
       };
 
-      mockFindById.mockResolvedValue(mockCharacter);
-
-      const response = await request(app)
-        .get('/api/characters/char123');
-
-      expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data).toEqual(mockCharacter);
-      expect(mockFindById).toHaveBeenCalledWith('char123', 'user123');
+      await TestPatterns.testSuccessfulGetById(
+        app, '/api/characters', 'char123', mockCharacter, mockFindById
+      );
     });
 
     it('should return 404 when character not found', async () => {
-      mockFindById.mockResolvedValue(null);
-
-      const response = await request(app)
-        .get('/api/characters/nonexistent');
-
-      expect(response.status).toBe(404);
-      expect(response.body.success).toBe(false);
-      expect(response.body.message).toBe('Character not found');
+      await TestPatterns.testNotFound(
+        app, '/api/characters', 'nonexistent', mockFindById, 'Character'
+      );
     });
   });
 
@@ -238,71 +194,37 @@ describe('Character Routes', () => {
         updatedAt: '2025-01-01T00:00:00.000Z'
       };
 
-      mockUpdate.mockResolvedValue(mockUpdatedCharacter);
-
-      const response = await request(app)
-        .put('/api/characters/char123')
-        .send(updateData);
-
-      expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data).toEqual(mockUpdatedCharacter);
-      expect(mockUpdate).toHaveBeenCalledWith('char123', 'user123', updateData);
+      await TestPatterns.testSuccessfulUpdate(
+        app, '/api/characters', 'char123', updateData, mockUpdatedCharacter, mockUpdate
+      );
     });
 
     it('should return 404 when updating non-existent character', async () => {
-      const updateData = {
-        name: 'Updated Name'
-      };
-
+      const updateData = { name: 'Updated Name' };
       mockUpdate.mockResolvedValue(null);
 
-      const response = await request(app)
-        .put('/api/characters/nonexistent')
-        .send(updateData);
-
-      expect(response.status).toBe(404);
-      expect(response.body.success).toBe(false);
-      expect(response.body.message).toBe('Character not found');
+      await TestPatterns.testNotFound(
+        app, '/api/characters', 'nonexistent', mockUpdate, 'Character'
+      );
     });
 
     it('should return 400 for invalid update data', async () => {
-      const invalidUpdate = {
-        name: '', // Empty name should fail validation
-        currentHp: -5 // Negative HP should fail validation
-      };
-
-      const response = await request(app)
-        .put('/api/characters/char123')
-        .send(invalidUpdate);
-
-      expect(response.status).toBe(400);
-      expect(response.body.success).toBe(false);
+      const invalidData = { name: '', currentHp: -5 };
+      await TestPatterns.testValidationFailure(app, '/api/characters', invalidData);
     });
   });
 
   describe('DELETE /api/characters/:id', () => {
     it('should delete character successfully', async () => {
-      mockDelete.mockResolvedValue(true);
-
-      const response = await request(app)
-        .delete('/api/characters/char123');
-
-      expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.message).toBe('Character deleted successfully');
-      expect(mockDelete).toHaveBeenCalledWith('char123', 'user123');
+      await TestPatterns.testSuccessfulDeletion(
+        app, '/api/characters', 'char123', mockDelete, 'Character'
+      );
     });
 
     it('should return 404 when deleting non-existent character', async () => {
-      mockDelete.mockResolvedValue(false);
-
-      const response = await request(app)
-        .delete('/api/characters/nonexistent');
-
-      expect(response.status).toBe(404);
-      expect(response.body.success).toBe(false);
-      expect(response.body.message).toBe('Character not found');
+      await TestPatterns.testDeleteNotFound(
+        app, '/api/characters', 'nonexistent', mockDelete, 'Character'
+      );
     });
   });
 });
