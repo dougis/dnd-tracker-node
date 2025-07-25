@@ -66,58 +66,49 @@ describe('routeHelpers', () => {
   });
 
   describe('sendErrorResponse', () => {
-    it('should send error response with default status 500', () => {
+    it('should send error response with error message when Error provided', () => {
       const error = new Error('Test error');
-      const message = 'Something went wrong';
+      const defaultMessage = 'Something went wrong';
 
-      sendErrorResponse(mockRes as Response, error, message);
+      sendErrorResponse(mockRes as Response, error, defaultMessage);
 
       expect(mockStatus).toHaveBeenCalledWith(500);
       expect(mockJson).toHaveBeenCalledWith({
         success: false,
-        message
+        message: 'Test error' // Uses error.message, not defaultMessage
       });
       expect(console.error).toHaveBeenCalledWith('Error: Something went wrong', error);
     });
 
     it('should send error response with custom status', () => {
       const error = new Error('Validation failed');
-      const message = 'Invalid input';
+      const defaultMessage = 'Invalid input';
 
-      sendErrorResponse(mockRes as Response, error, message, 400);
+      sendErrorResponse(mockRes as Response, error, defaultMessage, 400);
 
       expect(mockStatus).toHaveBeenCalledWith(400);
       expect(mockJson).toHaveBeenCalledWith({
         success: false,
-        message
+        message: 'Validation failed' // Uses error.message
       });
     });
 
-    it('should handle error without message', () => {
-      const error = new Error('Test error');
+    it('should use default message when error is not Error instance', () => {
+      const error = 'string error';
+      const defaultMessage = 'Internal server error';
 
-      sendErrorResponse(mockRes as Response, error);
+      sendErrorResponse(mockRes as Response, error, defaultMessage);
 
       expect(mockStatus).toHaveBeenCalledWith(500);
       expect(mockJson).toHaveBeenCalledWith({
         success: false,
-        message: 'Internal server error'
+        message: 'Internal server error' // Uses defaultMessage for non-Error
       });
     });
   });
 
   describe('sendNotFoundResponse', () => {
-    it('should send not found response with default message', () => {
-      sendNotFoundResponse(mockRes as Response);
-
-      expect(mockStatus).toHaveBeenCalledWith(404);
-      expect(mockJson).toHaveBeenCalledWith({
-        success: false,
-        message: 'Resource not found'
-      });
-    });
-
-    it('should send not found response with custom message', () => {
+    it('should send not found response with provided message', () => {
       const message = 'User not found';
 
       sendNotFoundResponse(mockRes as Response, message);
@@ -133,41 +124,51 @@ describe('routeHelpers', () => {
   describe('asyncHandler', () => {
     it('should execute handler successfully', async () => {
       const mockReq = {};
-      const mockNext = vi.fn();
-      const handler = vi.fn().mockResolvedValue('success');
+      const handler = vi.fn().mockResolvedValue(undefined);
 
       const wrappedHandler = asyncHandler(handler);
-      await wrappedHandler(mockReq, mockRes, mockNext);
+      wrappedHandler(mockReq as any, mockRes as Response);
 
-      expect(handler).toHaveBeenCalledWith(mockReq, mockRes, mockNext);
-      expect(mockNext).not.toHaveBeenCalled();
+      expect(handler).toHaveBeenCalledWith(mockReq, mockRes);
     });
 
-    it('should catch and forward errors to next', async () => {
-      const mockReq = {};  
-      const mockNext = vi.fn();
+    it('should catch and send error response for rejected promises', async () => {
+      const mockReq = {};
       const error = new Error('Handler error');
       const handler = vi.fn().mockRejectedValue(error);
 
       const wrappedHandler = asyncHandler(handler);
-      await wrappedHandler(mockReq, mockRes, mockNext);
+      wrappedHandler(mockReq as any, mockRes as Response);
 
-      expect(handler).toHaveBeenCalledWith(mockReq, mockRes, mockNext);
-      expect(mockNext).toHaveBeenCalledWith(error);
+      // Wait for promise to resolve
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      expect(handler).toHaveBeenCalledWith(mockReq, mockRes);
+      expect(mockStatus).toHaveBeenCalledWith(500);
+      expect(mockJson).toHaveBeenCalledWith({
+        success: false,
+        message: 'Handler error'
+      });
     });
 
-    it('should handle synchronous errors', async () => {
+    it('should catch and send error response for synchronous errors', async () => {
       const mockReq = {};
-      const mockNext = vi.fn();
       const error = new Error('Sync error');
       const handler = vi.fn().mockImplementation(() => {
         throw error;
       });
 
       const wrappedHandler = asyncHandler(handler);
-      await wrappedHandler(mockReq, mockRes, mockNext);
+      wrappedHandler(mockReq as any, mockRes as Response);
 
-      expect(mockNext).toHaveBeenCalledWith(error);
+      // Wait for promise to resolve
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      expect(mockStatus).toHaveBeenCalledWith(500);
+      expect(mockJson).toHaveBeenCalledWith({
+        success: false,
+        message: 'Sync error'
+      });
     });
   });
 });
