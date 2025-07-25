@@ -93,16 +93,29 @@ export class PartyService extends BaseService {
    * Build update data object from partial update data
    */
   private buildUpdateData(data: UpdatePartyData): any {
-    const updateData: any = {};
-    
-    // Process string fields
-    if (data.name !== undefined) updateData.name = data.name.trim();
-    if (data.description !== undefined) updateData.description = this.processStringField(data.description);
-    
-    // Copy direct fields
-    this.copyDefinedFields(data, updateData, ['isArchived']);
+    return {
+      ...this.getPartyStringFields(data),
+      ...this.getPartyDirectFields(data),
+    };
+  }
 
-    return updateData;
+  /**
+   * Get processed string fields for party update
+   */
+  private getPartyStringFields(data: UpdatePartyData): any {
+    const fields: any = {};
+    if (data.name !== undefined) fields.name = data.name.trim();
+    if (data.description !== undefined) fields.description = this.processStringField(data.description);
+    return fields;
+  }
+
+  /**
+   * Get direct fields for party update
+   */
+  private getPartyDirectFields(data: UpdatePartyData): any {
+    const fields: any = {};
+    this.copyDefinedFields(data, fields, ['isArchived']);
+    return fields;
   }
 
   /**
