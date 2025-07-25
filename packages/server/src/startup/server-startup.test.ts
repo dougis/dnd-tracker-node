@@ -12,13 +12,21 @@ vi.mock('express', () => {
     get: vi.fn(),
     listen: vi.fn()
   };
+  const mockRouter = vi.fn(() => ({
+    use: vi.fn(),
+    get: vi.fn(),
+    post: vi.fn(),
+    put: vi.fn(),
+    delete: vi.fn()
+  }));
   const mockExpress = vi.fn(() => mockApp);
   // Add json and urlencoded as methods on the main function
   Object.assign(mockExpress, {
     json: vi.fn(),
-    urlencoded: vi.fn()
+    urlencoded: vi.fn(),
+    Router: mockRouter
   });
-  return { default: mockExpress };
+  return { default: mockExpress, Router: mockRouter };
 });
 
 vi.mock('http', () => ({
@@ -86,8 +94,9 @@ describe('Server Startup', () => {
       ]
     });
 
-    // Import the server module to trigger startup
-    await import('../index');
+    // Import and call the startServer function directly
+    const { startServer } = await import('../index');
+    await startServer();
 
     // Wait for async operations
     await new Promise(resolve => setTimeout(resolve, 10));
@@ -109,8 +118,9 @@ describe('Server Startup', () => {
       ]
     });
 
-    // Import the server module to trigger startup
-    await import('../index');
+    // Import and call the startServer function directly
+    const { startServer } = await import('../index');
+    await startServer();
 
     // Wait for async operations
     await new Promise(resolve => setTimeout(resolve, 10));
@@ -126,8 +136,9 @@ describe('Server Startup', () => {
     
     mockValidateProductionEnvironment.mockRejectedValue(new Error('Validation error'));
 
-    // Import the server module to trigger startup
-    await import('../index');
+    // Import and call the startServer function directly
+    const { startServer } = await import('../index');
+    await startServer();
 
     // Wait for async operations
     await new Promise(resolve => setTimeout(resolve, 10));
@@ -146,8 +157,9 @@ describe('Server Startup', () => {
       checks: []
     });
 
-    // Import the server module to trigger startup
-    await import('../index');
+    // Import and call the startServer function directly
+    const { startServer } = await import('../index');
+    await startServer();
 
     // Wait for async operations
     await new Promise(resolve => setTimeout(resolve, 10));

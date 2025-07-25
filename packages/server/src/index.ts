@@ -66,7 +66,7 @@ app.use('*', (req, res) => {
 const PORT = process.env.PORT || 5000;
 
 // Production environment startup validation
-async function startServer() {
+export async function startServer() {
   try {
     // Validate production environment before starting server
     const validationResult = await validateProductionEnvironment();
