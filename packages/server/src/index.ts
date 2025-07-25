@@ -41,7 +41,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/encounters', encounterRoutes);
 
 // Global error handler
-app.use((err: any, req: express.Request, res: express.Response, _next: express.NextFunction) => {
+app.use((err: any, req: express.Request, res: express.Response) => {
   console.error('Unhandled error:', err);
   res.status(500).json({
     success: false,
