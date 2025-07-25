@@ -174,9 +174,9 @@ interface MockSession {
 }
 
 declare global {
-  // eslint-disable-next-line no-var
+   
   var createMockUser: () => MockUser;
-  // eslint-disable-next-line no-var
+   
   var createMockSession: () => MockSession;
 }
 
