@@ -168,17 +168,7 @@ export class CharacterService extends BaseService {
    */
   async findByPartyId(partyId: string, userId: string): Promise<Character[]> {
     try {
-      // First verify the party belongs to the user
-      const party = await this.prisma.party.findFirst({
-        where: {
-          id: partyId,
-          userId,
-        },
-      });
-
-      if (!party) {
-        throw new Error('Party not found or does not belong to user');
-      }
+      await this.verifyPartyOwnership(partyId, userId);
 
       const characters = await this.prisma.character.findMany({
         where: {
@@ -270,21 +260,16 @@ export class CharacterService extends BaseService {
   private buildUpdateData(data: UpdateCharacterData): any {
     const updateData: any = {};
     
-    // Process string fields
+    // Process string fields with trimming
     if (data.name !== undefined) updateData.name = data.name.trim();
     if (data.race !== undefined) updateData.race = data.race.trim();
     if (data.playerName !== undefined) updateData.playerName = this.processStringField(data.playerName);
     if (data.notes !== undefined) updateData.notes = this.processStringField(data.notes);
 
-    // Process direct fields
+    // Copy direct fields using base service helper
     const directFields = ['classes', 'level', 'ac', 'maxHp', 'currentHp', 'tempHp', 
                          'hitDice', 'speed', 'abilities', 'proficiencyBonus', 'features', 'equipment'];
-    
-    directFields.forEach(key => {
-      if (data[key as keyof UpdateCharacterData] !== undefined) {
-        updateData[key] = data[key as keyof UpdateCharacterData];
-      }
-    });
+    this.copyDefinedFields(data, updateData, directFields);
 
     return updateData;
   }

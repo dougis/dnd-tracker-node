@@ -113,9 +113,12 @@ export class PartyService extends BaseService {
   private buildUpdateData(data: UpdatePartyData): any {
     const updateData: any = {};
     
+    // Process string fields
     if (data.name !== undefined) updateData.name = data.name.trim();
     if (data.description !== undefined) updateData.description = this.processStringField(data.description);
-    if (data.isArchived !== undefined) updateData.isArchived = data.isArchived;
+    
+    // Copy direct fields
+    this.copyDefinedFields(data, updateData, ['isArchived']);
 
     return updateData;
   }

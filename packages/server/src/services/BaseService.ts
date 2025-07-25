@@ -63,4 +63,15 @@ export abstract class BaseService {
     }
     throw new Error(`Failed to ${operation}`);
   }
+
+  /**
+   * Copy defined fields from source to target object
+   */
+  protected copyDefinedFields(source: any, target: any, fields: string[]): void {
+    fields.forEach(field => {
+      if (source[field] !== undefined) {
+        target[field] = source[field];
+      }
+    });
+  }
 }
