@@ -200,7 +200,6 @@ describe('Character Routes', () => {
     });
 
     it('should return 404 when updating non-existent character', async () => {
-      const updateData = { name: 'Updated Name' };
       mockUpdate.mockResolvedValue(null);
 
       await TestPatterns.testNotFound(
