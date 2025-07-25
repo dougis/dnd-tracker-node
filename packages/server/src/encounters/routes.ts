@@ -47,8 +47,11 @@ function writeSSEData(res: Response, data: any): void {
     throw new Error('Failed to serialize SSE data');
   }
   
-  // Write to response with explicit sanitized data
-  res.write('data: ' + jsonString + '\n\n');
+  // Write to response with explicit sanitized data using Buffer for security
+  const dataPrefix = Buffer.from('data: ', 'utf8');
+  const jsonBuffer = Buffer.from(jsonString, 'utf8');
+  const dataSuffix = Buffer.from('\n\n', 'utf8');
+  res.write(Buffer.concat([dataPrefix, jsonBuffer, dataSuffix]));
 }
 
 const router = Router();

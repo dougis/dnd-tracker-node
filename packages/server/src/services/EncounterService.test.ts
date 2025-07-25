@@ -1,6 +1,14 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { PrismaClient, EncounterStatus, ParticipantType } from '@prisma/client';
 import { EncounterService, ParticipantCreateData } from './EncounterService';
+import { 
+  createMockEncounter, 
+  createMockParticipant, 
+  createMockEncounterWithParticipants,
+  encounterIncludePattern,
+  type MockEncounter,
+  type MockParticipant 
+} from '../test/encounter-test-utils';
 
 // Get mocked Prisma instance
 const mockPrisma = new PrismaClient() as any;
@@ -13,45 +21,13 @@ describe('EncounterService', () => {
     encounterService = new EncounterService(mockPrisma);
   });
 
-  // Helper functions to create mock data
-  const createMockEncounter = () => ({
-    id: 'encounter_123',
-    userId: 'user_123',
-    name: 'Test Encounter',
-    description: 'Test description',
-    status: EncounterStatus.PLANNING,
-    round: 1,
-    turn: 0,
-    isActive: false,
-    participants: [],
-    lairActions: null,
-    createdAt: new Date(),
-    updatedAt: new Date()
-  });
-
-  const createMockParticipant = () => ({
-    id: 'participant_123',
-    encounterId: 'encounter_123',
-    type: ParticipantType.CHARACTER,
-    characterId: 'character_123',
-    creatureId: null,
-    name: 'Test Character',
-    initiative: 15,
-    initiativeRoll: 12,
-    currentHp: 25,
-    maxHp: 25,
-    tempHp: 0,
-    ac: 16,
-    conditions: [],
-    isActive: true,
-    notes: null,
-    character: null,
-    creature: null
-  });
-
   describe('createEncounter', () => {
     it('should create a new encounter successfully', async () => {
-      const mockEncounter = createMockEncounter();
+      const mockEncounter = createMockEncounter({
+        userId: 'user_123',
+        name: 'Test Encounter',
+        description: 'Test description'
+      });
       mockPrisma.encounter.create.mockResolvedValue(mockEncounter);
 
       const result = await encounterService.createEncounter('user_123', 'Test Encounter', 'Test description');
@@ -66,21 +42,17 @@ describe('EncounterService', () => {
           turn: 0,
           isActive: false,
         },
-        include: {
-          participants: {
-            include: {
-              character: true,
-              creature: true,
-            },
-          },
-          lairActions: true,
-        },
+        include: encounterIncludePattern,
       });
       expect(result).toEqual(mockEncounter);
     });
 
     it('should create encounter with null description when not provided', async () => {
-      const mockEncounter = { ...createMockEncounter(), description: null };
+      const mockEncounter = createMockEncounter({ 
+        userId: 'user_123',
+        name: 'Test Encounter',
+        description: null 
+      });
       mockPrisma.encounter.create.mockResolvedValue(mockEncounter);
 
       await encounterService.createEncounter('user_123', 'Test Encounter');
@@ -95,15 +67,7 @@ describe('EncounterService', () => {
           turn: 0,
           isActive: false,
         },
-        include: {
-          participants: {
-            include: {
-              character: true,
-              creature: true,
-            },
-          },
-          lairActions: true,
-        },
+        include: encounterIncludePattern,
       });
     });
 
