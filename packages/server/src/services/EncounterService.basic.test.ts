@@ -5,7 +5,28 @@ import {
   createMockEncounter, 
   encounterIncludePattern,
   standardEncounterInclude,
-  createEncounterData
+  createEncounterData,
+  setupBasicEncounterTest,
+  expectEncounterCreation,
+  expectEncounterFindUnique,
+  expectUserEncountersFindMany,
+  expectEncounterUpdate,
+  expectEncounterDelete,
+  createEncounterCreationScenario,
+  createEncounterUpdateScenario,
+  createValidationErrorScenario,
+  expectNameTrimming,
+  expectServiceResult,
+  createEncounterNotFoundScenario,
+  createAuthorizationErrorScenario,
+  setupPrismaFindUnique,
+  createEncounterValidationErrorScenarios,
+  createBasicServiceErrorScenarios,
+  generateValidationErrorTests,
+  generateServiceErrorTests,
+  createEncounterCreationTestHelper,
+  createEncounterRetrievalTest,
+  createServiceErrorTest
 } from '../test/encounter-test-utils';
 
 // Get mocked Prisma instance
@@ -21,154 +42,87 @@ describe('EncounterService - Basic Operations', () => {
 
   describe('createEncounter', () => {
     it('should create a new encounter successfully', async () => {
-      const mockEncounter = createMockEncounter({
-        userId: 'user_123',
-        name: 'Test Encounter',
-        description: 'Test description'
-      });
-      mockPrisma.encounter.create.mockResolvedValue(mockEncounter);
-
-      const result = await encounterService.createEncounter('user_123', 'Test Encounter', 'Test description');
-
-      expect(mockPrisma.encounter.create).toHaveBeenCalledWith({
-        data: createEncounterData('user_123', 'Test Encounter', 'Test description'),
-        include: encounterIncludePattern,
-      });
-      expect(result).toEqual(mockEncounter);
+      await createEncounterCreationTestHelper(['user_123', 'Test Encounter', 'Test description'])(encounterService, mockPrisma);
     });
 
     it('should create encounter with null description when not provided', async () => {
-      const mockEncounter = createMockEncounter({ 
-        userId: 'user_123',
-        name: 'Test Encounter',
-        description: null 
-      });
-      mockPrisma.encounter.create.mockResolvedValue(mockEncounter);
-
-      await encounterService.createEncounter('user_123', 'Test Encounter');
-
-      expect(mockPrisma.encounter.create).toHaveBeenCalledWith({
-        data: createEncounterData('user_123', 'Test Encounter', null),
-        include: encounterIncludePattern,
-      });
+      await createEncounterCreationTestHelper(['user_123', 'Test Encounter'])(encounterService, mockPrisma);
     });
 
     it('should trim encounter name', async () => {
       const mockEncounter = createMockEncounter();
-      mockPrisma.encounter.create.mockResolvedValue(mockEncounter);
+      setupBasicEncounterTest(mockPrisma, 'create', mockEncounter);
 
       await encounterService.createEncounter('user_123', '  Test Encounter  ', 'Test description');
 
-      expect(mockPrisma.encounter.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({
-            name: 'Test Encounter'
-          })
-        })
-      );
+      expectNameTrimming(mockPrisma, 'Test Encounter');
     });
 
-    it('should throw error when userId is missing', async () => {
-      await expect(encounterService.createEncounter('', 'Test Encounter'))
-        .rejects.toThrow('User ID is required');
-    });
-
-    it('should throw error when name is empty', async () => {
-      await expect(encounterService.createEncounter('user_123', ''))
-        .rejects.toThrow('Encounter name is required');
-    });
-
-    it('should throw error when name is only whitespace', async () => {
-      await expect(encounterService.createEncounter('user_123', '   '))
-        .rejects.toThrow('Encounter name is required');
-    });
-
-    it('should throw error when name exceeds 100 characters', async () => {
-      const longName = 'a'.repeat(101);
-      await expect(encounterService.createEncounter('user_123', longName))
-        .rejects.toThrow('Encounter name must be 100 characters or less');
+    // Generate comprehensive validation error tests
+    const validationScenarios = createEncounterValidationErrorScenarios();
+    const validationTests = generateValidationErrorTests(validationScenarios);
+    
+    validationTests.forEach(({ testName, test }) => {
+      it(testName, async () => {
+        await test(encounterService);
+      });
     });
   });
 
   describe('getEncounterById', () => {
     it('should return encounter when found', async () => {
       const mockEncounter = createMockEncounter();
-      mockPrisma.encounter.findUnique.mockResolvedValue(mockEncounter);
-
-      const result = await encounterService.getEncounterById('encounter_123');
-
-      expect(mockPrisma.encounter.findUnique).toHaveBeenCalledWith({
-        where: { id: 'encounter_123' },
-        include: standardEncounterInclude,
-      });
-      expect(result).toEqual(mockEncounter);
+      await createEncounterRetrievalTest(mockEncounter, 'encounter_123')(encounterService, mockPrisma);
     });
 
     it('should return null when encounter not found', async () => {
-      mockPrisma.encounter.findUnique.mockResolvedValue(null);
-
-      const result = await encounterService.getEncounterById('nonexistent');
-
-      expect(result).toBeNull();
+      await createEncounterRetrievalTest(null, 'nonexistent')(encounterService, mockPrisma);
     });
   });
 
   describe('getUserEncounters', () => {
     it('should return all encounters for a user', async () => {
       const mockEncounters = [createMockEncounter()];
-      mockPrisma.encounter.findMany.mockResolvedValue(mockEncounters);
+      setupBasicEncounterTest(mockPrisma, 'findMany', mockEncounters);
 
       const result = await encounterService.getUserEncounters('user_123');
 
-      expect(mockPrisma.encounter.findMany).toHaveBeenCalledWith({
-        where: { userId: 'user_123' },
-        include: standardEncounterInclude,
-        orderBy: { updatedAt: 'desc' },
-      });
-      expect(result).toEqual(mockEncounters);
+      expectUserEncountersFindMany(mockPrisma, 'user_123');
+      expectServiceResult(result, mockEncounters);
     });
   });
 
   describe('updateEncounter', () => {
     it('should update encounter successfully', async () => {
-      const mockEncounter = createMockEncounter();
-      mockPrisma.encounter.findUnique.mockResolvedValue({ userId: 'user_123' });
-      mockPrisma.encounter.update.mockResolvedValue(mockEncounter);
-
-      const result = await encounterService.updateEncounter('encounter_123', 'user_123', {
+      const updates = {
         name: 'Updated Name',
         description: 'Updated description',
         status: EncounterStatus.ACTIVE
-      });
+      };
+      const scenario = createEncounterUpdateScenario('encounter_123', 'user_123', updates);
+      setupBasicEncounterTest(mockPrisma, 'update', scenario.mockEncounter, scenario);
 
-      expect(mockPrisma.encounter.update).toHaveBeenCalledWith({
-        where: { id: 'encounter_123' },
-        data: {
-          name: 'Updated Name',
-          description: 'Updated description',
-          status: EncounterStatus.ACTIVE
-        },
-        include: standardEncounterInclude,
-      });
-      expect(result).toEqual(mockEncounter);
+      const result = await encounterService.updateEncounter(scenario.encounterId, scenario.userId, scenario.updates);
+
+      expectEncounterUpdate(mockPrisma, scenario.encounterId, scenario.updates);
+      expectServiceResult(result, scenario.mockEncounter);
     });
 
-    it('should throw error when encounter not found', async () => {
-      mockPrisma.encounter.findUnique.mockResolvedValue(null);
-
-      await expect(encounterService.updateEncounter('nonexistent', 'user_123', { name: 'Test' }))
-        .rejects.toThrow('Encounter not found');
-    });
-
-    it('should throw error when user not authorized', async () => {
-      mockPrisma.encounter.findUnique.mockResolvedValue({ userId: 'other_user' });
-
-      await expect(encounterService.updateEncounter('encounter_123', 'user_123', { name: 'Test' }))
-        .rejects.toThrow('Not authorized to modify this encounter');
+    // Generate comprehensive service error tests for update operations
+    const updateErrorScenarios = {
+      updateNotFound: createBasicServiceErrorScenarios().updateNotFound,
+      updateUnauthorized: createBasicServiceErrorScenarios().updateUnauthorized
+    };
+    const updateErrorTests = generateServiceErrorTests(updateErrorScenarios);
+    
+    updateErrorTests.forEach(({ testName, test }) => {
+      it(testName, async () => {
+        await test(encounterService, mockPrisma);
+      });
     });
 
     it('should validate name when provided', async () => {
-      mockPrisma.encounter.findUnique.mockResolvedValue({ userId: 'user_123' });
+      setupPrismaFindUnique(mockPrisma, { userId: 'user_123' });
 
       await expect(encounterService.updateEncounter('encounter_123', 'user_123', { name: '' }))
         .rejects.toThrow('Encounter name is required');
@@ -177,28 +131,35 @@ describe('EncounterService - Basic Operations', () => {
 
   describe('deleteEncounter', () => {
     it('should delete encounter successfully', async () => {
-      mockPrisma.encounter.findUnique.mockResolvedValue({ userId: 'user_123' });
-      mockPrisma.encounter.delete.mockResolvedValue({});
+      const ownershipResult = { userId: 'user_123' };
+      setupBasicEncounterTest(mockPrisma, 'delete', {}, { ownershipResult });
 
       await encounterService.deleteEncounter('encounter_123', 'user_123');
 
-      expect(mockPrisma.encounter.delete).toHaveBeenCalledWith({
-        where: { id: 'encounter_123' }
+      expectEncounterDelete(mockPrisma, 'encounter_123');
+    });
+
+    // Generate comprehensive service error tests for delete operations
+    const deleteErrorScenarios = {
+      deleteNotFound: createBasicServiceErrorScenarios().deleteNotFound,
+      deleteUnauthorized: {
+        ...createBasicServiceErrorScenarios().deleteUnauthorized,
+        expectedError: 'Not authorized to delete this encounter'
+      }
+    };
+    
+    Object.values(deleteErrorScenarios).forEach((scenario: any) => {
+      it(scenario.testName, async () => {
+        // Custom logic for delete unauthorized test with specific error message
+        if (scenario.testName.includes('user not authorized')) {
+          const authScenario = createAuthorizationErrorScenario();
+          setupPrismaFindUnique(mockPrisma, authScenario.encounterResult);
+          await expect(encounterService.deleteEncounter('encounter_123', 'user_123'))
+            .rejects.toThrow('Not authorized to delete this encounter');
+        } else {
+          await createServiceErrorTest(scenario.scenarioFactory, scenario.serviceMethod, scenario.serviceArgs)(encounterService, mockPrisma);
+        }
       });
-    });
-
-    it('should throw error when encounter not found', async () => {
-      mockPrisma.encounter.findUnique.mockResolvedValue(null);
-
-      await expect(encounterService.deleteEncounter('nonexistent', 'user_123'))
-        .rejects.toThrow('Encounter not found');
-    });
-
-    it('should throw error when user not authorized', async () => {
-      mockPrisma.encounter.findUnique.mockResolvedValue({ userId: 'other_user' });
-
-      await expect(encounterService.deleteEncounter('encounter_123', 'user_123'))
-        .rejects.toThrow('Not authorized to delete this encounter');
     });
   });
 });

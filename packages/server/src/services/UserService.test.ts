@@ -1,7 +1,25 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { PrismaClient } from '@prisma/client';
 import { UserService } from './UserService';
-import { createMockUser } from '../test/user-test-utils';
+import { 
+  createMockUser,
+  setupUserFindUnique,
+  expectUserFindUniqueById,
+  expectUserFindUniqueByEmail,
+  expectUserFindUniqueByUsername,
+  expectUserUpdate,
+  expectPasswordHashExcluded,
+  expectUserServiceResult,
+  createExpectedUserResult,
+  createLockedAccountScenario,
+  createUnlockedAccountScenario,
+  createExpiredLockScenario,
+  createFailedAttemptsScenario,
+  createUserStatsScenario,
+  createUsernameValidationScenarios,
+  getValidUsernames,
+  setupProfileUpdateTest
+} from '../test/user-test-utils';
 
 // Get mocked Prisma instance
 const mockPrisma = new PrismaClient() as any;
@@ -17,32 +35,17 @@ describe('UserService', () => {
   describe('getUserById', () => {
     it('should get user by id successfully and exclude password hash', async () => {
       const mockUser = createMockUser();
-      mockPrisma.user.findUnique.mockResolvedValue(mockUser);
+      setupUserFindUnique(mockPrisma, mockUser);
 
       const result = await userService.getUserById('user_1');
 
-      expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({
-        where: { id: 'user_1' }
-      });
-      
-      // Should exclude passwordHash
-      expect(result).toEqual({
-        id: mockUser.id,
-        email: mockUser.email,
-        username: mockUser.username,
-        isEmailVerified: mockUser.isEmailVerified,
-        isAdmin: mockUser.isAdmin,
-        failedLoginAttempts: mockUser.failedLoginAttempts,
-        lockedUntil: mockUser.lockedUntil,
-        lastLoginAt: mockUser.lastLoginAt,
-        createdAt: mockUser.createdAt,
-        updatedAt: mockUser.updatedAt
-      });
-      expect(result).not.toHaveProperty('passwordHash');
+      expectUserFindUniqueById(mockPrisma, 'user_1');
+      expectUserServiceResult(result, createExpectedUserResult(mockUser));
+      expectPasswordHashExcluded(result);
     });
 
     it('should return null for non-existent user', async () => {
-      mockPrisma.user.findUnique.mockResolvedValue(null);
+      setupUserFindUnique(mockPrisma, null);
 
       const result = await userService.getUserById('nonexistent');
 
@@ -53,21 +56,17 @@ describe('UserService', () => {
   describe('getUserByEmail', () => {
     it('should get user by email successfully and exclude password hash', async () => {
       const mockUser = createMockUser();
-      mockPrisma.user.findUnique.mockResolvedValue(mockUser);
+      setupUserFindUnique(mockPrisma, mockUser);
 
       const result = await userService.getUserByEmail('test@example.com');
 
-      expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({
-        where: { email: 'test@example.com' }
-      });
-      
-      // Should exclude passwordHash
-      expect(result).not.toHaveProperty('passwordHash');
+      expectUserFindUniqueByEmail(mockPrisma, 'test@example.com');
+      expectPasswordHashExcluded(result);
       expect(result?.email).toBe(mockUser.email);
     });
 
     it('should return null for non-existent email', async () => {
-      mockPrisma.user.findUnique.mockResolvedValue(null);
+      setupUserFindUnique(mockPrisma, null);
 
       const result = await userService.getUserByEmail('notfound@example.com');
 
@@ -78,21 +77,17 @@ describe('UserService', () => {
   describe('getUserByUsername', () => {
     it('should get user by username successfully and exclude password hash', async () => {
       const mockUser = createMockUser();
-      mockPrisma.user.findUnique.mockResolvedValue(mockUser);
+      setupUserFindUnique(mockPrisma, mockUser);
 
       const result = await userService.getUserByUsername('testuser');
 
-      expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({
-        where: { username: 'testuser' }
-      });
-      
-      // Should exclude passwordHash
-      expect(result).not.toHaveProperty('passwordHash');
+      expectUserFindUniqueByUsername(mockPrisma, 'testuser');
+      expectPasswordHashExcluded(result);
       expect(result?.username).toBe(mockUser.username);
     });
 
     it('should return null for non-existent username', async () => {
-      mockPrisma.user.findUnique.mockResolvedValue(null);
+      setupUserFindUnique(mockPrisma, null);
 
       const result = await userService.getUserByUsername('notfound');
 
@@ -102,44 +97,35 @@ describe('UserService', () => {
 
   describe('isAccountLocked', () => {
     it('should return true for locked account', async () => {
-      const lockedUser = createMockUser({
-        lockedUntil: new Date(Date.now() + 60000) // 1 minute in future
-      });
-      mockPrisma.user.findUnique.mockResolvedValue(lockedUser);
+      const scenario = createLockedAccountScenario();
+      setupUserFindUnique(mockPrisma, scenario.user);
 
       const result = await userService.isAccountLocked('user_1');
 
-      expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({
-        where: { id: 'user_1' },
-        select: { lockedUntil: true }
-      });
-      expect(result).toBe(true);
+      expectUserFindUniqueById(mockPrisma, 'user_1', { lockedUntil: true });
+      expect(result).toBe(scenario.expectedResult);
     });
 
     it('should return false for unlocked account', async () => {
-      const unlockedUser = createMockUser({
-        lockedUntil: null
-      });
-      mockPrisma.user.findUnique.mockResolvedValue(unlockedUser);
+      const scenario = createUnlockedAccountScenario();
+      setupUserFindUnique(mockPrisma, scenario.user);
 
       const result = await userService.isAccountLocked('user_1');
 
-      expect(result).toBe(false);
+      expect(result).toBe(scenario.expectedResult);
     });
 
     it('should return false for expired lock', async () => {
-      const expiredLockUser = createMockUser({
-        lockedUntil: new Date(Date.now() - 60000) // 1 minute in past
-      });
-      mockPrisma.user.findUnique.mockResolvedValue(expiredLockUser);
+      const scenario = createExpiredLockScenario();
+      setupUserFindUnique(mockPrisma, scenario.user);
 
       const result = await userService.isAccountLocked('user_1');
 
-      expect(result).toBe(false);
+      expect(result).toBe(scenario.expectedResult);
     });
 
     it('should return false for non-existent user', async () => {
-      mockPrisma.user.findUnique.mockResolvedValue(null);
+      setupUserFindUnique(mockPrisma, null);
 
       const result = await userService.isAccountLocked('nonexistent');
 
@@ -149,22 +135,17 @@ describe('UserService', () => {
 
   describe('getFailedLoginAttempts', () => {
     it('should return failed login attempts count', async () => {
-      const userWithFailedAttempts = createMockUser({
-        failedLoginAttempts: 3
-      });
-      mockPrisma.user.findUnique.mockResolvedValue(userWithFailedAttempts);
+      const scenario = createFailedAttemptsScenario(3);
+      setupUserFindUnique(mockPrisma, scenario.user);
 
       const result = await userService.getFailedLoginAttempts('user_1');
 
-      expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({
-        where: { id: 'user_1' },
-        select: { failedLoginAttempts: true }
-      });
-      expect(result).toBe(3);
+      expectUserFindUniqueById(mockPrisma, 'user_1', { failedLoginAttempts: true });
+      expect(result).toBe(scenario.expectedResult);
     });
 
     it('should return 0 for non-existent user', async () => {
-      mockPrisma.user.findUnique.mockResolvedValue(null);
+      setupUserFindUnique(mockPrisma, null);
 
       const result = await userService.getFailedLoginAttempts('nonexistent');
 
@@ -178,12 +159,9 @@ describe('UserService', () => {
 
       await userService.unlockAccount('user_1');
 
-      expect(mockPrisma.user.update).toHaveBeenCalledWith({
-        where: { id: 'user_1' },
-        data: {
-          failedLoginAttempts: 0,
-          lockedUntil: null
-        }
+      expectUserUpdate(mockPrisma, 'user_1', {
+        failedLoginAttempts: 0,
+        lockedUntil: null
       });
     });
   });
@@ -191,36 +169,29 @@ describe('UserService', () => {
   describe('updateProfile', () => {
     it('should update username successfully', async () => {
       const updatedUser = createMockUser({ username: 'newusername' });
-      mockPrisma.user.findUnique.mockResolvedValue(null); // No existing user with new username
-      mockPrisma.user.update.mockResolvedValue(updatedUser);
+      setupProfileUpdateTest(mockPrisma, null, updatedUser);
 
       const result = await userService.updateProfile('user_1', { username: 'newusername' });
 
-      expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({
-        where: { username: 'newusername' }
-      });
-      expect(mockPrisma.user.update).toHaveBeenCalledWith({
-        where: { id: 'user_1' },
-        data: { username: 'newusername' }
-      });
-      expect(result).not.toHaveProperty('passwordHash');
+      expectUserFindUniqueByUsername(mockPrisma, 'newusername');
+      expectUserUpdate(mockPrisma, 'user_1', { username: 'newusername' });
+      expectPasswordHashExcluded(result);
       expect(result.username).toBe('newusername');
     });
 
     it('should throw error for username already taken by another user', async () => {
       const existingUser = createMockUser({ id: 'other_user', username: 'taken' });
-      mockPrisma.user.findUnique.mockResolvedValue(existingUser);
+      setupUserFindUnique(mockPrisma, existingUser);
 
+      const scenarios = createUsernameValidationScenarios();
       await expect(userService.updateProfile('user_1', { username: 'taken' }))
-        .rejects.toThrow('Username is already taken');
+        .rejects.toThrow(scenarios.usernameTaken.expectedError);
     });
 
     it('should allow updating to same username', async () => {
       const currentUser = createMockUser({ id: 'user_1', username: 'currentname' });
       const updatedUser = createMockUser({ id: 'user_1', username: 'currentname' });
-      
-      mockPrisma.user.findUnique.mockResolvedValue(currentUser);
-      mockPrisma.user.update.mockResolvedValue(updatedUser);
+      setupProfileUpdateTest(mockPrisma, currentUser, updatedUser);
 
       const result = await userService.updateProfile('user_1', { username: 'currentname' });
 
@@ -228,28 +199,29 @@ describe('UserService', () => {
     });
 
     it('should validate username length - too short', async () => {
-      await expect(userService.updateProfile('user_1', { username: 'ab' }))
-        .rejects.toThrow('Username must be between 3 and 30 characters');
+      const scenarios = createUsernameValidationScenarios();
+      await expect(userService.updateProfile('user_1', { username: scenarios.tooShort.username }))
+        .rejects.toThrow(scenarios.tooShort.expectedError);
     });
 
     it('should validate username length - too long', async () => {
-      const longUsername = 'a'.repeat(31);
-      await expect(userService.updateProfile('user_1', { username: longUsername }))
-        .rejects.toThrow('Username must be between 3 and 30 characters');
+      const scenarios = createUsernameValidationScenarios();
+      await expect(userService.updateProfile('user_1', { username: scenarios.tooLong.username }))
+        .rejects.toThrow(scenarios.tooLong.expectedError);
     });
 
     it('should validate username format - invalid characters', async () => {
-      await expect(userService.updateProfile('user_1', { username: 'user@name' }))
-        .rejects.toThrow('Username can only contain letters, numbers, underscores, and hyphens');
+      const scenarios = createUsernameValidationScenarios();
+      await expect(userService.updateProfile('user_1', { username: scenarios.invalidChars.username }))
+        .rejects.toThrow(scenarios.invalidChars.expectedError);
     });
 
     it('should accept valid username formats', async () => {
-      const validUsernames = ['user123', 'user_name', 'user-name', 'User123'];
+      const validUsernames = getValidUsernames();
       
       for (const username of validUsernames) {
         const updatedUser = createMockUser({ username });
-        mockPrisma.user.findUnique.mockResolvedValue(null);
-        mockPrisma.user.update.mockResolvedValue(updatedUser);
+        setupProfileUpdateTest(mockPrisma, null, updatedUser);
 
         const result = await userService.updateProfile('user_1', { username });
         expect(result.username).toBe(username);
@@ -259,46 +231,31 @@ describe('UserService', () => {
 
   describe('getUserStats', () => {
     it('should return user stats successfully', async () => {
-      const mockUser = {
-        createdAt: new Date('2024-01-01'),
+      const scenario = createUserStatsScenario({
         failedLoginAttempts: 2,
-        lockedUntil: null,
         sessions: [{ createdAt: new Date('2024-01-15') }]
-      };
-      mockPrisma.user.findUnique.mockResolvedValue(mockUser);
+      });
+      setupUserFindUnique(mockPrisma, scenario.userData);
 
       const result = await userService.getUserStats('user_1');
 
-      expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({
-        where: { id: 'user_1' },
-        select: {
-          createdAt: true,
-          failedLoginAttempts: true,
-          lockedUntil: true,
-          sessions: {
-            orderBy: { createdAt: 'desc' },
-            take: 1,
-            select: { createdAt: true }
-          }
+      expectUserFindUniqueById(mockPrisma, 'user_1', {
+        createdAt: true,
+        failedLoginAttempts: true,
+        lockedUntil: true,
+        sessions: {
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+          select: { createdAt: true }
         }
       });
 
-      expect(result).toEqual({
-        createdAt: mockUser.createdAt,
-        lastLogin: mockUser.sessions[0]?.createdAt,
-        failedLoginAttempts: 2,
-        isLocked: false
-      });
+      expectUserServiceResult(result, scenario.expectedStats);
     });
 
     it('should return stats with no last login if no sessions', async () => {
-      const mockUser = {
-        createdAt: new Date('2024-01-01'),
-        failedLoginAttempts: 0,
-        lockedUntil: null,
-        sessions: []
-      };
-      mockPrisma.user.findUnique.mockResolvedValue(mockUser);
+      const scenario = createUserStatsScenario({ sessions: [] });
+      setupUserFindUnique(mockPrisma, scenario.userData);
 
       const result = await userService.getUserStats('user_1');
 
@@ -306,13 +263,12 @@ describe('UserService', () => {
     });
 
     it('should return stats with locked status true for locked account', async () => {
-      const mockUser = {
-        createdAt: new Date('2024-01-01'),
+      const scenario = createUserStatsScenario({
         failedLoginAttempts: 5,
-        lockedUntil: new Date(Date.now() + 60000), // Future date
+        lockedUntil: new Date(Date.now() + 60000),
         sessions: []
-      };
-      mockPrisma.user.findUnique.mockResolvedValue(mockUser);
+      });
+      setupUserFindUnique(mockPrisma, scenario.userData);
 
       const result = await userService.getUserStats('user_1');
 
@@ -320,7 +276,7 @@ describe('UserService', () => {
     });
 
     it('should return null for non-existent user', async () => {
-      mockPrisma.user.findUnique.mockResolvedValue(null);
+      setupUserFindUnique(mockPrisma, null);
 
       const result = await userService.getUserStats('nonexistent');
 

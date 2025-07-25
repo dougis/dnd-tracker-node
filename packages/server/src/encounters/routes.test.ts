@@ -12,6 +12,32 @@ import {
   expectValidationErrorResponse,
   createExpectedApiEncounter,
   createExpectedApiEncounters,
+  expectSuccessfulResponse,
+  expectFailureResponse,
+  setupEncounterServiceMock,
+  setupEncounterServiceError,
+  createTestRequest,
+  expectServiceCall,
+  createValidEncounterData,
+  createValidParticipantData,
+  createValidationError,
+  VALID_MONGO_ID,
+  INVALID_MONGO_ID,
+  createUnauthorizedEncounter,
+  createActiveEncounter,
+  createCompletedEncounter,
+  createEncounterWithParticipant,
+  createUpdatedEncounter,
+  createSuccessfulRouteTest,
+  createFailureRouteTest,
+  createValidationErrorRouteTest,
+  createIdValidationTest,
+  createNotFoundTest,
+  createUnauthorizedTest,
+  createEncounterCreationTest,
+  createEncounterListTest,
+  createEncounterGetTest,
+  createFieldValidationTests,
   type MockEncounter,
   type MockParticipant
 } from '../test/encounter-test-utils';
@@ -99,440 +125,180 @@ describe('Encounter Routes', () => {
   });
 
   describe('POST /api/encounters', () => {
-    const validEncounterData = {
-      name: 'Test Encounter',
-      description: 'Test description'
-    };
+    const validEncounterData = createValidEncounterData();
 
     it('should create encounter successfully', async () => {
-      encounterServiceMock.createEncounter.mockResolvedValue(mockEncounter);
-
-      const response = await request(app)
-        .post('/api/encounters')
-        .send(validEncounterData);
-
-      expectEncounterCreationResponse(response, createExpectedApiEncounter(mockEncounter));
-      expect(encounterServiceMock.createEncounter).toHaveBeenCalledWith(
-        'user_123',
-        'Test Encounter',
-        'Test description'
-      );
+      await createEncounterCreationTest(validEncounterData, encounterServiceMock, mockEncounter)(app);
+      expectServiceCall(encounterServiceMock, 'createEncounter', 'user_123', 'Test Encounter', 'Test description');
     });
 
     it('should create encounter without description', async () => {
-      encounterServiceMock.createEncounter.mockResolvedValue(mockEncounter);
-
-      const response = await request(app)
-        .post('/api/encounters')
-        .send({ name: 'Test Encounter' });
-
-      expect(response.status).toBe(201);
-      expect(encounterServiceMock.createEncounter).toHaveBeenCalledWith(
-        'user_123',
-        'Test Encounter',
-        undefined
-      );
+      const response = await createEncounterCreationTest({ name: 'Test Encounter' }, encounterServiceMock, mockEncounter)(app);
+      expectServiceCall(encounterServiceMock, 'createEncounter', 'user_123', 'Test Encounter', undefined);
     });
 
     it('should return 400 for missing name', async () => {
-      const response = await request(app)
-        .post('/api/encounters')
-        .send({ description: 'Test description' });
-
-      expectValidationErrorResponse(response, [
-        {
-          location: 'body',
-          msg: 'Encounter name must be between 1 and 100 characters',
-          path: 'name',
-          type: 'field'
-        }
-      ]);
+      await createValidationErrorRouteTest('post', '/api/encounters', { description: 'Test description' }, [
+        createValidationError('body', 'Encounter name must be between 1 and 100 characters', 'name')
+      ])(app);
     });
 
     it('should return 400 for empty name', async () => {
-      const response = await request(app)
-        .post('/api/encounters')
-        .send({ name: '', description: 'Test description' });
-
-      expectValidationErrorResponse(response, [
-        {
-          location: 'body',
-          msg: 'Encounter name must be between 1 and 100 characters',
-          path: 'name',
-          type: 'field',
-          value: ''
-        }
-      ]);
+      await createValidationErrorRouteTest('post', '/api/encounters', { name: '', description: 'Test description' }, [
+        createValidationError('body', 'Encounter name must be between 1 and 100 characters', 'name', '')
+      ])(app);
     });
 
     it('should return 400 for name too long', async () => {
-      const response = await request(app)
-        .post('/api/encounters')
-        .send({ name: 'a'.repeat(101), description: 'Test description' });
-
-      expectValidationErrorResponse(response, [
-        {
-          location: 'body',
-          msg: 'Encounter name must be between 1 and 100 characters',
-          path: 'name',
-          type: 'field',
-          value: 'a'.repeat(101)
-        }
-      ]);
+      const longName = 'a'.repeat(101);
+      await createValidationErrorRouteTest('post', '/api/encounters', { name: longName, description: 'Test description' }, [
+        createValidationError('body', 'Encounter name must be between 1 and 100 characters', 'name', longName)
+      ])(app);
     });
 
     it('should return 400 for description too long', async () => {
-      const response = await request(app)
-        .post('/api/encounters')
-        .send({ name: 'Test', description: 'a'.repeat(1001) });
-
-      expectValidationErrorResponse(response, [
-        {
-          location: 'body',
-          msg: 'Description must be 1000 characters or less',
-          path: 'description',
-          type: 'field',
-          value: 'a'.repeat(1001)
-        }
-      ]);
+      const longDescription = 'a'.repeat(1001);
+      await createValidationErrorRouteTest('post', '/api/encounters', { name: 'Test', description: longDescription }, [
+        createValidationError('body', 'Description must be 1000 characters or less', 'description', longDescription)
+      ])(app);
     });
 
     it('should handle service errors', async () => {
-      encounterServiceMock.createEncounter.mockRejectedValue(new Error('Database error'));
-
-      const response = await request(app)
-        .post('/api/encounters')
-        .send(validEncounterData);
-
-      expectErrorResponse(response, 500, 'Internal server error creating encounter');
+      await createFailureRouteTest('post', '/api/encounters', encounterServiceMock, 'createEncounter', new Error('Database error'), 500, 'Internal server error creating encounter', validEncounterData)(app);
     });
 
     it('should handle validation errors from service', async () => {
-      encounterServiceMock.createEncounter.mockRejectedValue(new Error('Encounter name is required'));
-
-      const response = await request(app)
-        .post('/api/encounters')
-        .send(validEncounterData);
-
-      expectErrorResponse(response, 400, 'Encounter name is required');
+      await createFailureRouteTest('post', '/api/encounters', encounterServiceMock, 'createEncounter', new Error('Encounter name is required'), 400, 'Encounter name is required', validEncounterData)(app);
     });
   });
 
   describe('GET /api/encounters', () => {
     it('should return all user encounters', async () => {
       const mockEncounters = [mockEncounter];
-      encounterServiceMock.getUserEncounters.mockResolvedValue(mockEncounters);
-
-      const response = await request(app)
-        .get('/api/encounters');
-
-      expectEncounterListResponse(response, createExpectedApiEncounters(mockEncounters));
-      expect(encounterServiceMock.getUserEncounters).toHaveBeenCalledWith('user_123');
+      await createEncounterListTest(encounterServiceMock, mockEncounters)(app);
+      expectServiceCall(encounterServiceMock, 'getUserEncounters', 'user_123');
     });
 
     it('should handle service errors', async () => {
-      encounterServiceMock.getUserEncounters.mockRejectedValue(new Error('Database error'));
-
-      const response = await request(app)
-        .get('/api/encounters');
-
-      expectErrorResponse(response, 500, 'Internal server error fetching encounters');
+      await createFailureRouteTest('get', '/api/encounters', encounterServiceMock, 'getUserEncounters', new Error('Database error'), 500, 'Internal server error fetching encounters')(app);
     });
   });
 
   describe('GET /api/encounters/:id', () => {
     it('should return specific encounter', async () => {
-      encounterServiceMock.getEncounterById.mockResolvedValue(mockEncounter);
-
-      const response = await request(app)
-        .get('/api/encounters/507f1f77bcf86cd799439011');
-
-      expectEncounterResponse(response, createExpectedApiEncounter(mockEncounter));
-      expect(encounterServiceMock.getEncounterById).toHaveBeenCalledWith('507f1f77bcf86cd799439011');
+      await createEncounterGetTest(encounterServiceMock, mockEncounter)(app);
+      expectServiceCall(encounterServiceMock, 'getEncounterById', VALID_MONGO_ID);
     });
 
     it('should return 400 for invalid ID format', async () => {
-      const response = await request(app)
-        .get('/api/encounters/invalid_id');
-
-      expectValidationErrorResponse(response, [
-        {
-          location: 'params',
-          msg: 'Invalid encounter ID format',
-          path: 'id',
-          type: 'field',
-          value: 'invalid_id'
-        }
-      ]);
+      await createIdValidationTest('get', '/api/encounters/:id')(app);
     });
 
     it('should return 404 when encounter not found', async () => {
-      encounterServiceMock.getEncounterById.mockResolvedValue(null);
-
-      const response = await request(app)
-        .get('/api/encounters/507f1f77bcf86cd799439011');
-
-      expectErrorResponse(response, 404, 'Encounter not found');
+      await createNotFoundTest('get', '/api/encounters/:id', encounterServiceMock, 'getEncounterById')(app);
     });
 
     it('should return 403 for unauthorized access', async () => {
-      const unauthorizedEncounter = { ...mockEncounter, userId: 'other_user' };
-      encounterServiceMock.getEncounterById.mockResolvedValue(unauthorizedEncounter);
-
-      const response = await request(app)
-        .get('/api/encounters/507f1f77bcf86cd799439011');
-
-      expectErrorResponse(response, 403, 'Not authorized to access this encounter');
+      await createUnauthorizedTest('get', '/api/encounters/:id', encounterServiceMock, 'getEncounterById', mockEncounter)(app);
     });
   });
 
   describe('PUT /api/encounters/:id', () => {
     it('should update encounter successfully', async () => {
-      const updatedEncounter = { ...mockEncounter, name: 'Updated Name' };
-      encounterServiceMock.updateEncounter.mockResolvedValue(updatedEncounter);
-
-      const response = await request(app)
-        .put('/api/encounters/507f1f77bcf86cd799439011')
-        .send({ name: 'Updated Name', description: 'Updated description' });
-
-      expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.message).toBe('Encounter updated successfully');
-
-      expect(encounterServiceMock.updateEncounter).toHaveBeenCalledWith(
-        '507f1f77bcf86cd799439011',
-        'user_123',
-        { name: 'Updated Name', description: 'Updated description', status: undefined }
-      );
+      const updatedEncounter = createUpdatedEncounter(mockEncounter, { name: 'Updated Name' });
+      await createSuccessfulRouteTest('put', `/api/encounters/${VALID_MONGO_ID}`, encounterServiceMock, 'updateEncounter', updatedEncounter, 200, 'Encounter updated successfully', { name: 'Updated Name', description: 'Updated description' })(app);
+      expectServiceCall(encounterServiceMock, 'updateEncounter', VALID_MONGO_ID, 'user_123', { name: 'Updated Name', description: 'Updated description', status: undefined });
     });
 
     it('should return 400 for invalid ID format', async () => {
-      const response = await request(app)
-        .put('/api/encounters/invalid_id')
-        .send({ name: 'Updated Name' });
-
-      expect(response.status).toBe(400);
-      expect(response.body.success).toBe(false);
+      await createIdValidationTest('put', '/api/encounters/:id', { name: 'Updated Name' })(app);
     });
 
     it('should return 404 when encounter not found', async () => {
-      encounterServiceMock.updateEncounter.mockRejectedValue(new Error('Encounter not found'));
-
-      const response = await request(app)
-        .put('/api/encounters/507f1f77bcf86cd799439011')
-        .send({ name: 'Updated Name' });
-
-      expect(response.status).toBe(404);
-      expect(response.body.success).toBe(false);
-      expect(response.body.message).toBe('Encounter not found');
+      await createFailureRouteTest('put', `/api/encounters/${VALID_MONGO_ID}`, encounterServiceMock, 'updateEncounter', new Error('Encounter not found'), 404, 'Encounter not found', { name: 'Updated Name' })(app);
     });
 
     it('should return 403 for unauthorized access', async () => {
-      encounterServiceMock.updateEncounter.mockRejectedValue(new Error('Not authorized to modify this encounter'));
-
-      const response = await request(app)
-        .put('/api/encounters/507f1f77bcf86cd799439011')
-        .send({ name: 'Updated Name' });
-
-      expect(response.status).toBe(403);
-      expect(response.body.success).toBe(false);
-      expect(response.body.message).toBe('Not authorized to modify this encounter');
+      await createFailureRouteTest('put', `/api/encounters/${VALID_MONGO_ID}`, encounterServiceMock, 'updateEncounter', new Error('Not authorized to modify this encounter'), 403, 'Not authorized to modify this encounter', { name: 'Updated Name' })(app);
     });
   });
 
   describe('DELETE /api/encounters/:id', () => {
     it('should delete encounter successfully', async () => {
-      encounterServiceMock.deleteEncounter.mockResolvedValue(undefined);
-
-      const response = await request(app)
-        .delete('/api/encounters/507f1f77bcf86cd799439011');
-
-      expect(response.status).toBe(200);
-      expect(response.body).toEqual({
-        success: true,
-        message: 'Encounter deleted successfully'
-      });
-
-      expect(encounterServiceMock.deleteEncounter).toHaveBeenCalledWith(
-        '507f1f77bcf86cd799439011',
-        'user_123'
-      );
+      await createSuccessfulRouteTest('delete', `/api/encounters/${VALID_MONGO_ID}`, encounterServiceMock, 'deleteEncounter', undefined, 200, 'Encounter deleted successfully')(app);
+      expectServiceCall(encounterServiceMock, 'deleteEncounter', VALID_MONGO_ID, 'user_123');
     });
 
     it('should return 400 for invalid ID format', async () => {
-      const response = await request(app)
-        .delete('/api/encounters/invalid_id');
-
-      expect(response.status).toBe(400);
-      expect(response.body.success).toBe(false);
+      await createIdValidationTest('delete', '/api/encounters/:id')(app);
     });
 
     it('should return 404 when encounter not found', async () => {
-      encounterServiceMock.deleteEncounter.mockRejectedValue(new Error('Encounter not found'));
-
-      const response = await request(app)
-        .delete('/api/encounters/507f1f77bcf86cd799439011');
-
-      expect(response.status).toBe(404);
-      expect(response.body.success).toBe(false);
-      expect(response.body.message).toBe('Encounter not found');
+      await createFailureRouteTest('delete', `/api/encounters/${VALID_MONGO_ID}`, encounterServiceMock, 'deleteEncounter', new Error('Encounter not found'), 404, 'Encounter not found')(app);
     });
   });
 
   describe('POST /api/encounters/:id/participants', () => {
-    const validParticipantData = {
-      type: 'CHARACTER',
-      characterId: '507f1f77bcf86cd799439012', // Use valid MongoDB ObjectId
-      name: 'Test Character',
-      initiative: 15,
-      currentHp: 25,
-      maxHp: 25,
-      ac: 16
-    };
+    const validParticipantData = createValidParticipantData();
 
     it('should add participant successfully', async () => {
-      const encounterWithParticipant = {
-        ...mockEncounter,
-        participants: [mockParticipant]
-      };
-      encounterServiceMock.addParticipant.mockResolvedValue(encounterWithParticipant);
-
-      const response = await request(app)
-        .post('/api/encounters/507f1f77bcf86cd799439011/participants')
-        .send(validParticipantData);
-
-      expect(response.status).toBe(201);
-      expect(response.body.success).toBe(true);
-      expect(response.body.message).toBe('Participant added successfully');
-
-      expect(encounterServiceMock.addParticipant).toHaveBeenCalledWith(
-        '507f1f77bcf86cd799439011',
-        'user_123',
-        validParticipantData
-      );
+      const encounterWithParticipant = createEncounterWithParticipant(mockEncounter, mockParticipant);
+      await createSuccessfulRouteTest('post', `/api/encounters/${VALID_MONGO_ID}/participants`, encounterServiceMock, 'addParticipant', encounterWithParticipant, 201, 'Participant added successfully', validParticipantData)(app);
+      expectServiceCall(encounterServiceMock, 'addParticipant', VALID_MONGO_ID, 'user_123', validParticipantData);
     });
 
-    it('should return 400 for invalid participant type', async () => {
-      const response = await request(app)
-        .post('/api/encounters/507f1f77bcf86cd799439011/participants')
-        .send({ ...validParticipantData, type: 'INVALID' });
+    // Use field validation helper for systematic validation tests
+    const participantValidationTests = createFieldValidationTests('post', `/api/encounters/${VALID_MONGO_ID}/participants`, validParticipantData, [
+      { field: 'type', value: 'INVALID', expectedError: 'Invalid participant type' },
+      { field: 'initiative', value: -1, expectedError: 'Invalid initiative value' },
+      { field: 'currentHp', value: -1, expectedError: 'Invalid HP values' }
+    ]);
 
-      expect(response.status).toBe(400);
-      expect(response.body.success).toBe(false);
+    participantValidationTests.forEach(({ testName, test }) => {
+      it(testName, async () => {
+        await test(app);
+      });
     });
 
     it('should return 400 for missing required fields', async () => {
-      const response = await request(app)
-        .post('/api/encounters/507f1f77bcf86cd799439011/participants')
-        .send({ type: 'CHARACTER' });
-
-      expect(response.status).toBe(400);
-      expect(response.body.success).toBe(false);
-    });
-
-    it('should return 400 for invalid initiative value', async () => {
-      const response = await request(app)
-        .post('/api/encounters/507f1f77bcf86cd799439011/participants')
-        .send({ ...validParticipantData, initiative: -1 });
-
-      expect(response.status).toBe(400);
-      expect(response.body.success).toBe(false);
-    });
-
-    it('should return 400 for invalid HP values', async () => {
-      const response = await request(app)
-        .post('/api/encounters/507f1f77bcf86cd799439011/participants')
-        .send({ ...validParticipantData, currentHp: -1 });
-
-      expect(response.status).toBe(400);
-      expect(response.body.success).toBe(false);
+      const response = await createTestRequest(app, 'post', `/api/encounters/${VALID_MONGO_ID}/participants`, { type: 'CHARACTER' });
+      expectFailureResponse(response, 400);
     });
   });
 
   describe('POST /api/encounters/:id/start', () => {
     it('should start combat successfully', async () => {
-      const activeEncounter = { ...mockEncounter, status: 'ACTIVE', isActive: true };
-      encounterServiceMock.startCombat.mockResolvedValue(activeEncounter);
-
-      const response = await request(app)
-        .post('/api/encounters/507f1f77bcf86cd799439011/start');
-
-      expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.message).toBe('Combat started successfully');
-
-      expect(encounterServiceMock.startCombat).toHaveBeenCalledWith(
-        '507f1f77bcf86cd799439011',
-        'user_123'
-      );
+      const activeEncounter = createActiveEncounter(mockEncounter);
+      await createSuccessfulRouteTest('post', `/api/encounters/${VALID_MONGO_ID}/start`, encounterServiceMock, 'startCombat', activeEncounter, 200, 'Combat started successfully')(app);
+      expectServiceCall(encounterServiceMock, 'startCombat', VALID_MONGO_ID, 'user_123');
     });
 
     it('should return 400 for invalid ID format', async () => {
-      const response = await request(app)
-        .post('/api/encounters/invalid_id/start');
-
-      expect(response.status).toBe(400);
-      expect(response.body.success).toBe(false);
+      await createIdValidationTest('post', '/api/encounters/:id/start')(app);
     });
 
     it('should return 404 when encounter not found', async () => {
-      encounterServiceMock.startCombat.mockRejectedValue(new Error('Encounter not found'));
-
-      const response = await request(app)
-        .post('/api/encounters/507f1f77bcf86cd799439011/start');
-
-      expect(response.status).toBe(404);
-      expect(response.body.success).toBe(false);
-      expect(response.body.message).toBe('Encounter not found');
+      await createFailureRouteTest('post', `/api/encounters/${VALID_MONGO_ID}/start`, encounterServiceMock, 'startCombat', new Error('Encounter not found'), 404, 'Encounter not found')(app);
     });
 
     it('should return 400 when no participants', async () => {
-      encounterServiceMock.startCombat.mockRejectedValue(new Error('Cannot start combat with no participants'));
-
-      const response = await request(app)
-        .post('/api/encounters/507f1f77bcf86cd799439011/start');
-
-      expect(response.status).toBe(400);
-      expect(response.body.success).toBe(false);
-      expect(response.body.message).toBe('Cannot start combat with no participants');
+      await createFailureRouteTest('post', `/api/encounters/${VALID_MONGO_ID}/start`, encounterServiceMock, 'startCombat', new Error('Cannot start combat with no participants'), 400, 'Cannot start combat with no participants')(app);
     });
   });
 
   describe('POST /api/encounters/:id/end', () => {
     it('should end combat successfully', async () => {
-      const completedEncounter = { ...mockEncounter, status: 'COMPLETED', isActive: false };
-      encounterServiceMock.endCombat.mockResolvedValue(completedEncounter);
-
-      const response = await request(app)
-        .post('/api/encounters/507f1f77bcf86cd799439011/end');
-
-      expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.message).toBe('Combat ended successfully');
-
-      expect(encounterServiceMock.endCombat).toHaveBeenCalledWith(
-        '507f1f77bcf86cd799439011',
-        'user_123'
-      );
+      const completedEncounter = createCompletedEncounter(mockEncounter);
+      await createSuccessfulRouteTest('post', `/api/encounters/${VALID_MONGO_ID}/end`, encounterServiceMock, 'endCombat', completedEncounter, 200, 'Combat ended successfully')(app);
+      expectServiceCall(encounterServiceMock, 'endCombat', VALID_MONGO_ID, 'user_123');
     });
 
     it('should return 400 for invalid ID format', async () => {
-      const response = await request(app)
-        .post('/api/encounters/invalid_id/end');
-
-      expect(response.status).toBe(400);
-      expect(response.body.success).toBe(false);
+      await createIdValidationTest('post', '/api/encounters/:id/end')(app);
     });
 
     it('should return 404 when encounter not found', async () => {
-      encounterServiceMock.endCombat.mockRejectedValue(new Error('Encounter not found'));
-
-      const response = await request(app)
-        .post('/api/encounters/507f1f77bcf86cd799439011/end');
-
-      expect(response.status).toBe(404);
-      expect(response.body.success).toBe(false);
-      expect(response.body.message).toBe('Encounter not found');
+      await createFailureRouteTest('post', `/api/encounters/${VALID_MONGO_ID}/end`, encounterServiceMock, 'endCombat', new Error('Encounter not found'), 404, 'Encounter not found')(app);
     });
   });
 
@@ -542,42 +308,23 @@ describe('Encounter Routes', () => {
     // Focus on critical validation tests only
 
     it('should return 400 for invalid ID format', async () => {
-      const response = await request(app)
-        .get('/api/encounters/invalid_id/stream');
-
-      expect(response.status).toBe(400);
-      expect(response.body.success).toBe(false);
+      await createIdValidationTest('get', '/api/encounters/:id/stream')(app);
     });
 
     it('should return 404 when encounter not found', async () => {
-      encounterServiceMock.getEncounterById.mockResolvedValue(null);
-
-      const response = await request(app)
-        .get('/api/encounters/507f1f77bcf86cd799439011/stream');
-
-      expect(response.status).toBe(404);
-      expect(response.body.success).toBe(false);
-      expect(response.body.message).toBe('Encounter not found');
+      await createNotFoundTest('get', '/api/encounters/:id/stream', encounterServiceMock, 'getEncounterById')(app);
     });
 
     it('should return 403 for unauthorized access', async () => {
-      const unauthorizedEncounter = { ...mockEncounter, userId: 'other_user' };
-      encounterServiceMock.getEncounterById.mockResolvedValue(unauthorizedEncounter);
-
-      const response = await request(app)
-        .get('/api/encounters/507f1f77bcf86cd799439011/stream');
-
-      expect(response.status).toBe(403);
-      expect(response.body.success).toBe(false);
-      expect(response.body.message).toBe('Not authorized to access this encounter');
+      await createUnauthorizedTest('get', '/api/encounters/:id/stream', encounterServiceMock, 'getEncounterById', mockEncounter)(app);
     });
 
     it('should set proper SSE headers for valid requests', async () => {
-      encounterServiceMock.getEncounterById.mockResolvedValue(mockEncounter);
+      setupEncounterServiceMock(encounterServiceMock, 'getEncounterById', mockEncounter);
 
       // Use a timeout to allow initial SSE setup before closing connection
       const response = await request(app)
-        .get('/api/encounters/507f1f77bcf86cd799439011/stream')
+        .get(`/api/encounters/${VALID_MONGO_ID}/stream`)
         .timeout(100)
         .expect('Content-Type', 'text/event-stream')
         .expect('Cache-Control', 'no-cache')
@@ -596,14 +343,7 @@ describe('Encounter Routes', () => {
     });
 
     it('should handle service errors gracefully', async () => {
-      encounterServiceMock.getEncounterById.mockRejectedValue(new Error('Database error'));
-
-      const response = await request(app)
-        .get('/api/encounters/507f1f77bcf86cd799439011/stream');
-
-      expect(response.status).toBe(500);
-      expect(response.body.success).toBe(false);
-      expect(response.body.message).toBe('Internal server error setting up encounter stream');
+      await createFailureRouteTest('get', `/api/encounters/${VALID_MONGO_ID}/stream`, encounterServiceMock, 'getEncounterById', new Error('Database error'), 500, 'Internal server error setting up encounter stream')(app);
     });
   });
 });
