@@ -8,6 +8,7 @@ import { authRoutes } from './auth/routes';
 import { partyRoutes } from './party/routes';
 import { characterRoutes } from './character/routes';
 import { encounterRoutes } from './encounters/routes';
+import { validateProductionEnvironment } from './startup/checks';
 
 const app = express();
 const server = createServer(app);
@@ -64,10 +65,41 @@ app.use('*', (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 
+// Production environment startup validation
+async function startServer() {
+  try {
+    // Validate production environment before starting server
+    const validationResult = await validateProductionEnvironment();
+    
+    if (!validationResult.success) {
+      console.error('💥 Production environment validation failed. Server cannot start.');
+      
+      // Log failed checks
+      validationResult.checks.forEach(check => {
+        if (!check.success) {
+          console.error(`❌ ${check.name}: ${check.message}`);
+        }
+      });
+      
+      process.exit(1);
+    }
+
+    // Start server if validation passes
+    server.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+      
+      if (process.env.NODE_ENV === 'production') {
+        console.log('✅ Production environment validation completed successfully');
+      }
+    });
+  } catch (error) {
+    console.error('💥 Failed to start server:', error);
+    process.exit(1);
+  }
+}
+
 if (process.env.NODE_ENV !== 'test') {
-  server.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
+  startServer();
 }
 
 export { app, server };

@@ -53,7 +53,7 @@ describe('Rate Limiting Middleware', () => {
     it('should allow login requests within rate limit (5 per minute)', async () => {
       // Arrange
       const loginRateLimiter = rateLimitMiddleware({
-        keyGenerator: (req) => req.ip || 'unknown',
+        keyGenerator: (req) => req.ip || '127.0.0.1',
         points: 5,
         duration: 60,
         blockDuration: 60
@@ -84,7 +84,7 @@ describe('Rate Limiting Middleware', () => {
       });
 
       const loginRateLimiter = rateLimitMiddleware({
-        keyGenerator: (req) => req.ip || 'unknown',
+        keyGenerator: (req) => req.ip || '127.0.0.1',
         points: 5,
         duration: 60,
         blockDuration: 60
@@ -109,7 +109,7 @@ describe('Rate Limiting Middleware', () => {
     it('should apply rate limiting per IP address', async () => {
       // This test should demonstrate that different IPs have separate limits
       const loginRateLimiter = rateLimitMiddleware({
-        keyGenerator: (req) => req.ip || 'unknown',
+        keyGenerator: (req) => req.ip || '127.0.0.1',
         points: 5,
         duration: 60,
         blockDuration: 60
@@ -150,7 +150,7 @@ describe('Rate Limiting Middleware', () => {
       app.use((req, res, next) => {
         req.user = { 
           id: 'user_123', 
-          email: 'test@example.com',
+          email: 'test@example.com', 
           username: 'testuser',
           failedLoginAttempts: 0,
           lockedUntil: null,
@@ -188,7 +188,7 @@ describe('Rate Limiting Middleware', () => {
       app.use((req, res, next) => {
         req.user = { 
           id: 'user_456', 
-          email: 'premium@example.com',
+          email: 'premium@example.com', 
           username: 'premiumuser',
           failedLoginAttempts: 0,
           lockedUntil: null,
@@ -232,7 +232,7 @@ describe('Rate Limiting Middleware', () => {
       app.use((req, res, next) => {
         req.user = { 
           id: 'user_123', 
-          email: 'test@example.com',
+          email: 'test@example.com', 
           username: 'testuser',
           failedLoginAttempts: 0,
           lockedUntil: null,
@@ -324,7 +324,7 @@ describe('Rate Limiting Middleware', () => {
       });
 
       const loginRateLimiter = rateLimitMiddleware({
-        keyGenerator: (req) => req.ip || 'unknown',
+        keyGenerator: (req) => req.ip || '127.0.0.1',
         points: 5,
         duration: 60,
         blockDuration: 60

@@ -9,7 +9,7 @@ interface RateLimitConfig {
   blockDuration: number;
 }
 
-// Note: User type is extended in auth/middleware.ts
+// Note: Request interface is extended in auth/middleware.ts - we use that definition
 
 // Rate limit configurations for different tiers
 const TIER_LIMITS = {
