@@ -6,6 +6,59 @@ describe('EncounterService - Combat Operations', () => {
   let encounterService: EncounterService;
   let mockPrisma: ReturnType<typeof createMockPrisma>;
 
+  // Helper functions to reduce duplication
+  const createEncounterWithParticipants = (participants: any[] = [mockParticipantData]) => ({
+    ...mockEncounterData,
+    participants
+  });
+
+  const createActiveEncounter = (overrides: any = {}) => ({
+    ...mockEncounterData,
+    status: 'ACTIVE' as const,
+    isActive: true,
+    round: 1,
+    turn: 0,
+    ...overrides
+  });
+
+  const createCompletedEncounter = (overrides: any = {}) => ({
+    ...mockEncounterData,
+    status: 'COMPLETED' as const,
+    isActive: false,
+    ...overrides
+  });
+
+  const createParticipant = (overrides: any = {}) => ({
+    ...mockParticipantData,
+    ...overrides
+  });
+
+  const expectEncounterUpdate = (encounterId: string, updateData: any) => {
+    expect(mockPrisma.encounter.update).toHaveBeenCalledWith({
+      where: { id: encounterId },
+      data: updateData,
+      include: {
+        participants: {
+          include: {
+            character: true,
+            creature: true,
+          },
+        },
+        lairActions: true,
+      },
+    });
+  };
+
+  const expectNotAuthorizedError = async (promise: Promise<any>) => {
+    await expect(promise).rejects.toThrow('Not authorized to modify this encounter');
+    expect(mockPrisma.encounter.update).not.toHaveBeenCalled();
+  };
+
+  const expectNotFoundError = async (promise: Promise<any>) => {
+    await expect(promise).rejects.toThrow('Encounter not found');
+    expect(mockPrisma.encounter.update).not.toHaveBeenCalled();
+  };
+
   beforeEach(() => {
     mockPrisma = createMockPrisma();
     encounterService = new EncounterService(mockPrisma as any);
@@ -21,17 +74,8 @@ describe('EncounterService - Combat Operations', () => {
     const userId = 'user123';
 
     it('should start combat successfully', async () => {
-      const encounterWithParticipants = {
-        ...mockEncounterData,
-        participants: [mockParticipantData]
-      };
-      const activeCombatEncounter = {
-        ...encounterWithParticipants,
-        status: 'ACTIVE' as const,
-        isActive: true,
-        round: 1,
-        turn: 0
-      };
+      const encounterWithParticipants = createEncounterWithParticipants();
+      const activeCombatEncounter = createActiveEncounter({ participants: [mockParticipantData] });
 
       mockPrisma.encounter.findUnique.mockResolvedValue(encounterWithParticipants);
       mockPrisma.encounter.update.mockResolvedValue(activeCombatEncounter);
@@ -39,59 +83,34 @@ describe('EncounterService - Combat Operations', () => {
       const result = await encounterService.startCombat(encounterId, userId);
 
       expect(result).toEqual(activeCombatEncounter);
-      expect(mockPrisma.encounter.update).toHaveBeenCalledWith({
-        where: { id: encounterId },
-        data: {
-          status: 'ACTIVE',
-          isActive: true,
-          round: 1,
-          turn: 0,
-        },
-        include: {
-          participants: {
-            include: {
-              character: true,
-              creature: true,
-            },
-          },
-          lairActions: true,
-        },
+      expectEncounterUpdate(encounterId, {
+        status: 'ACTIVE',
+        isActive: true,
+        round: 1,
+        turn: 0,
       });
     });
 
     it('should reject if encounter not found', async () => {
       mockPrisma.encounter.findUnique.mockResolvedValue(null);
 
-      await expect(encounterService.startCombat(encounterId, userId))
-        .rejects.toThrow('Encounter not found');
-
-      expect(mockPrisma.encounter.update).not.toHaveBeenCalled();
+      await expectNotFoundError(encounterService.startCombat(encounterId, userId));
     });
 
     it('should reject if user not authorized', async () => {
-      const unauthorizedEncounter = {
-        ...mockEncounterData,
-        userId: 'different-user',
-        participants: [mockParticipantData]
-      };
+      const unauthorizedEncounter = createEncounterWithParticipants([mockParticipantData]);
+      unauthorizedEncounter.userId = 'different-user';
       mockPrisma.encounter.findUnique.mockResolvedValue(unauthorizedEncounter);
 
-      await expect(encounterService.startCombat(encounterId, userId))
-        .rejects.toThrow('Not authorized to modify this encounter');
-
-      expect(mockPrisma.encounter.update).not.toHaveBeenCalled();
+      await expectNotAuthorizedError(encounterService.startCombat(encounterId, userId));
     });
 
     it('should reject if no participants', async () => {
-      const encounterWithoutParticipants = {
-        ...mockEncounterData,
-        participants: []
-      };
+      const encounterWithoutParticipants = createEncounterWithParticipants([]);
       mockPrisma.encounter.findUnique.mockResolvedValue(encounterWithoutParticipants);
 
       await expect(encounterService.startCombat(encounterId, userId))
         .rejects.toThrow('Cannot start combat with no participants');
-
       expect(mockPrisma.encounter.update).not.toHaveBeenCalled();
     });
   });
@@ -101,11 +120,7 @@ describe('EncounterService - Combat Operations', () => {
     const userId = 'user123';
 
     it('should end combat successfully', async () => {
-      const completedEncounter = {
-        ...mockEncounterData,
-        status: 'COMPLETED' as const,
-        isActive: false
-      };
+      const completedEncounter = createCompletedEncounter();
 
       mockPrisma.encounter.findUnique.mockResolvedValue({ userId });
       mockPrisma.encounter.update.mockResolvedValue(completedEncounter);
@@ -113,49 +128,31 @@ describe('EncounterService - Combat Operations', () => {
       const result = await encounterService.endCombat(encounterId, userId);
 
       expect(result).toEqual(completedEncounter);
-      expect(mockPrisma.encounter.update).toHaveBeenCalledWith({
-        where: { id: encounterId },
-        data: {
-          status: 'COMPLETED',
-          isActive: false,
-        },
-        include: {
-          participants: {
-            include: {
-              character: true,
-              creature: true,
-            },
-          },
-          lairActions: true,
-        },
+      expectEncounterUpdate(encounterId, {
+        status: 'COMPLETED',
+        isActive: false,
       });
     });
 
     it('should reject if encounter not found', async () => {
       mockPrisma.encounter.findUnique.mockResolvedValue(null);
 
-      await expect(encounterService.endCombat(encounterId, userId))
-        .rejects.toThrow('Encounter not found');
-
-      expect(mockPrisma.encounter.update).not.toHaveBeenCalled();
+      await expectNotFoundError(encounterService.endCombat(encounterId, userId));
     });
 
     it('should reject if user not authorized', async () => {
       mockPrisma.encounter.findUnique.mockResolvedValue({ userId: 'different-user' });
 
-      await expect(encounterService.endCombat(encounterId, userId))
-        .rejects.toThrow('Not authorized to modify this encounter');
-
-      expect(mockPrisma.encounter.update).not.toHaveBeenCalled();
+      await expectNotAuthorizedError(encounterService.endCombat(encounterId, userId));
     });
   });
 
   describe('calculateInitiativeOrder', () => {
     it('should sort participants by initiative (higher first)', async () => {
       const participants = [
-        { ...mockParticipantData, id: 'p1', initiative: 10, isActive: true },
-        { ...mockParticipantData, id: 'p2', initiative: 15, isActive: true },
-        { ...mockParticipantData, id: 'p3', initiative: 12, isActive: true },
+        createParticipant({ id: 'p1', initiative: 10, isActive: true }),
+        createParticipant({ id: 'p2', initiative: 15, isActive: true }),
+        createParticipant({ id: 'p3', initiative: 12, isActive: true }),
       ];
 
       const result = encounterService.calculateInitiativeOrder(participants);
@@ -168,9 +165,9 @@ describe('EncounterService - Combat Operations', () => {
 
     it('should use initiative roll as tiebreaker', async () => {
       const participants = [
-        { ...mockParticipantData, id: 'p1', initiative: 15, initiativeRoll: 8, isActive: true },
-        { ...mockParticipantData, id: 'p2', initiative: 15, initiativeRoll: 12, isActive: true },
-        { ...mockParticipantData, id: 'p3', initiative: 10, initiativeRoll: 15, isActive: true },
+        createParticipant({ id: 'p1', initiative: 15, initiativeRoll: 8, isActive: true }),
+        createParticipant({ id: 'p2', initiative: 15, initiativeRoll: 12, isActive: true }),
+        createParticipant({ id: 'p3', initiative: 10, initiativeRoll: 15, isActive: true }),
       ];
 
       const result = encounterService.calculateInitiativeOrder(participants);
@@ -183,9 +180,9 @@ describe('EncounterService - Combat Operations', () => {
 
     it('should filter out inactive participants', async () => {
       const participants = [
-        { ...mockParticipantData, id: 'p1', initiative: 15, isActive: true },
-        { ...mockParticipantData, id: 'p2', initiative: 20, isActive: false },
-        { ...mockParticipantData, id: 'p3', initiative: 10, isActive: true },
+        createParticipant({ id: 'p1', initiative: 15, isActive: true }),
+        createParticipant({ id: 'p2', initiative: 20, isActive: false }),
+        createParticipant({ id: 'p3', initiative: 10, isActive: true }),
       ];
 
       const result = encounterService.calculateInitiativeOrder(participants);
@@ -197,8 +194,8 @@ describe('EncounterService - Combat Operations', () => {
 
     it('should handle participants with same initiative and no roll', async () => {
       const participants = [
-        { ...mockParticipantData, id: 'p1', initiative: 15, initiativeRoll: null, isActive: true },
-        { ...mockParticipantData, id: 'p2', initiative: 15, initiativeRoll: null, isActive: true },
+        createParticipant({ id: 'p1', initiative: 15, initiativeRoll: null, isActive: true }),
+        createParticipant({ id: 'p2', initiative: 15, initiativeRoll: null, isActive: true }),
       ];
 
       const result = encounterService.calculateInitiativeOrder(participants);
