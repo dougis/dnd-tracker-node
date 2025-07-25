@@ -12,6 +12,30 @@ const { mockCreate, mockFindByUserId, mockFindById, mockUpdate, mockDelete } = v
   mockDelete: vi.fn(),
 }));
 
+// Helper functions to reduce duplication
+const createMockParty = (overrides: any = {}) => ({
+  id: 'party123',
+  userId: 'user123',
+  name: 'Test Party',
+  description: 'A test party',
+  isArchived: false,
+  createdAt: '2025-01-01T00:00:00.000Z',
+  updatedAt: '2025-01-01T00:00:00.000Z',
+  ...overrides
+});
+
+const expectSuccessResponse = (response: any, expectedData: any, expectedStatus = 200) => {
+  expect(response.status).toBe(expectedStatus);
+  expect(response.body.success).toBe(true);
+  expect(response.body.data).toEqual(expectedData);
+};
+
+const expectErrorResponse = (response: any, expectedMessage: string, expectedStatus = 400) => {
+  expect(response.status).toBe(expectedStatus);
+  expect(response.body.success).toBe(false);
+  expect(response.body.message).toBe(expectedMessage);
+};
+
 // Mock the service and middleware using standard patterns
 vi.mock('../services/PartyService', () => ({
   PartyService: vi.fn().mockImplementation(() => ({
@@ -43,29 +67,14 @@ describe('Party Routes', () => {
         description: 'A test adventure party'
       };
       
-      const mockCreatedParty = {
-        id: 'party123',
-        userId: 'user123',
-        ...newParty,
-        isArchived: false,
-        createdAt: '2025-01-01T00:00:00.000Z',
-        updatedAt: '2025-01-01T00:00:00.000Z'
-      };
-
+      const mockCreatedParty = createMockParty(newParty);
       mockCreate.mockResolvedValue(mockCreatedParty);
 
       const response = await request(app)
         .post('/api/parties')
         .send(newParty);
 
-      console.log('Response status:', response.status);
-      console.log('Response body:', JSON.stringify(response.body, null, 2));
-      console.log('Service create called:', mockCreate.mock.calls);
-      console.log('Service create return:', await mockCreate.mock.results[0]?.value);
-
-      expect(response.status).toBe(201);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data).toEqual(mockCreatedParty);
+      expectSuccessResponse(response, mockCreatedParty, 201);
       expect(mockCreate).toHaveBeenCalledWith('user123', newParty);
     });
 
@@ -79,9 +88,7 @@ describe('Party Routes', () => {
         .post('/api/parties')
         .send(invalidParty);
 
-      expect(response.status).toBe(400);
-      expect(response.body.success).toBe(false);
-      expect(response.body.message).toBe('Validation failed');
+      expectErrorResponse(response, 'Validation failed');
     });
 
     it('should return 400 for missing name', async () => {
@@ -102,24 +109,8 @@ describe('Party Routes', () => {
   describe('GET /api/parties', () => {
     it('should return all parties for authenticated user', async () => {
       const mockParties = [
-        {
-          id: 'party1',
-          userId: 'user123',
-          name: 'Party 1',
-          description: 'First party',
-          isArchived: false,
-          createdAt: '2025-01-01T00:00:00.000Z',
-          updatedAt: '2025-01-01T00:00:00.000Z'
-        },
-        {
-          id: 'party2',
-          userId: 'user123',
-          name: 'Party 2',
-          description: 'Second party',
-          isArchived: false,
-          createdAt: '2025-01-01T00:00:00.000Z',
-          updatedAt: '2025-01-01T00:00:00.000Z'
-        }
+        createMockParty({ id: 'party1', name: 'Party 1', description: 'First party' }),
+        createMockParty({ id: 'party2', name: 'Party 2', description: 'Second party' })
       ];
 
       mockFindByUserId.mockResolvedValue(mockParties);
@@ -127,9 +118,7 @@ describe('Party Routes', () => {
       const response = await request(app)
         .get('/api/parties');
 
-      expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data).toEqual(mockParties);
+      expectSuccessResponse(response, mockParties);
       expect(mockFindByUserId).toHaveBeenCalledWith('user123', false);
     });
 
@@ -139,32 +128,19 @@ describe('Party Routes', () => {
       const response = await request(app)
         .get('/api/parties');
 
-      expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data).toEqual([]);
+      expectSuccessResponse(response, []);
     });
   });
 
   describe('GET /api/parties/:id', () => {
     it('should return specific party by id', async () => {
-      const mockParty = {
-        id: 'party123',
-        userId: 'user123',
-        name: 'Test Party',
-        description: 'A test party',
-        isArchived: false,
-        createdAt: '2025-01-01T00:00:00.000Z',
-        updatedAt: '2025-01-01T00:00:00.000Z'
-      };
-
+      const mockParty = createMockParty();
       mockFindById.mockResolvedValue(mockParty);
 
       const response = await request(app)
         .get('/api/parties/party123');
 
-      expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data).toEqual(mockParty);
+      expectSuccessResponse(response, mockParty);
       expect(mockFindById).toHaveBeenCalledWith('party123', 'user123');
     });
 
@@ -174,9 +150,7 @@ describe('Party Routes', () => {
       const response = await request(app)
         .get('/api/parties/nonexistent');
 
-      expect(response.status).toBe(404);
-      expect(response.body.success).toBe(false);
-      expect(response.body.message).toBe('Party not found');
+      expectErrorResponse(response, 'Party not found', 404);
     });
   });
 
@@ -187,24 +161,14 @@ describe('Party Routes', () => {
         description: 'Updated description'
       };
 
-      const mockUpdatedParty = {
-        id: 'party123',
-        userId: 'user123',
-        ...updateData,
-        isArchived: false,
-        createdAt: '2025-01-01T00:00:00.000Z',
-        updatedAt: '2025-01-01T00:00:00.000Z'
-      };
-
+      const mockUpdatedParty = createMockParty(updateData);
       mockUpdate.mockResolvedValue(mockUpdatedParty);
 
       const response = await request(app)
         .put('/api/parties/party123')
         .send(updateData);
 
-      expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data).toEqual(mockUpdatedParty);
+      expectSuccessResponse(response, mockUpdatedParty);
       expect(mockUpdate).toHaveBeenCalledWith('party123', 'user123', updateData);
     });
 
@@ -219,9 +183,7 @@ describe('Party Routes', () => {
         .put('/api/parties/nonexistent')
         .send(updateData);
 
-      expect(response.status).toBe(404);
-      expect(response.body.success).toBe(false);
-      expect(response.body.message).toBe('Party not found');
+      expectErrorResponse(response, 'Party not found', 404);
     });
 
     it('should return 400 for invalid update data', async () => {
@@ -257,9 +219,7 @@ describe('Party Routes', () => {
       const response = await request(app)
         .delete('/api/parties/nonexistent');
 
-      expect(response.status).toBe(404);
-      expect(response.body.success).toBe(false);
-      expect(response.body.message).toBe('Party not found');
+      expectErrorResponse(response, 'Party not found', 404);
     });
   });
 });
