@@ -70,10 +70,10 @@ describe('PrismaMockFactory', () => {
         create: expectedData
       });
 
-      expect(mock.user.create).toBeDefined();
+      expect(mock.user!.create).toBeDefined();
       
       // Test that the mock returns the expected data when called
-      const result = await mock.user.create({ data: { name: 'Test' } });
+      const result = await mock.user!.create({ data: { name: 'Test' } });
       expect(result).toEqual(expectedData);
     });
 
@@ -83,7 +83,7 @@ describe('PrismaMockFactory', () => {
         findFirst: expectedData
       });
 
-      expect(mock.user.findFirst).toBeDefined();
+      expect(mock.user!.findFirst).toBeDefined();
     });
 
     it('should create mock with multiple preset behaviors', () => {

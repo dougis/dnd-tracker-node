@@ -204,17 +204,17 @@ describe('MockDataFactory', () => {
       const parties = MockDataFactory.createMultiple(MockDataFactory.createParty, 3, overrides);
 
       expect(parties).toHaveLength(3);
-      expect(parties[0].name).toBe('Party One');
-      expect(parties[1].name).toBe('Party Two');
-      expect(parties[2].name).toBe('Party Three');
+      expect(parties[0]!.name).toBe('Party One');
+      expect(parties[1]!.name).toBe('Party Two');
+      expect(parties[2]!.name).toBe('Party Three');
     });
 
     it('should use default id pattern when no overrides provided', () => {
       const users = MockDataFactory.createMultiple(MockDataFactory.createUser, 2);
 
       expect(users).toHaveLength(2);
-      expect(users[0]).toHaveProperty('id');
-      expect(users[1]).toHaveProperty('id');
+      expect(users[0]!).toHaveProperty('id');
+      expect(users[1]!).toHaveProperty('id');
     });
   });
 
@@ -232,9 +232,9 @@ describe('MockDataFactory', () => {
       expect(characters).toHaveProperty('wizard');
       expect(characters).toHaveProperty('rogue');
       
-      expect(characters.fighter.classes[0].className).toBe('Fighter');
-      expect(characters.wizard.classes[0].className).toBe('Wizard');
-      expect(characters.rogue.classes[0].className).toBe('Rogue');
+      expect(characters.fighter!.classes[0]!.className).toBe('Fighter');
+      expect(characters.wizard!.classes[0]!.className).toBe('Wizard');
+      expect(characters.rogue!.classes[0]!.className).toBe('Rogue');
     });
 
     it('should maintain base properties for all variations', () => {
@@ -245,10 +245,10 @@ describe('MockDataFactory', () => {
 
       const participants = MockDataFactory.createWithVariations(MockDataFactory.createParticipant, variations);
 
-      expect(participants.active.name).toBe('Test Participant'); // base property
-      expect(participants.inactive.name).toBe('Test Participant'); // base property
-      expect(participants.active.isActive).toBe(true);
-      expect(participants.inactive.isActive).toBe(false);
+      expect(participants.active!.name).toBe('Test Participant'); // base property
+      expect(participants.inactive!.name).toBe('Test Participant'); // base property
+      expect(participants.active!.isActive).toBe(true);
+      expect(participants.inactive!.isActive).toBe(false);
     });
   });
 });
