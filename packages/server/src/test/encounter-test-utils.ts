@@ -235,7 +235,7 @@ export const mockPrismaDelete = (mockPrisma: any) => {
 
 // Helper for creating participants with initiative/roll values for combat tests
 export const createCombatParticipant = (id: string, initiative: number, initiativeRoll?: number | null, isActive = true): MockParticipant => 
-  createMockParticipant({ id, initiative, initiativeRoll, isActive });
+  createMockParticipant({ id, initiative, initiativeRoll: initiativeRoll ?? null, isActive });
 
 // Helper for creating multiple combat participants quickly
 export const createCombatParticipants = (participantData: Array<{ id: string; initiative: number; initiativeRoll?: number | null; isActive?: boolean }>): MockParticipant[] =>
