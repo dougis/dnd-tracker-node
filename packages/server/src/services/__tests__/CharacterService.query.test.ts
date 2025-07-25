@@ -64,7 +64,7 @@ describe('CharacterService - query operations', () => {
       mockPrisma.party.findFirst = vi.fn().mockResolvedValue(null);
 
       await expect(characterService.findByPartyId('party_123', 'user_123'))
-        .rejects.toThrow('Failed to fetch characters: Party not found or does not belong to user');
+        .rejects.toThrow('Failed to fetch characters: Entity not found or does not belong to user');
 
       expect(mockPrisma.character.findMany).not.toHaveBeenCalled();
     });
@@ -73,7 +73,7 @@ describe('CharacterService - query operations', () => {
       mockPrisma.party.findFirst = vi.fn().mockResolvedValue(null);
 
       await expect(characterService.findByPartyId('party_123', 'different_user'))
-        .rejects.toThrow('Failed to fetch characters: Party not found or does not belong to user');
+        .rejects.toThrow('Failed to fetch characters: Entity not found or does not belong to user');
     });
 
     it('should handle database errors', async () => {

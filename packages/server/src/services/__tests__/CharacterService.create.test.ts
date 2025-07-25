@@ -300,7 +300,7 @@ describe('CharacterService - create', () => {
     mockPrisma.party.findFirst = vi.fn().mockResolvedValue(null);
 
     await expect(characterService.create('user_123', validCreateData))
-      .rejects.toThrow('Failed to create character: Party not found or does not belong to user');
+      .rejects.toThrow('Failed to create character: Entity not found or does not belong to user');
 
     expect(mockPrisma.character.create).not.toHaveBeenCalled();
   });
@@ -309,7 +309,7 @@ describe('CharacterService - create', () => {
     mockPrisma.party.findFirst = vi.fn().mockResolvedValue(null);
 
     await expect(characterService.create('different_user', validCreateData))
-      .rejects.toThrow('Failed to create character: Party not found or does not belong to user');
+      .rejects.toThrow('Failed to create character: Entity not found or does not belong to user');
   });
 
   it('should handle database errors during creation', async () => {

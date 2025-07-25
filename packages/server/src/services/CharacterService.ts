@@ -62,50 +62,29 @@ export class CharacterService extends BaseService {
   async create(userId: string, data: CreateCharacterData): Promise<Character> {
     this.validateCreateData(data);
 
-    try {
-      await this.verifyPartyOwnership(data.partyId, userId);
-      const characterData = this.buildCharacterData(data);
+    return this.executeOperation(async () => {
+      await this.verifyEntityOwnership(
+        data.partyId, 
+        userId, 
+        () => this.prisma.party.findFirst({ where: { id: data.partyId, userId } })
+      );
       
-      const character = await this.prisma.character.create({
+      const characterData = this.buildCharacterData(data);
+      return await this.prisma.character.create({
         data: characterData,
       });
-
-      return character;
-    } catch (error) {
-      this.handleError(error, 'create character');
-    }
+    }, 'create character');
   }
 
   /**
    * Validate create character data
    */
   private validateCreateData(data: CreateCharacterData): void {
-    if (!data.name || data.name.trim().length === 0) {
-      throw new Error('Character name is required');
-    }
-    if (!data.race || data.race.trim().length === 0) {
-      throw new Error('Character race is required');
-    }
-    if (!data.classes || data.classes.length === 0) {
-      throw new Error('Character must have at least one class');
-    }
+    this.validateRequiredStringField(data.name, 'Character name is required');
+    this.validateRequiredStringField(data.race, 'Character race is required');
+    this.validateRequiredArrayField(data.classes, 'Character must have at least one class');
   }
 
-  /**
-   * Verify party exists and belongs to user
-   */
-  private async verifyPartyOwnership(partyId: string, userId: string): Promise<void> {
-    const party = await this.prisma.party.findFirst({
-      where: {
-        id: partyId,
-        userId,
-      },
-    });
-
-    if (!party) {
-      throw new Error('Party not found or does not belong to user');
-    }
-  }
 
   /**
    * Build character data object with defaults
@@ -167,39 +146,31 @@ export class CharacterService extends BaseService {
    * Find all characters in a party
    */
   async findByPartyId(partyId: string, userId: string): Promise<Character[]> {
-    try {
-      await this.verifyPartyOwnership(partyId, userId);
+    return this.executeOperation(async () => {
+      await this.verifyEntityOwnership(
+        partyId, 
+        userId, 
+        () => this.prisma.party.findFirst({ where: { id: partyId, userId } })
+      );
 
-      const characters = await this.prisma.character.findMany({
-        where: {
-          partyId,
-        },
-        orderBy: {
-          name: 'asc',
-        },
+      return await this.prisma.character.findMany({
+        where: { partyId },
+        orderBy: { name: 'asc' },
       });
-
-      return characters;
-    } catch (error) {
-      this.handleError(error, 'fetch characters');
-    }
+    }, 'fetch characters');
   }
 
   /**
    * Find a specific character by ID
    */
   async findById(characterId: string, userId: string): Promise<Character | null> {
-    try {
+    return this.executeOperation(async () => {
       const character = await this.prisma.character.findFirst({
         where: {
           id: characterId,
-          party: {
-            userId,
-          },
+          party: { userId },
         },
-        include: {
-          party: true,
-        },
+        include: { party: true },
       });
 
       if (!character) {
@@ -210,9 +181,7 @@ export class CharacterService extends BaseService {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { party, ...characterData } = character;
       return characterData as Character;
-    } catch (error) {
-      this.handleError(error, 'fetch character');
-    }
+    }, 'fetch character');
   }
 
   /**
@@ -221,7 +190,7 @@ export class CharacterService extends BaseService {
   async update(characterId: string, userId: string, data: UpdateCharacterData): Promise<Character | null> {
     this.validateUpdateData(data);
 
-    try {
+    return this.executeOperation(async () => {
       // First check if character exists and user has access
       const existingCharacter = await this.findById(characterId, userId);
       if (!existingCharacter) {
@@ -230,17 +199,11 @@ export class CharacterService extends BaseService {
 
       const updateData = this.buildUpdateData(data);
 
-      const character = await this.prisma.character.update({
-        where: {
-          id: characterId,
-        },
+      return await this.prisma.character.update({
+        where: { id: characterId },
         data: updateData,
       });
-
-      return character;
-    } catch (error) {
-      this.handleError(error, 'update character');
-    }
+    }, 'update character');
   }
 
   /**
@@ -278,7 +241,7 @@ export class CharacterService extends BaseService {
    * Delete a character
    */
   async delete(characterId: string, userId: string): Promise<boolean> {
-    try {
+    return this.executeOperation(async () => {
       // First check if character exists and user has access
       const existingCharacter = await this.findById(characterId, userId);
       if (!existingCharacter) {
@@ -286,14 +249,10 @@ export class CharacterService extends BaseService {
       }
 
       await this.prisma.character.delete({
-        where: {
-          id: characterId,
-        },
+        where: { id: characterId },
       });
 
       return true;
-    } catch (error) {
-      this.handleError(error, 'delete character');
-    }
+    }, 'delete character');
   }
 }

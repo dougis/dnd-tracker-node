@@ -18,31 +18,25 @@ export class PartyService extends BaseService {
    * Create a new party for a user
    */
   async create(userId: string, data: CreatePartyData): Promise<Party> {
-    if (!data.name || data.name.trim().length === 0) {
-      throw new Error('Party name is required');
-    }
+    this.validateRequiredStringField(data.name, 'Party name is required');
 
-    try {
-      const party = await this.prisma.party.create({
+    return this.executeOperation(async () => {
+      return await this.prisma.party.create({
         data: {
           userId,
           name: data.name.trim(),
-          description: data.description?.trim() || null,
+          description: this.processStringField(data.description),
         },
       });
-
-      return party;
-    } catch (error) {
-      this.handleError(error, 'create party');
-    }
+    }, 'create party');
   }
 
   /**
    * Find all parties for a user
    */
   async findByUserId(userId: string, includeArchived: boolean = false): Promise<Party[]> {
-    try {
-      const parties = await this.prisma.party.findMany({
+    return this.executeOperation(async () => {
+      return await this.prisma.party.findMany({
         where: {
           userId,
           ...(includeArchived ? {} : { isArchived: false }),
@@ -51,29 +45,21 @@ export class PartyService extends BaseService {
           createdAt: 'desc',
         },
       });
-
-      return parties;
-    } catch (error) {
-      this.handleError(error, 'fetch parties');
-    }
+    }, 'fetch parties');
   }
 
   /**
    * Find a specific party by ID and user ID
    */
   async findById(partyId: string, userId: string): Promise<Party | null> {
-    try {
-      const party = await this.prisma.party.findFirst({
+    return this.executeOperation(async () => {
+      return await this.prisma.party.findFirst({
         where: {
           id: partyId,
           userId,
         },
       });
-
-      return party;
-    } catch (error) {
-      this.handleError(error, 'fetch party');
-    }
+    }, 'fetch party');
   }
 
   /**
@@ -82,22 +68,18 @@ export class PartyService extends BaseService {
   async update(partyId: string, userId: string, data: UpdatePartyData): Promise<Party | null> {
     this.validateUpdateData(data);
 
-    try {
+    return this.executeOperation(async () => {
       const existingParty = await this.findById(partyId, userId);
       if (!existingParty) {
         return null;
       }
 
       const updateData = this.buildUpdateData(data);
-      const party = await this.prisma.party.update({
+      return await this.prisma.party.update({
         where: { id: partyId },
         data: updateData,
       });
-
-      return party;
-    } catch (error) {
-      this.handleError(error, 'update party');
-    }
+    }, 'update party');
   }
 
   /**
@@ -127,52 +109,36 @@ export class PartyService extends BaseService {
    * Delete a party (soft delete by archiving)
    */
   async delete(partyId: string, userId: string): Promise<boolean> {
-    try {
-      // First check if party exists and belongs to user
+    return this.executeOperation(async () => {
       const existingParty = await this.findById(partyId, userId);
       if (!existingParty) {
         return false;
       }
 
       await this.prisma.party.update({
-        where: {
-          id: partyId,
-        },
-        data: {
-          isArchived: true,
-        },
+        where: { id: partyId },
+        data: { isArchived: true },
       });
 
       return true;
-    } catch (error) {
-      this.handleError(error, 'delete party');
-    }
+    }, 'delete party');
   }
 
   /**
    * Hard delete a party and all associated characters
    */
   async hardDelete(partyId: string, userId: string): Promise<boolean> {
-    try {
-      // First check if party exists and belongs to user
+    return this.executeOperation(async () => {
       const existingParty = await this.findById(partyId, userId);
       if (!existingParty) {
         return false;
       }
 
-      // Delete party and all characters will be cascade deleted
       await this.prisma.party.delete({
-        where: {
-          id: partyId,
-        },
+        where: { id: partyId },
       });
 
       return true;
-    } catch (error) {
-      if (error instanceof Error) {
-        throw new Error(`Failed to permanently delete party: ${error.message}`);
-      }
-      throw new Error('Failed to permanently delete party');
-    }
+    }, 'permanently delete party');
   }
 }

@@ -20,6 +20,15 @@ export abstract class BaseService {
   }
 
   /**
+   * Validate that a required string field is not empty
+   */
+  protected validateRequiredStringField(value: string | undefined, errorMessage: string): void {
+    if (!value || value.trim().length === 0) {
+      throw new Error(errorMessage);
+    }
+  }
+
+  /**
    * Validate that a numeric field is not negative if defined
    */
   protected validateNonNegativeField(value: number | undefined, errorMessage: string): void {
@@ -33,6 +42,15 @@ export abstract class BaseService {
    */
   protected validateNonEmptyArrayField(value: any[] | undefined, errorMessage: string): void {
     if (value !== undefined && (!value || value.length === 0)) {
+      throw new Error(errorMessage);
+    }
+  }
+
+  /**
+   * Validate that a required array field has at least one item
+   */
+  protected validateRequiredArrayField(value: any[] | undefined, errorMessage: string): void {
+    if (!value || value.length === 0) {
       throw new Error(errorMessage);
     }
   }
@@ -73,5 +91,30 @@ export abstract class BaseService {
         target[field] = source[field];
       }
     });
+  }
+
+  /**
+   * Execute database operation with error handling
+   */
+  protected async executeOperation<T>(operation: () => Promise<T>, operationName: string): Promise<T> {
+    try {
+      return await operation();
+    } catch (error) {
+      this.handleError(error, operationName);
+    }
+  }
+
+  /**
+   * Check if entity exists and belongs to user
+   */
+  protected async verifyEntityOwnership(
+    entityId: string, 
+    userId: string, 
+    findOperation: () => Promise<any>
+  ): Promise<void> {
+    const entity = await findOperation();
+    if (!entity) {
+      throw new Error('Entity not found or does not belong to user');
+    }
   }
 }
