@@ -6,7 +6,6 @@ import { validationSets } from '../utils/validationHelpers';
 import { 
   handleValidationErrors, 
   sendSuccessResponse, 
-  sendErrorResponse, 
   sendNotFoundResponse, 
   asyncHandler 
 } from '../utils/routeHelpers';

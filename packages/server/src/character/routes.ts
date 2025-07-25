@@ -5,7 +5,6 @@ import { requireAuth } from '../auth/middleware';
 import { 
   handleValidationErrors, 
   sendSuccessResponse, 
-  sendErrorResponse, 
   sendNotFoundResponse,
   asyncHandler
 } from '../utils/routeHelpers';
