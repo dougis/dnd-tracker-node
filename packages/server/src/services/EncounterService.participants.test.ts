@@ -91,7 +91,7 @@ describe('EncounterService - Participant Management', () => {
 
       const result = await encounterService.updateParticipantHp(
         'participant_123', 
-        'encounter_123', 
+        mockEncounter.id, 
         'user_123', 
         { damage: 10 }
       );
@@ -117,7 +117,7 @@ describe('EncounterService - Participant Management', () => {
 
       await encounterService.updateParticipantHp(
         'participant_123', 
-        'encounter_123', 
+        mockEncounter.id, 
         'user_123', 
         { healing: 10 }
       );
@@ -142,7 +142,7 @@ describe('EncounterService - Participant Management', () => {
 
       await encounterService.updateParticipantHp(
         'participant_123', 
-        'encounter_123', 
+        mockEncounter.id, 
         'user_123', 
         { damage: 10 }
       );
@@ -167,7 +167,7 @@ describe('EncounterService - Participant Management', () => {
 
       await encounterService.updateParticipantHp(
         'participant_123', 
-        'encounter_123', 
+        mockEncounter.id, 
         'user_123', 
         { healing: 10 }
       );
