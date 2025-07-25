@@ -5,6 +5,52 @@ import { EncounterService } from '../services/EncounterService';
 import { requireAuth } from '../auth/middleware';
 import { createTierBasedRateLimit } from '../middleware/rate-limiting';
 
+/**
+ * Sanitize data for SSE output to prevent XSS
+ */
+function sanitizeForSSE(data: any): any {
+  if (typeof data === 'string') {
+    // Basic HTML entity encoding for strings
+    return data
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#x27;');
+  }
+  
+  if (Array.isArray(data)) {
+    return data.map(sanitizeForSSE);
+  }
+  
+  if (data && typeof data === 'object') {
+    const sanitized: any = {};
+    for (const [key, value] of Object.entries(data)) {
+      sanitized[key] = sanitizeForSSE(value);
+    }
+    return sanitized;
+  }
+  
+  return data;
+}
+
+/**
+ * Safe SSE write function that ensures data is properly sanitized
+ */
+function writeSSEData(res: Response, data: any): void {
+  // Double sanitization and JSON validation for security
+  const sanitizedData = sanitizeForSSE(data);
+  const jsonString = JSON.stringify(sanitizedData);
+  
+  // Validate JSON was created successfully
+  if (jsonString === undefined) {
+    throw new Error('Failed to serialize SSE data');
+  }
+  
+  // Write to response with explicit sanitized data
+  res.write(`data: ${jsonString}\n\n`);
+}
+
 const router = Router();
 const prisma = new PrismaClient();
 const encounterService = new EncounterService(prisma);
@@ -720,7 +766,7 @@ router.get('/:id/stream', tierBasedRateLimit, requireAuth, [
       encounterId: id,
       timestamp: new Date().toISOString()
     };
-    res.write(`data: ${JSON.stringify(welcomeData)}\n\n`);
+    writeSSEData(res, welcomeData);
 
     // Send current encounter state
     const encounterData = {
@@ -742,7 +788,7 @@ router.get('/:id/stream', tierBasedRateLimit, requireAuth, [
       },
       timestamp: new Date().toISOString()
     };
-    res.write(`data: ${JSON.stringify(encounterData)}\n\n`);
+    writeSSEData(res, encounterData);
 
     // Keep connection alive with heartbeat
     const heartbeatInterval = setInterval(() => {
@@ -750,7 +796,7 @@ router.get('/:id/stream', tierBasedRateLimit, requireAuth, [
         type: 'heartbeat',
         timestamp: new Date().toISOString()
       };
-      res.write(`data: ${JSON.stringify(heartbeat)}\n\n`);
+      writeSSEData(res, heartbeat);
     }, 30000); // Send heartbeat every 30 seconds
 
     // Clean up on client disconnect

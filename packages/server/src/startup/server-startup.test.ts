@@ -50,6 +50,7 @@ describe('Server Startup', () => {
 
   beforeEach(async () => {
     vi.resetAllMocks();
+    vi.resetModules(); // Clear module cache
     
     // Setup mocks
     mockExit = vi.fn();

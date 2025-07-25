@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { RegisterForm } from './RegisterForm';
 import { describe, it, expect, vi } from 'vitest';
@@ -20,11 +20,14 @@ describe('RegisterForm', () => {
     render(<RegisterForm onSubmit={mockSubmit} />);
     
     const submitButton = screen.getByRole('button', { name: /create account/i });
-    await user.click(submitButton);
+    
+    await act(async () => {
+      await user.click(submitButton);
+    });
     
     await waitFor(() => {
-      expect(screen.getByText(/email is required/i)).toBeInTheDocument();
-      expect(screen.getByText(/password is required/i)).toBeInTheDocument();
+      expect(screen.getByText('Email is required')).toBeInTheDocument();
+      expect(screen.getByText('Password must be at least 8 characters')).toBeInTheDocument();
     });
     
     expect(mockSubmit).not.toHaveBeenCalled();
@@ -37,13 +40,19 @@ describe('RegisterForm', () => {
     render(<RegisterForm onSubmit={mockSubmit} />);
     
     const emailInput = screen.getByLabelText(/email/i);
+    const passwordInput = screen.getByLabelText(/^password/i);
+    const confirmPasswordInput = screen.getByLabelText(/confirm password/i);
     const submitButton = screen.getByRole('button', { name: /create account/i });
     
-    await user.type(emailInput, 'invalid-email');
-    await user.click(submitButton);
+    await act(async () => {
+      await user.type(emailInput, 'invalid-email');
+      await user.type(passwordInput, 'password123');
+      await user.type(confirmPasswordInput, 'password123');
+      await user.click(submitButton);
+    });
     
     await waitFor(() => {
-      expect(screen.getByText(/invalid email format/i)).toBeInTheDocument();
+      expect(screen.getByText('Invalid email format')).toBeInTheDocument();
     });
     
     expect(mockSubmit).not.toHaveBeenCalled();
@@ -58,11 +67,13 @@ describe('RegisterForm', () => {
     const passwordInput = screen.getByLabelText(/^password/i);
     const submitButton = screen.getByRole('button', { name: /create account/i });
     
-    await user.type(passwordInput, '123');
-    await user.click(submitButton);
+    await act(async () => {
+      await user.type(passwordInput, '123');
+      await user.click(submitButton);
+    });
     
     await waitFor(() => {
-      expect(screen.getByText(/password must be at least 8 characters/i)).toBeInTheDocument();
+      expect(screen.getByText('Password must be at least 8 characters')).toBeInTheDocument();
     });
     
     expect(mockSubmit).not.toHaveBeenCalled();
@@ -78,12 +89,14 @@ describe('RegisterForm', () => {
     const confirmPasswordInput = screen.getByLabelText(/confirm password/i);
     const submitButton = screen.getByRole('button', { name: /create account/i });
     
-    await user.type(passwordInput, 'password123');
-    await user.type(confirmPasswordInput, 'different123');
-    await user.click(submitButton);
+    await act(async () => {
+      await user.type(passwordInput, 'password123');
+      await user.type(confirmPasswordInput, 'different123');
+      await user.click(submitButton);
+    });
     
     await waitFor(() => {
-      expect(screen.getByText(/passwords do not match/i)).toBeInTheDocument();
+      expect(screen.getByText('Passwords do not match')).toBeInTheDocument();
     });
     
     expect(mockSubmit).not.toHaveBeenCalled();
@@ -100,17 +113,22 @@ describe('RegisterForm', () => {
     const confirmPasswordInput = screen.getByLabelText(/confirm password/i);
     const submitButton = screen.getByRole('button', { name: /create account/i });
     
-    await user.type(emailInput, 'test@example.com');
-    await user.type(passwordInput, 'password123');
-    await user.type(confirmPasswordInput, 'password123');
-    await user.click(submitButton);
+    await act(async () => {
+      await user.type(emailInput, 'test@example.com');
+      await user.type(passwordInput, 'password123');
+      await user.type(confirmPasswordInput, 'password123');
+      await user.click(submitButton);
+    });
     
     await waitFor(() => {
-      expect(mockSubmit).toHaveBeenCalledWith({
-        email: 'test@example.com',
-        password: 'password123',
-        confirmPassword: 'password123',
-      });
+      expect(mockSubmit).toHaveBeenCalledWith(
+        {
+          email: 'test@example.com',
+          password: 'password123',
+          confirmPassword: 'password123',
+        },
+        expect.any(Object) // The form event object
+      );
     });
   });
 

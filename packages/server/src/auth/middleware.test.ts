@@ -54,6 +54,7 @@ describe('Authentication Middleware', () => {
         id: 'user_123',
         email: 'test@example.com',
         username: 'testuser',
+        tier: 'free',
         createdAt: new Date(),
         updatedAt: new Date()
       };
@@ -128,7 +129,7 @@ describe('Authentication Middleware', () => {
       expect(mockRes.status).toHaveBeenCalledWith(500);
       expect(mockRes.json).toHaveBeenCalledWith({
         success: false,
-        message: 'Internal server error'
+        message: 'Authentication error'
       });
       expect(mockNext).not.toHaveBeenCalled();
     });
@@ -141,6 +142,7 @@ describe('Authentication Middleware', () => {
         id: 'user_123',
         email: 'test@example.com',
         username: 'testuser',
+        tier: 'free',
         createdAt: new Date(),
         updatedAt: new Date()
       };
