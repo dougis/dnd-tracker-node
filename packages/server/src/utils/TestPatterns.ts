@@ -1,11 +1,56 @@
 import request from 'supertest';
-import { expect } from 'vitest';
+import { expect, vi } from 'vitest';
 import type { Application } from 'express';
+import { PrismaMockFactory } from './PrismaMockFactory';
 
 /**
  * Common test patterns to eliminate duplication
  */
 export class TestPatterns {
+  /**
+   * Standard test setup for service tests
+   */
+  static setupServiceTest(prismaMock: any) {
+    vi.clearAllMocks();
+    PrismaMockFactory.clearAllMocks(prismaMock);
+  }
+
+  /**
+   * Standard test cleanup for service tests
+   */
+  static cleanupServiceTest(prismaMock: any) {
+    vi.resetAllMocks();
+    PrismaMockFactory.resetAllMocks(prismaMock);
+  }
+
+  /**
+   * Standard test setup for route tests
+   */
+  static setupRouteTest() {
+    vi.clearAllMocks();
+  }
+
+  /**
+   * Test password validation with common scenarios
+   */
+  static testPasswordValidation(
+    testFn: (password: string) => Promise<any>,
+    expectedError: string
+  ) {
+    const passwordTests = [
+      { name: 'no uppercase letter', password: 'nouppercase123!' },
+      { name: 'no lowercase letter', password: 'NOLOWERCASE123!' },
+      { name: 'no number', password: 'NoNumbersHere!' },
+      { name: 'no special character', password: 'NoSpecialChar123' },
+      { name: 'too short', password: 'Short1!' },
+    ];
+
+    passwordTests.forEach(({ name, password }) => {
+      it(`should reject password: ${name}`, async () => {
+        await expect(testFn(password)).rejects.toThrow(expectedError);
+      });
+    });
+  }
   /**
    * Test successful creation endpoint
    */

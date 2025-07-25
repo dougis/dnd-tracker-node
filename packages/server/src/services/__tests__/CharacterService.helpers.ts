@@ -1,17 +1,12 @@
-import { vi } from 'vitest';
 import { PrismaClient } from '@prisma/client';
+import { MockDataFactory } from '../../utils/MockDataFactory';
+import { PrismaMockFactory } from '../../utils/PrismaMockFactory';
 
-// Create comprehensive mock data helpers
-export const createMockParty = (overrides = {}) => ({
-  id: 'party_123',
-  userId: 'user_123',
-  name: 'Test Party',
-  description: 'Test party description',
-  createdAt: new Date(),
-  updatedAt: new Date(),
-  ...overrides
-});
+// Re-export factory methods for character-specific testing
+export const createMockParty = (overrides = {}) => MockDataFactory.createParty(overrides);
+export const createMockCharacter = (overrides = {}) => MockDataFactory.createCharacter(overrides);
 
+// Character-specific test data utilities
 export const createDefaultAbilities = () => ({
   str: 10,
   dex: 10,
@@ -37,47 +32,8 @@ export const createExpectedDefaultData = () => ({
   notes: null
 });
 
-export const createMockCharacter = (overrides = {}) => ({
-  id: 'char_123',
-  partyId: 'party_123',
-  name: 'Test Character',
-  playerName: 'Test Player',
-  race: 'Human',
-  classes: [{ className: 'Fighter', level: 5 }],
-  level: 5,
-  ac: 16,
-  maxHp: 45,
-  currentHp: 45,
-  tempHp: 0,
-  hitDice: '5d10',
-  speed: 30,
-  abilities: {
-    str: 16,
-    dex: 14,
-    con: 15,
-    int: 12,
-    wis: 13,
-    cha: 11
-  },
-  proficiencyBonus: 3,
-  features: ['Second Wind', 'Fighting Style'],
-  equipment: ['Longsword', 'Chain Mail', 'Shield'],
-  notes: 'Test character notes',
-  createdAt: new Date(),
-  updatedAt: new Date(),
-  ...overrides
-});
-
-// Create mock Prisma client with comprehensive mocking
-export const createMockPrisma = () => ({
-  party: {
-    findFirst: vi.fn(),
-  },
-  character: {
-    create: vi.fn(),
-    findFirst: vi.fn(),
-    findMany: vi.fn(),
-    update: vi.fn(),
-    delete: vi.fn(),
-  },
-} as unknown as PrismaClient);
+// Create mock Prisma client with character and party support
+export const createMockPrisma = () => PrismaMockFactory.combineMocks(
+  PrismaMockFactory.createWithPresetBehaviors('party', {}),
+  PrismaMockFactory.createWithPresetBehaviors('character', {})
+) as unknown as PrismaClient;
