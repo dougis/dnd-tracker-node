@@ -47,21 +47,24 @@ jobs:
         run: npm run test:ci
         
       - name: Upload coverage to Codacy (Client)
-        if: matrix.node-version == '18.x'
+        if: matrix.node-version == '18.x' && hashFiles('packages/client/coverage/clover.xml') != ''
+        continue-on-error: true
         uses: codacy/codacy-coverage-reporter-action@v1
         with:
           project-token: ${{ env.CODACY_PROJECT_TOKEN }}
           coverage-reports: packages/client/coverage/clover.xml
           
       - name: Upload coverage to Codacy (Server)
-        if: matrix.node-version == '18.x'
+        if: matrix.node-version == '18.x' && hashFiles('packages/server/coverage/clover.xml') != ''
+        continue-on-error: true
         uses: codacy/codacy-coverage-reporter-action@v1
         with:
           project-token: ${{ env.CODACY_PROJECT_TOKEN }}
           coverage-reports: packages/server/coverage/clover.xml
           
       - name: Upload coverage to Codacy (Shared)
-        if: matrix.node-version == '18.x'
+        if: matrix.node-version == '18.x' && hashFiles('packages/shared/coverage/clover.xml') != ''
+        continue-on-error: true
         uses: codacy/codacy-coverage-reporter-action@v1
         with:
           project-token: ${{ env.CODACY_PROJECT_TOKEN }}

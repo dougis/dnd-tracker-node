@@ -801,12 +801,12 @@ router.get('/:id/stream', tierBasedRateLimit, requireAuth, [
 
     // Clean up on client disconnect
     req.on('close', () => {
-      console.log(`SSE connection closed for encounter ${id}`);
+      console.log('SSE connection closed for encounter:', id);
       clearInterval(heartbeatInterval);
     });
 
     req.on('end', () => {
-      console.log(`SSE connection ended for encounter ${id}`);
+      console.log('SSE connection ended for encounter:', id);
       clearInterval(heartbeatInterval);
     });
 
