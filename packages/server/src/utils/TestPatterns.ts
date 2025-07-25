@@ -324,7 +324,7 @@ export class ServiceTestPatterns {
     mockPrisma[prismaModel][operation].mockRejectedValue(new Error('Database error'));
 
     await expect(service[method](userId, data))
-      .rejects.toThrow(expect.stringContaining('Failed to'));
+      .rejects.toThrow(/Failed to/);
   }
 
   /**
