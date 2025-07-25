@@ -291,10 +291,10 @@ export const createPermissionTest = (permission: string, requirePermissionFunc: 
 };
 
 // Helper for ownership middleware tests
-export const createOwnershipTest = (requireOwnershipFunc: any, scenario: any, shouldSucceed = true, expectedStatus = 403, expectedMessage = 'Access denied: insufficient permissions') => {
+export const createOwnershipTest = (requireOwnershipFunc: any, scenario: any, shouldSucceed = true, expectedStatus = 403, expectedMessage = 'Access denied: insufficient permissions', paramName?: string) => {
   return (mockReq: any, mockRes: any, mockNext: any) => {
     // Arrange
-    const middleware = createOwnershipMiddleware(requireOwnershipFunc);
+    const middleware = createOwnershipMiddleware(requireOwnershipFunc, paramName);
     Object.assign(mockReq, scenario);
 
     // Act

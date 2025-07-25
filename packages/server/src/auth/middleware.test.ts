@@ -75,7 +75,7 @@ describe('Authentication Middleware', () => {
     });
 
     it('should return 401 for invalid session', async () => {
-      await createAuthFailureTest(requireAuth, AuthTestScenarios.noCookieNoHeader, 401, 'Invalid or expired session', true)(mockReq, mockRes, mockNext, authServiceMock);
+      await createAuthFailureTest(requireAuth, AuthTestScenarios.validCookieAuth, 401, 'Invalid or expired session', true)(mockReq, mockRes, mockNext, authServiceMock);
     });
 
     it('should return 500 for validation error', async () => {
@@ -163,7 +163,7 @@ describe('Authentication Middleware', () => {
     });
 
     it('should call next() when user owns the resource (custom param)', () => {
-      createOwnershipTest(requireOwnership, createResourceOwnershipScenario('user_123', 'ownerId'), true)(mockReq, mockRes, mockNext);
+      createOwnershipTest(requireOwnership, createResourceOwnershipScenario('user_123', 'ownerId'), true, 403, 'Access denied: insufficient permissions', 'ownerId')(mockReq, mockRes, mockNext);
     });
 
     it('should call next() when user owns the resource (body param)', () => {
