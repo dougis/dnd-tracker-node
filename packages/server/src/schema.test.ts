@@ -21,7 +21,7 @@ describe.skip('Prisma Schema and Seeding Tests', () => {
     for (const model of models) {
       try {
         await (prisma as any)[model].deleteMany({});
-      } catch (error) {
+      } catch {
         // Model might not exist yet, ignore
       }
     }
