@@ -1,6 +1,7 @@
 import express from 'express';
 import request from 'supertest';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { createTestApp, standardMocks } from '../utils/testHelpers';
 
 // Use vi.hoisted to ensure mocks are available during hoisting
 const { mockCreate, mockFindByUserId, mockFindById, mockUpdate, mockDelete } = vi.hoisted(() => ({
@@ -11,7 +12,7 @@ const { mockCreate, mockFindByUserId, mockFindById, mockUpdate, mockDelete } = v
   mockDelete: vi.fn(),
 }));
 
-// Mock the service and middleware
+// Mock the service and middleware using standard patterns
 vi.mock('../services/PartyService', () => ({
   PartyService: vi.fn().mockImplementation(() => ({
     create: mockCreate,
@@ -22,16 +23,8 @@ vi.mock('../services/PartyService', () => ({
   }))
 }));
 
-vi.mock('@prisma/client', () => ({
-  PrismaClient: vi.fn().mockImplementation(() => ({}))
-}));
-
-vi.mock('../auth/middleware', () => ({
-  requireAuth: (req: any, res: any, next: any) => {
-    req.user = { id: 'user123', email: 'test@example.com' };
-    next();
-  }
-}));
+vi.mock('@prisma/client', () => standardMocks.prismaClient);
+vi.mock('../auth/middleware', () => standardMocks.authMiddleware);
 
 import { partyRoutes } from './routes';
 
@@ -40,10 +33,7 @@ describe('Party Routes', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
-    app = express();
-    app.use(express.json());
-    app.use('/api/parties', partyRoutes);
+    app = createTestApp('/api/parties', partyRoutes);
   });
 
   describe('POST /api/parties', () => {

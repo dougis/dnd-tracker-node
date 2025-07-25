@@ -42,7 +42,7 @@ export abstract class BaseService {
    */
   protected processStringField(value: string | undefined): string | null {
     if (value === undefined) {
-      return undefined as any;
+      return null;
     }
     return value?.trim() || null;
   }

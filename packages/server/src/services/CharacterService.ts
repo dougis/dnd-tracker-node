@@ -60,70 +60,107 @@ export class CharacterService extends BaseService {
    * Create a new character in a party
    */
   async create(userId: string, data: CreateCharacterData): Promise<Character> {
-    if (!data.name || data.name.trim().length === 0) {
-      throw new Error('Character name is required');
-    }
-
-    if (!data.race || data.race.trim().length === 0) {
-      throw new Error('Character race is required');
-    }
-
-    if (!data.classes || data.classes.length === 0) {
-      throw new Error('Character must have at least one class');
-    }
+    this.validateCreateData(data);
 
     try {
-      // First verify the party exists and belongs to the user
-      const party = await this.prisma.party.findFirst({
-        where: {
-          id: data.partyId,
-          userId,
-        },
-      });
-
-      if (!party) {
-        throw new Error('Party not found or does not belong to user');
-      }
-
-      // Calculate total level from classes if not provided
-      const totalLevel = data.level || data.classes.reduce((sum, cls) => sum + cls.level, 0);
-
-      // Set default ability scores if not provided
-      const defaultAbilities = {
-        str: 10,
-        dex: 10,
-        con: 10,
-        int: 10,
-        wis: 10,
-        cha: 10,
-      };
-
+      await this.verifyPartyOwnership(data.partyId, userId);
+      const characterData = this.buildCharacterData(data);
+      
       const character = await this.prisma.character.create({
-        data: {
-          partyId: data.partyId,
-          name: data.name.trim(),
-          playerName: data.playerName?.trim() || null,
-          race: data.race.trim(),
-          classes: data.classes,
-          level: totalLevel,
-          ac: data.ac || 10,
-          maxHp: data.maxHp || 10,
-          currentHp: data.currentHp || data.maxHp || 10,
-          tempHp: data.tempHp || 0,
-          hitDice: data.hitDice || null,
-          speed: data.speed || 30,
-          abilities: data.abilities || defaultAbilities,
-          proficiencyBonus: data.proficiencyBonus || Math.ceil(totalLevel / 4) + 1,
-          features: data.features || [],
-          equipment: data.equipment || [],
-          notes: data.notes?.trim() || null,
-        },
+        data: characterData,
       });
 
       return character;
     } catch (error) {
       this.handleError(error, 'create character');
     }
+  }
+
+  /**
+   * Validate create character data
+   */
+  private validateCreateData(data: CreateCharacterData): void {
+    if (!data.name || data.name.trim().length === 0) {
+      throw new Error('Character name is required');
+    }
+    if (!data.race || data.race.trim().length === 0) {
+      throw new Error('Character race is required');
+    }
+    if (!data.classes || data.classes.length === 0) {
+      throw new Error('Character must have at least one class');
+    }
+  }
+
+  /**
+   * Verify party exists and belongs to user
+   */
+  private async verifyPartyOwnership(partyId: string, userId: string): Promise<void> {
+    const party = await this.prisma.party.findFirst({
+      where: {
+        id: partyId,
+        userId,
+      },
+    });
+
+    if (!party) {
+      throw new Error('Party not found or does not belong to user');
+    }
+  }
+
+  /**
+   * Build character data object with defaults
+   */
+  private buildCharacterData(data: CreateCharacterData): any {
+    const totalLevel = this.calculateTotalLevel(data);
+    const defaultAbilities = this.getDefaultAbilities();
+
+    return {
+      partyId: data.partyId,
+      name: data.name.trim(),
+      playerName: this.processStringField(data.playerName),
+      race: data.race.trim(),
+      classes: data.classes,
+      level: totalLevel,
+      ac: data.ac || 10,
+      maxHp: data.maxHp || 10,
+      currentHp: data.currentHp || data.maxHp || 10,
+      tempHp: data.tempHp || 0,
+      hitDice: data.hitDice || null,
+      speed: data.speed || 30,
+      abilities: data.abilities || defaultAbilities,
+      proficiencyBonus: data.proficiencyBonus || this.calculateProficiencyBonus(totalLevel),
+      features: data.features || [],
+      equipment: data.equipment || [],
+      notes: this.processStringField(data.notes),
+    };
+  }
+
+  /**
+   * Calculate total character level from classes
+   */
+  private calculateTotalLevel(data: CreateCharacterData): number {
+    return data.level || data.classes.reduce((sum, cls) => sum + cls.level, 0);
+  }
+
+  /**
+   * Get default ability scores
+   */
+  private getDefaultAbilities(): any {
+    return {
+      str: 10,
+      dex: 10,
+      con: 10,
+      int: 10,
+      wis: 10,
+      cha: 10,
+    };
+  }
+
+  /**
+   * Calculate proficiency bonus based on level
+   */
+  private calculateProficiencyBonus(level: number): number {
+    return Math.ceil(level / 4) + 1;
   }
 
   /**
