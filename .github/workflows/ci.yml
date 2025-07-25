@@ -118,7 +118,7 @@ jobs:
         run: npm audit --audit-level moderate
         
       - name: Upload SARIF to GitHub
-        if: always()
-        uses: github/codeql-action/upload-sarif@v2
+        if: always() && hashFiles('results.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: results.sarif
