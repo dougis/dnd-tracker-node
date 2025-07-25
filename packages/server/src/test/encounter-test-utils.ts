@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Encounter, Participant, Character, Creature } from '@prisma/client';
 import { vi } from 'vitest';
 
@@ -327,6 +329,7 @@ export const setupEncounterServiceError = (encounterServiceMock: any, method: st
 
 // Helper for creating test requests with consistent patterns
 export const createTestRequest = (app: any, method: string, path: string, data?: any) => {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const request = require('supertest')(app)[method](path);
   if (data && (method === 'post' || method === 'put')) {
     return request.send(data);

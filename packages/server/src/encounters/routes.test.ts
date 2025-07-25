@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import request from 'supertest';
 import express from 'express';
@@ -133,7 +134,7 @@ describe('Encounter Routes', () => {
     });
 
     it('should create encounter without description', async () => {
-      const response = await createEncounterCreationTest({ name: 'Test Encounter' }, encounterServiceMock, mockEncounter)(app);
+      await createEncounterCreationTest({ name: 'Test Encounter' }, encounterServiceMock, mockEncounter)(app);
       expectServiceCall(encounterServiceMock, 'createEncounter', 'user_123', 'Test Encounter', undefined);
     });
 

@@ -1,10 +1,8 @@
-import { render, screen, waitFor, act } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { render, screen, waitFor } from '@testing-library/react';
 import { LoginForm } from './LoginForm';
 import { describe, it, expect, vi } from 'vitest';
 import { 
   setupAuthFormTest,
-  getLoginFormElements,
   fillLoginForm,
   submitLoginForm,
   expectValidationError,

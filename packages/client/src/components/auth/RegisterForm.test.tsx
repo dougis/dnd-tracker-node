@@ -1,5 +1,4 @@
-import { render, screen, waitFor, act } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { render, screen, waitFor } from '@testing-library/react';
 import { RegisterForm } from './RegisterForm';
 import { describe, it, expect, vi } from 'vitest';
 import { 
