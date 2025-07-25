@@ -111,7 +111,22 @@ describe('Encounter Routes', () => {
         .post('/api/encounters')
         .send(validEncounterData);
 
-      expectEncounterCreationResponse(response, mockEncounter);
+      // API response excludes userId and uses ISO string dates
+      const expectedApiEncounter = {
+        id: mockEncounter.id,
+        name: mockEncounter.name,
+        description: mockEncounter.description,
+        status: mockEncounter.status,
+        round: mockEncounter.round,
+        turn: mockEncounter.turn,
+        isActive: mockEncounter.isActive,
+        participants: mockEncounter.participants,
+        lairActions: mockEncounter.lairActions,
+        createdAt: mockEncounter.createdAt.toISOString(),
+        updatedAt: mockEncounter.updatedAt.toISOString()
+      };
+
+      expectEncounterCreationResponse(response, expectedApiEncounter);
       expect(encounterServiceMock.createEncounter).toHaveBeenCalledWith(
         'user_123',
         'Test Encounter',
@@ -139,7 +154,14 @@ describe('Encounter Routes', () => {
         .post('/api/encounters')
         .send({ description: 'Test description' });
 
-      expectValidationErrorResponse(response);
+      expectValidationErrorResponse(response, [
+        {
+          location: 'body',
+          msg: 'Encounter name must be between 1 and 100 characters',
+          path: 'name',
+          type: 'field'
+        }
+      ]);
     });
 
     it('should return 400 for empty name', async () => {
@@ -147,7 +169,15 @@ describe('Encounter Routes', () => {
         .post('/api/encounters')
         .send({ name: '', description: 'Test description' });
 
-      expectValidationErrorResponse(response);
+      expectValidationErrorResponse(response, [
+        {
+          location: 'body',
+          msg: 'Encounter name must be between 1 and 100 characters',
+          path: 'name',
+          type: 'field',
+          value: ''
+        }
+      ]);
     });
 
     it('should return 400 for name too long', async () => {
@@ -155,7 +185,15 @@ describe('Encounter Routes', () => {
         .post('/api/encounters')
         .send({ name: 'a'.repeat(101), description: 'Test description' });
 
-      expectValidationErrorResponse(response);
+      expectValidationErrorResponse(response, [
+        {
+          location: 'body',
+          msg: 'Encounter name must be between 1 and 100 characters',
+          path: 'name',
+          type: 'field',
+          value: 'a'.repeat(101)
+        }
+      ]);
     });
 
     it('should return 400 for description too long', async () => {
@@ -163,7 +201,15 @@ describe('Encounter Routes', () => {
         .post('/api/encounters')
         .send({ name: 'Test', description: 'a'.repeat(1001) });
 
-      expectValidationErrorResponse(response);
+      expectValidationErrorResponse(response, [
+        {
+          location: 'body',
+          msg: 'Description must be 1000 characters or less',
+          path: 'description',
+          type: 'field',
+          value: 'a'.repeat(1001)
+        }
+      ]);
     });
 
     it('should handle service errors', async () => {
@@ -195,7 +241,22 @@ describe('Encounter Routes', () => {
       const response = await request(app)
         .get('/api/encounters');
 
-      expectEncounterListResponse(response, mockEncounters);
+      // API response excludes userId and uses ISO string dates
+      const expectedApiEncounters = mockEncounters.map(encounter => ({
+        id: encounter.id,
+        name: encounter.name,
+        description: encounter.description,
+        status: encounter.status,
+        round: encounter.round,
+        turn: encounter.turn,
+        isActive: encounter.isActive,
+        participants: encounter.participants,
+        lairActions: encounter.lairActions,
+        createdAt: encounter.createdAt.toISOString(),
+        updatedAt: encounter.updatedAt.toISOString()
+      }));
+
+      expectEncounterListResponse(response, expectedApiEncounters);
       expect(encounterServiceMock.getUserEncounters).toHaveBeenCalledWith('user_123');
     });
 
@@ -216,7 +277,22 @@ describe('Encounter Routes', () => {
       const response = await request(app)
         .get('/api/encounters/507f1f77bcf86cd799439011');
 
-      expectEncounterResponse(response, mockEncounter);
+      // API response excludes userId and uses ISO string dates
+      const expectedApiEncounter = {
+        id: mockEncounter.id,
+        name: mockEncounter.name,
+        description: mockEncounter.description,
+        status: mockEncounter.status,
+        round: mockEncounter.round,
+        turn: mockEncounter.turn,
+        isActive: mockEncounter.isActive,
+        participants: mockEncounter.participants,
+        lairActions: mockEncounter.lairActions,
+        createdAt: mockEncounter.createdAt.toISOString(),
+        updatedAt: mockEncounter.updatedAt.toISOString()
+      };
+
+      expectEncounterResponse(response, expectedApiEncounter);
       expect(encounterServiceMock.getEncounterById).toHaveBeenCalledWith('507f1f77bcf86cd799439011');
     });
 
@@ -224,7 +300,15 @@ describe('Encounter Routes', () => {
       const response = await request(app)
         .get('/api/encounters/invalid_id');
 
-      expectValidationErrorResponse(response);
+      expectValidationErrorResponse(response, [
+        {
+          location: 'params',
+          msg: 'Invalid encounter ID format',
+          path: 'id',
+          type: 'field',
+          value: 'invalid_id'
+        }
+      ]);
     });
 
     it('should return 404 when encounter not found', async () => {
