@@ -1,4 +1,5 @@
 import { PrismaClient, Party } from '@prisma/client';
+import { BaseService } from './BaseService';
 
 export interface CreatePartyData {
   name: string;
@@ -11,12 +12,7 @@ export interface UpdatePartyData {
   isArchived?: boolean;
 }
 
-export class PartyService {
-  private prisma: PrismaClient;
-
-  constructor(prisma: PrismaClient) {
-    this.prisma = prisma;
-  }
+export class PartyService extends BaseService {
 
   /**
    * Create a new party for a user
@@ -37,10 +33,7 @@ export class PartyService {
 
       return party;
     } catch (error) {
-      if (error instanceof Error) {
-        throw new Error(`Failed to create party: ${error.message}`);
-      }
-      throw new Error('Failed to create party');
+      this.handleError(error, 'create party');
     }
   }
 
@@ -61,10 +54,7 @@ export class PartyService {
 
       return parties;
     } catch (error) {
-      if (error instanceof Error) {
-        throw new Error(`Failed to fetch parties: ${error.message}`);
-      }
-      throw new Error('Failed to fetch parties');
+      this.handleError(error, 'fetch parties');
     }
   }
 
@@ -82,10 +72,7 @@ export class PartyService {
 
       return party;
     } catch (error) {
-      if (error instanceof Error) {
-        throw new Error(`Failed to fetch party: ${error.message}`);
-      }
-      throw new Error('Failed to fetch party');
+      this.handleError(error, 'fetch party');
     }
   }
 
@@ -109,10 +96,7 @@ export class PartyService {
 
       return party;
     } catch (error) {
-      if (error instanceof Error) {
-        throw new Error(`Failed to update party: ${error.message}`);
-      }
-      throw new Error('Failed to update party');
+      this.handleError(error, 'update party');
     }
   }
 
@@ -120,9 +104,7 @@ export class PartyService {
    * Validate update data for party
    */
   private validateUpdateData(data: UpdatePartyData): void {
-    if (data.name !== undefined && (!data.name || data.name.trim().length === 0)) {
-      throw new Error('Party name cannot be empty');
-    }
+    this.validateStringField(data.name, 'Party name cannot be empty');
   }
 
   /**
@@ -131,15 +113,9 @@ export class PartyService {
   private buildUpdateData(data: UpdatePartyData): any {
     const updateData: any = {};
     
-    if (data.name !== undefined) {
-      updateData.name = data.name.trim();
-    }
-    if (data.description !== undefined) {
-      updateData.description = data.description?.trim() || null;
-    }
-    if (data.isArchived !== undefined) {
-      updateData.isArchived = data.isArchived;
-    }
+    if (data.name !== undefined) updateData.name = data.name.trim();
+    if (data.description !== undefined) updateData.description = this.processStringField(data.description);
+    if (data.isArchived !== undefined) updateData.isArchived = data.isArchived;
 
     return updateData;
   }
@@ -166,10 +142,7 @@ export class PartyService {
 
       return true;
     } catch (error) {
-      if (error instanceof Error) {
-        throw new Error(`Failed to delete party: ${error.message}`);
-      }
-      throw new Error('Failed to delete party');
+      this.handleError(error, 'delete party');
     }
   }
 

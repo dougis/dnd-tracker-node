@@ -1,4 +1,5 @@
 import { PrismaClient, Character } from '@prisma/client';
+import { BaseService } from './BaseService';
 
 export interface CreateCharacterData {
   partyId: string;
@@ -53,12 +54,7 @@ export interface UpdateCharacterData {
   notes?: string;
 }
 
-export class CharacterService {
-  private prisma: PrismaClient;
-
-  constructor(prisma: PrismaClient) {
-    this.prisma = prisma;
-  }
+export class CharacterService extends BaseService {
 
   /**
    * Create a new character in a party
@@ -126,10 +122,7 @@ export class CharacterService {
 
       return character;
     } catch (error) {
-      if (error instanceof Error) {
-        throw new Error(`Failed to create character: ${error.message}`);
-      }
-      throw new Error('Failed to create character');
+      this.handleError(error, 'create character');
     }
   }
 
@@ -161,10 +154,7 @@ export class CharacterService {
 
       return characters;
     } catch (error) {
-      if (error instanceof Error) {
-        throw new Error(`Failed to fetch characters: ${error.message}`);
-      }
-      throw new Error('Failed to fetch characters');
+      this.handleError(error, 'fetch characters');
     }
   }
 
@@ -194,10 +184,7 @@ export class CharacterService {
       const { party, ...characterData } = character;
       return characterData as Character;
     } catch (error) {
-      if (error instanceof Error) {
-        throw new Error(`Failed to fetch character: ${error.message}`);
-      }
-      throw new Error('Failed to fetch character');
+      this.handleError(error, 'fetch character');
     }
   }
 
@@ -225,10 +212,7 @@ export class CharacterService {
 
       return character;
     } catch (error) {
-      if (error instanceof Error) {
-        throw new Error(`Failed to update character: ${error.message}`);
-      }
-      throw new Error('Failed to update character');
+      this.handleError(error, 'update character');
     }
   }
 
@@ -236,48 +220,11 @@ export class CharacterService {
    * Validate update data for character
    */
   private validateUpdateData(data: UpdateCharacterData): void {
-    this.validateStringFields(data);
-    this.validateNumericFields(data);
-  }
-
-  /**
-   * Validate string fields in update data
-   */
-  private validateStringFields(data: UpdateCharacterData): void {
     this.validateStringField(data.name, 'Character name cannot be empty');
-    this.validateStringField(data.race, 'Character race cannot be empty'); 
-    this.validateClassesField(data.classes);
-  }
-
-  /**
-   * Validate a single string field
-   */
-  private validateStringField(value: string | undefined, errorMessage: string): void {
-    if (value !== undefined && (!value || value.trim().length === 0)) {
-      throw new Error(errorMessage);
-    }
-  }
-
-  /**
-   * Validate classes field
-   */
-  private validateClassesField(classes: any[] | undefined): void {
-    if (classes !== undefined && (!classes || classes.length === 0)) {
-      throw new Error('Character must have at least one class');
-    }
-  }
-
-  /**
-   * Validate numeric fields in update data
-   */
-  private validateNumericFields(data: UpdateCharacterData): void {
-    if (data.currentHp !== undefined && data.currentHp < 0) {
-      throw new Error('Current HP cannot be negative');
-    }
-
-    if (data.tempHp !== undefined && data.tempHp < 0) {
-      throw new Error('Temporary HP cannot be negative');
-    }
+    this.validateStringField(data.race, 'Character race cannot be empty');
+    this.validateNonEmptyArrayField(data.classes, 'Character must have at least one class');
+    this.validateNonNegativeField(data.currentHp, 'Current HP cannot be negative');
+    this.validateNonNegativeField(data.tempHp, 'Temporary HP cannot be negative');
   }
 
   /**
@@ -286,44 +233,23 @@ export class CharacterService {
   private buildUpdateData(data: UpdateCharacterData): any {
     const updateData: any = {};
     
-    this.processStringFields(data, updateData);
-    this.processDirectFields(data, updateData);
+    // Process string fields
+    if (data.name !== undefined) updateData.name = data.name.trim();
+    if (data.race !== undefined) updateData.race = data.race.trim();
+    if (data.playerName !== undefined) updateData.playerName = this.processStringField(data.playerName);
+    if (data.notes !== undefined) updateData.notes = this.processStringField(data.notes);
 
-    return updateData;
-  }
-
-  /**
-   * Process string fields that need trimming
-   */
-  private processStringFields(data: UpdateCharacterData, updateData: any): void {
-    const stringFields = [
-      { key: 'name', transform: (val: string) => val.trim() },
-      { key: 'race', transform: (val: string) => val.trim() },
-      { key: 'playerName', transform: (val: string) => val?.trim() || null },
-      { key: 'notes', transform: (val: string) => val?.trim() || null }
-    ];
-
-    stringFields.forEach(({ key, transform }) => {
-      if (data[key as keyof UpdateCharacterData] !== undefined) {
-        updateData[key] = transform(data[key as keyof UpdateCharacterData] as string);
-      }
-    });
-  }
-
-  /**
-   * Process fields that need direct assignment
-   */
-  private processDirectFields(data: UpdateCharacterData, updateData: any): void {
-    const directFields = [
-      'classes', 'level', 'ac', 'maxHp', 'currentHp', 'tempHp', 
-      'hitDice', 'speed', 'abilities', 'proficiencyBonus', 'features', 'equipment'
-    ];
-
+    // Process direct fields
+    const directFields = ['classes', 'level', 'ac', 'maxHp', 'currentHp', 'tempHp', 
+                         'hitDice', 'speed', 'abilities', 'proficiencyBonus', 'features', 'equipment'];
+    
     directFields.forEach(key => {
       if (data[key as keyof UpdateCharacterData] !== undefined) {
         updateData[key] = data[key as keyof UpdateCharacterData];
       }
     });
+
+    return updateData;
   }
 
   /**
@@ -345,10 +271,7 @@ export class CharacterService {
 
       return true;
     } catch (error) {
-      if (error instanceof Error) {
-        throw new Error(`Failed to delete character: ${error.message}`);
-      }
-      throw new Error('Failed to delete character');
+      this.handleError(error, 'delete character');
     }
   }
 }

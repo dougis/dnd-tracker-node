@@ -59,39 +59,6 @@ describe('CharacterService - miscellaneous tests', () => {
       });
     });
 
-    it('should process string fields with null handling', () => {
-      const inputData = {
-        playerName: '',
-        notes: '   '
-      };
-      const updateData: any = {};
-
-      (characterService as any).processStringFields(inputData, updateData);
-
-      expect(updateData).toEqual({
-        playerName: null,
-        notes: null
-      });
-    });
-
-    it('should process direct fields correctly', () => {
-      const inputData = {
-        level: 10,
-        ac: 18,
-        abilities: { str: 16, dex: 14, con: 15, int: 12, wis: 13, cha: 11 },
-        features: ['Feature 1', 'Feature 2']
-      };
-      const updateData: any = {};
-
-      (characterService as any).processDirectFields(inputData, updateData);
-
-      expect(updateData).toEqual({
-        level: 10,
-        ac: 18,
-        abilities: { str: 16, dex: 14, con: 15, int: 12, wis: 13, cha: 11 },
-        features: ['Feature 1', 'Feature 2']
-      });
-    });
   });
 
   describe('edge cases', () => {
