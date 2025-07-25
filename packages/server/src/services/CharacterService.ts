@@ -1,4 +1,4 @@
-import { PrismaClient, Character } from '@prisma/client';
+import { Character } from '@prisma/client';
 import { BaseService } from './BaseService';
 
 export interface CreateCharacterData {

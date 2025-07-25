@@ -1,4 +1,4 @@
-import { PrismaClient, Party } from '@prisma/client';
+import { Party } from '@prisma/client';
 import { BaseService } from './BaseService';
 
 export interface CreatePartyData {
