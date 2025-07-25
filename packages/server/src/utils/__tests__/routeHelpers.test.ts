@@ -155,14 +155,14 @@ describe('routeHelpers', () => {
       const mockReq = {};
       const error = new Error('Sync error');
       const handler = vi.fn().mockImplementation(() => {
-        throw error;
+        return Promise.reject(error);
       });
 
       const wrappedHandler = asyncHandler(handler);
       wrappedHandler(mockReq as any, mockRes as Response);
 
       // Wait for promise to resolve
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise(resolve => setTimeout(resolve, 10));
 
       expect(mockStatus).toHaveBeenCalledWith(500);
       expect(mockJson).toHaveBeenCalledWith({
