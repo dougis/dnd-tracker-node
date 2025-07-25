@@ -8,7 +8,7 @@ describe('EncounterService - Combat Operations', () => {
 
   beforeEach(() => {
     mockPrisma = createMockPrisma();
-    encounterService = new EncounterService(mockPrisma);
+    encounterService = new EncounterService(mockPrisma as any);
     vi.clearAllMocks();
   });
 
@@ -160,9 +160,10 @@ describe('EncounterService - Combat Operations', () => {
 
       const result = encounterService.calculateInitiativeOrder(participants);
 
-      expect(result[0].id).toBe('p2'); // initiative 15
-      expect(result[1].id).toBe('p3'); // initiative 12
-      expect(result[2].id).toBe('p1'); // initiative 10
+      expect(result).toHaveLength(3);
+      expect(result[0]!.id).toBe('p2'); // initiative 15
+      expect(result[1]!.id).toBe('p3'); // initiative 12
+      expect(result[2]!.id).toBe('p1'); // initiative 10
     });
 
     it('should use initiative roll as tiebreaker', async () => {
@@ -174,9 +175,10 @@ describe('EncounterService - Combat Operations', () => {
 
       const result = encounterService.calculateInitiativeOrder(participants);
 
-      expect(result[0].id).toBe('p2'); // initiative 15, roll 12
-      expect(result[1].id).toBe('p1'); // initiative 15, roll 8
-      expect(result[2].id).toBe('p3'); // initiative 10, roll 15
+      expect(result).toHaveLength(3);
+      expect(result[0]!.id).toBe('p2'); // initiative 15, roll 12
+      expect(result[1]!.id).toBe('p1'); // initiative 15, roll 8
+      expect(result[2]!.id).toBe('p3'); // initiative 10, roll 15
     });
 
     it('should filter out inactive participants', async () => {
@@ -189,8 +191,8 @@ describe('EncounterService - Combat Operations', () => {
       const result = encounterService.calculateInitiativeOrder(participants);
 
       expect(result).toHaveLength(2);
-      expect(result[0].id).toBe('p1'); // initiative 15
-      expect(result[1].id).toBe('p3'); // initiative 10
+      expect(result[0]!.id).toBe('p1'); // initiative 15
+      expect(result[1]!.id).toBe('p3'); // initiative 10
     });
 
     it('should handle participants with same initiative and no roll', async () => {
@@ -202,8 +204,8 @@ describe('EncounterService - Combat Operations', () => {
       const result = encounterService.calculateInitiativeOrder(participants);
 
       expect(result).toHaveLength(2);
-      expect(result[0].initiative).toBe(15);
-      expect(result[1].initiative).toBe(15);
+      expect(result[0]!.initiative).toBe(15);
+      expect(result[1]!.initiative).toBe(15);
     });
   });
 });

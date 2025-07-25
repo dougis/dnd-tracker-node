@@ -1,6 +1,15 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { UserService } from '../UserService';
-import { createMockPrisma } from './PartyService.helpers';
+import type { PrismaClient } from '@prisma/client';
+
+function createMockPrisma() {
+  return {
+    user: {
+      findUnique: vi.fn(),
+      update: vi.fn(),
+    },
+  };
+}
 
 describe('UserService', () => {
   let userService: UserService;
@@ -29,7 +38,7 @@ describe('UserService', () => {
 
   beforeEach(() => {
     mockPrisma = createMockPrisma();
-    userService = new UserService(mockPrisma);
+    userService = new UserService(mockPrisma as any);
     vi.clearAllMocks();
   });
 

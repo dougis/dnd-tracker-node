@@ -8,7 +8,7 @@ describe('EncounterService - Participant Operations', () => {
 
   beforeEach(() => {
     mockPrisma = createMockPrisma();
-    encounterService = new EncounterService(mockPrisma);
+    encounterService = new EncounterService(mockPrisma as any);
     vi.clearAllMocks();
   });
 

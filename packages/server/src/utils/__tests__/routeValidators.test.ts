@@ -15,7 +15,15 @@ describe('RouteValidators', () => {
   beforeEach(() => {
     mockReq = {
       params: {},
-      user: { id: 'user123' }
+      user: { 
+        id: 'user123',
+        email: 'test@example.com',
+        username: 'testuser',
+        failedLoginAttempts: 0,
+        lockedUntil: null,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
     };
     mockRes = {};
     vi.clearAllMocks();
@@ -83,7 +91,15 @@ describe('RouteValidators', () => {
     });
 
     it('should handle different user ID values', () => {
-      mockReq.user = { id: 'different-user-456' };
+      mockReq.user = { 
+        id: 'different-user-456',
+        email: 'different@example.com',
+        username: 'differentuser',
+        failedLoginAttempts: 0,
+        lockedUntil: null,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
 
       const result = RouteValidators.extractUserId(mockReq as Request);
 
