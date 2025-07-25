@@ -1,9 +1,15 @@
 import { Router, Request, Response } from 'express';
-import { validationResult } from 'express-validator';
 import { PrismaClient } from '@prisma/client';
 import { PartyService } from '../services/PartyService';
 import { requireAuth } from '../auth/middleware';
 import { validationSets } from '../utils/validationHelpers';
+import { 
+  handleValidationErrors, 
+  sendSuccessResponse, 
+  sendErrorResponse, 
+  sendNotFoundResponse, 
+  asyncHandler 
+} from '../utils/routeHelpers';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -19,102 +25,45 @@ router.use(requireAuth);
 router.post(
   '/',
   validationSets.createParty,
-  async (req: Request, res: Response): Promise<void> => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-        errors: errors.array(),
-      });
-      return;
-    }
+  asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    if (handleValidationErrors(req, res)) return;
 
-    try {
-      const { name, description } = req.body;
-      const userId = req.user!.id;
+    const { name, description } = req.body;
+    const userId = req.user!.id;
 
-      const party = await partyService.create(userId, { name, description });
-
-      res.status(201).json({
-        success: true,
-        data: party,
-        message: 'Party created successfully',
-      });
-    } catch (error) {
-      console.error('Error creating party:', error);
-      res.status(500).json({
-        success: false,
-        message: error instanceof Error ? error.message : 'Failed to create party',
-      });
-    }
-  }
+    const party = await partyService.create(userId, { name, description });
+    sendSuccessResponse(res, party, 'Party created successfully', 201);
+  })
 );
 
 /**
  * GET /api/parties
  * Get all parties for the authenticated user
  */
-router.get('/', async (req: Request, res: Response): Promise<void> => {
-  try {
-    const userId = req.user!.id;
-    const includeArchived = req.query.includeArchived === 'true';
+router.get('/', asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  const userId = req.user!.id;
+  const includeArchived = req.query.includeArchived === 'true';
 
-    const parties = await partyService.findByUserId(userId, includeArchived);
-
-    res.status(200).json({
-      success: true,
-      data: parties,
-      message: 'Parties retrieved successfully',
-    });
-  } catch (error) {
-    console.error('Error fetching parties:', error);
-    res.status(500).json({
-      success: false,
-      message: error instanceof Error ? error.message : 'Failed to fetch parties',
-    });
-  }
-});
+  const parties = await partyService.findByUserId(userId, includeArchived);
+  sendSuccessResponse(res, parties, 'Parties retrieved successfully');
+}));
 
 /**
  * GET /api/parties/:id
  * Get a specific party by ID
  */
-router.get('/:id', async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { id } = req.params;
-    if (!id) {
-      res.status(400).json({
-        success: false,
-        message: 'Party ID is required',
-      });
-      return;
-    }
-    
-    const userId = req.user!.id;
-    const party = await partyService.findById(id, userId);
-
-    if (!party) {
-      res.status(404).json({
-        success: false,
-        message: 'Party not found',
-      });
-      return;
-    }
-
-    res.status(200).json({
-      success: true,
-      data: party,
-      message: 'Party retrieved successfully',
-    });
-  } catch (error) {
-    console.error('Error fetching party:', error);
-    res.status(500).json({
-      success: false,
-      message: error instanceof Error ? error.message : 'Failed to fetch party',
-    });
+router.get('/:id', asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  const { id } = req.params;
+  const userId = req.user!.id;
+  
+  const party = await partyService.findById(id, userId);
+  if (!party) {
+    sendNotFoundResponse(res, 'Party not found');
+    return;
   }
-});
+
+  sendSuccessResponse(res, party, 'Party retrieved successfully');
+}));
 
 /**
  * PUT /api/parties/:id
@@ -123,92 +72,38 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
 router.put(
   '/:id',
   validationSets.updateParty,
-  async (req: Request, res: Response): Promise<void> => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-        errors: errors.array(),
-      });
+  asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    if (handleValidationErrors(req, res)) return;
+
+    const { id } = req.params;
+    const userId = req.user!.id;
+    const updateData = req.body;
+
+    const party = await partyService.update(id, userId, updateData);
+    if (!party) {
+      sendNotFoundResponse(res, 'Party not found');
       return;
     }
 
-    try {
-      const { id } = req.params;
-      if (!id) {
-        res.status(400).json({
-          success: false,
-          message: 'Party ID is required',
-        });
-        return;
-      }
-      
-      const userId = req.user!.id;
-      const updateData = req.body;
-
-      const party = await partyService.update(id, userId, updateData);
-
-      if (!party) {
-        res.status(404).json({
-          success: false,
-          message: 'Party not found',
-        });
-        return;
-      }
-
-      res.status(200).json({
-        success: true,
-        data: party,
-        message: 'Party updated successfully',
-      });
-    } catch (error) {
-      console.error('Error updating party:', error);
-      res.status(500).json({
-        success: false,
-        message: error instanceof Error ? error.message : 'Failed to update party',
-      });
-    }
-  }
+    sendSuccessResponse(res, party, 'Party updated successfully');
+  })
 );
 
 /**
  * DELETE /api/parties/:id
  * Delete (archive) a party
  */
-router.delete('/:id', async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { id } = req.params;
-    if (!id) {
-      res.status(400).json({
-        success: false,
-        message: 'Party ID is required',
-      });
-      return;
-    }
-    
-    const userId = req.user!.id;
-    const deleted = await partyService.delete(id, userId);
-
-    if (!deleted) {
-      res.status(404).json({
-        success: false,
-        message: 'Party not found',
-      });
-      return;
-    }
-
-    res.status(200).json({
-      success: true,
-      message: 'Party deleted successfully',
-    });
-  } catch (error) {
-    console.error('Error deleting party:', error);
-    res.status(500).json({
-      success: false,
-      message: error instanceof Error ? error.message : 'Failed to delete party',
-    });
+router.delete('/:id', asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  const { id } = req.params;
+  const userId = req.user!.id;
+  
+  const deleted = await partyService.delete(id, userId);
+  if (!deleted) {
+    sendNotFoundResponse(res, 'Party not found');
+    return;
   }
-});
+
+  sendSuccessResponse(res, null, 'Party deleted successfully');
+}));
 
 export { router as partyRoutes };

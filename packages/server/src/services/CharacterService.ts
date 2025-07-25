@@ -91,7 +91,7 @@ export class CharacterService extends BaseService {
    */
   private buildCharacterData(data: CreateCharacterData): any {
     const totalLevel = this.calculateTotalLevel(data);
-    const defaultAbilities = this.getDefaultAbilities();
+    const characterDefaults = this.getCharacterDefaults(data, totalLevel);
 
     return {
       partyId: data.partyId,
@@ -100,9 +100,22 @@ export class CharacterService extends BaseService {
       race: data.race.trim(),
       classes: data.classes,
       level: totalLevel,
+      notes: this.processStringField(data.notes),
+      ...characterDefaults,
+    };
+  }
+
+  /**
+   * Get default values for character attributes
+   */
+  private getCharacterDefaults(data: CreateCharacterData, totalLevel: number): any {
+    const defaultAbilities = this.getDefaultAbilities();
+    const maxHp = data.maxHp || 10;
+
+    return {
       ac: data.ac || 10,
-      maxHp: data.maxHp || 10,
-      currentHp: data.currentHp || data.maxHp || 10,
+      maxHp,
+      currentHp: data.currentHp || maxHp,
       tempHp: data.tempHp || 0,
       hitDice: data.hitDice || null,
       speed: data.speed || 30,
@@ -110,7 +123,6 @@ export class CharacterService extends BaseService {
       proficiencyBonus: data.proficiencyBonus || this.calculateProficiencyBonus(totalLevel),
       features: data.features || [],
       equipment: data.equipment || [],
-      notes: this.processStringField(data.notes),
     };
   }
 
@@ -223,18 +235,29 @@ export class CharacterService extends BaseService {
   private buildUpdateData(data: UpdateCharacterData): any {
     const updateData: any = {};
     
-    // Process string fields with trimming
+    this.processStringUpdateFields(data, updateData);
+    this.copyDirectUpdateFields(data, updateData);
+
+    return updateData;
+  }
+
+  /**
+   * Process string fields that need trimming or special handling
+   */
+  private processStringUpdateFields(data: UpdateCharacterData, updateData: any): void {
     if (data.name !== undefined) updateData.name = data.name.trim();
     if (data.race !== undefined) updateData.race = data.race.trim();
     if (data.playerName !== undefined) updateData.playerName = this.processStringField(data.playerName);
     if (data.notes !== undefined) updateData.notes = this.processStringField(data.notes);
+  }
 
-    // Copy direct fields using base service helper
+  /**
+   * Copy fields that can be directly assigned
+   */
+  private copyDirectUpdateFields(data: UpdateCharacterData, updateData: any): void {
     const directFields = ['classes', 'level', 'ac', 'maxHp', 'currentHp', 'tempHp', 
                          'hitDice', 'speed', 'abilities', 'proficiencyBonus', 'features', 'equipment'];
     this.copyDefinedFields(data, updateData, directFields);
-
-    return updateData;
   }
 
   /**
