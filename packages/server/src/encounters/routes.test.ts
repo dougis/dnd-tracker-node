@@ -8,8 +8,6 @@ import {
   expectEncounterCreationResponse,
   expectEncounterListResponse,
   expectEncounterResponse,
-  expectEncounterUpdateResponse,
-  expectDeletionResponse,
   expectErrorResponse,
   expectValidationErrorResponse,
   type MockEncounter,

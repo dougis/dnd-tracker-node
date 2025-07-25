@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { PrismaClient } from '@prisma/client';
 import { UserService } from './UserService';
-import { createMockUser, type MockUser } from '../test/user-test-utils';
+import { createMockUser } from '../test/user-test-utils';
 
 // Get mocked Prisma instance
 const mockPrisma = new PrismaClient() as any;

@@ -3,8 +3,7 @@ import { PrismaClient, ParticipantType } from '@prisma/client';
 import { EncounterService, ParticipantCreateData } from './EncounterService';
 import { 
   createMockEncounter,
-  createMockParticipant,
-  type MockEncounter
+  createMockParticipant
 } from '../test/encounter-test-utils';
 
 // Get mocked Prisma instance
