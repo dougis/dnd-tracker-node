@@ -48,7 +48,7 @@ function writeSSEData(res: Response, data: any): void {
   }
   
   // Write to response with explicit sanitized data
-  res.write(`data: ${jsonString}\n\n`);
+  res.write('data: ' + jsonString + '\n\n');
 }
 
 const router = Router();
