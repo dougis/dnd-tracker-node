@@ -114,7 +114,9 @@ export const expectEncounterResponse = (response: any, expectedEncounter: MockEn
   expect(response.status).toBe(200);
   expect(response.body).toEqual({
     success: true,
-    data: expectedEncounter,
+    data: {
+      encounter: expectedEncounter,
+    },
   });
 };
 
@@ -123,6 +125,91 @@ export const expectEncounterListResponse = (response: any, expectedEncounters: M
   expect(response.status).toBe(200);
   expect(response.body).toEqual({
     success: true,
-    data: expectedEncounters,
+    data: { encounters: expectedEncounters },
   });
+};
+
+// Helper for successful encounter creation response
+export const expectEncounterCreationResponse = (response: any, expectedEncounter: MockEncounter, message = 'Encounter created successfully') => {
+  expect(response.status).toBe(201);
+  expect(response.body).toEqual({
+    success: true,
+    data: { encounter: expectedEncounter },
+    message,
+  });
+};
+
+// Helper for successful encounter update response  
+export const expectEncounterUpdateResponse = (response: any, expectedEncounter: MockEncounter, message = 'Encounter updated successfully') => {
+  expect(response.status).toBe(200);
+  expect(response.body).toEqual({
+    success: true,
+    data: { encounter: expectedEncounter },
+    message,
+  });
+};
+
+// Helper for successful encounter operation response
+export const expectEncounterOperationResponse = (response: any, expectedEncounter: MockEncounter, message: string) => {
+  expect(response.status).toBe(200);
+  expect(response.body).toEqual({
+    success: true,
+    data: { encounter: expectedEncounter },
+    message,
+  });
+};
+
+// Helper for successful deletion response
+export const expectDeletionResponse = (response: any, message = 'Encounter deleted successfully') => {
+  expect(response.status).toBe(200);
+  expect(response.body).toEqual({
+    success: true,
+    message,
+  });
+};
+
+// Helper for validation error response
+export const expectValidationErrorResponse = (response: any, errors?: any[]) => {
+  expect(response.status).toBe(400);
+  const expectedBody: any = {
+    success: false,
+    message: 'Validation failed',
+  };
+  if (errors) {
+    expectedBody.errors = errors;
+  }
+  expect(response.body).toEqual(expectedBody);
+};
+
+// Common participant data for tests
+export const createMockParticipantData = (overrides: Partial<any> = {}) => ({
+  type: 'CHARACTER',
+  name: 'Test Character',
+  initiative: 15,
+  currentHp: 25,
+  maxHp: 25,
+  ac: 16,
+  characterId: 'char_1',
+  ...overrides,
+});
+
+// Helper for mocking Prisma service responses
+export const mockPrismaCreate = (mockPrisma: any, result: any) => {
+  mockPrisma.encounter.create.mockResolvedValue(result);
+};
+
+export const mockPrismaFindMany = (mockPrisma: any, result: any[]) => {
+  mockPrisma.encounter.findMany.mockResolvedValue(result);
+};
+
+export const mockPrismaFindUnique = (mockPrisma: any, result: any) => {
+  mockPrisma.encounter.findUnique.mockResolvedValue(result);
+};
+
+export const mockPrismaUpdate = (mockPrisma: any, result: any) => {
+  mockPrisma.encounter.update.mockResolvedValue(result);
+};
+
+export const mockPrismaDelete = (mockPrisma: any) => {
+  mockPrisma.encounter.delete.mockResolvedValue({});
 };

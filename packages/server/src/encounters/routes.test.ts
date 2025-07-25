@@ -2,6 +2,19 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import request from 'supertest';
 import express from 'express';
 import cookieParser from 'cookie-parser';
+import { 
+  createMockEncounter,
+  createMockParticipant,
+  expectEncounterCreationResponse,
+  expectEncounterListResponse,
+  expectEncounterResponse,
+  expectEncounterUpdateResponse,
+  expectDeletionResponse,
+  expectErrorResponse,
+  expectValidationErrorResponse,
+  type MockEncounter,
+  type MockParticipant
+} from '../test/encounter-test-utils';
 
 // Create mock service instance using vi.hoisted to avoid hoisting issues
 const { encounterServiceMock } = vi.hoisted(() => ({
@@ -55,41 +68,8 @@ import { encounterRoutes } from './routes';
 
 describe('Encounter Routes', () => {
   let app: express.Application;
-
-  const mockEncounter = {
-    id: 'encounter_123',
-    userId: 'user_123', // Add missing userId property
-    name: 'Test Encounter',
-    description: 'Test description',
-    status: 'PLANNING',
-    round: 1,
-    turn: 0,
-    isActive: false,
-    participants: [],
-    lairActions: null,
-    createdAt: new Date('2024-01-01T00:00:00.000Z'),
-    updatedAt: new Date('2024-01-01T00:00:00.000Z')
-  };
-
-  const mockParticipant = {
-    id: 'participant_123',
-    encounterId: 'encounter_123',
-    type: 'CHARACTER',
-    characterId: 'character_123',
-    creatureId: null,
-    name: 'Test Character',
-    initiative: 15,
-    initiativeRoll: 12,
-    currentHp: 25,
-    maxHp: 25,
-    tempHp: 0,
-    ac: 16,
-    conditions: [],
-    isActive: true,
-    notes: null,
-    character: null,
-    creature: null
-  };
+  let mockEncounter: MockEncounter;
+  let mockParticipant: MockParticipant;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -97,6 +77,21 @@ describe('Encounter Routes', () => {
     app.use(express.json());
     app.use(cookieParser());
     app.use('/api/encounters', encounterRoutes);
+    
+    // Initialize mock data for each test
+    mockEncounter = createMockEncounter({
+      id: 'encounter_123',
+      userId: 'user_123',
+      name: 'Test Encounter',
+      description: 'Test description'
+    });
+    
+    mockParticipant = createMockParticipant({
+      id: 'participant_123',
+      encounterId: 'encounter_123',
+      characterId: 'character_123',
+      name: 'Test Character'
+    });
   });
 
   afterEach(() => {
@@ -116,27 +111,7 @@ describe('Encounter Routes', () => {
         .post('/api/encounters')
         .send(validEncounterData);
 
-      expect(response.status).toBe(201);
-      expect(response.body).toEqual({
-        success: true,
-        data: {
-          encounter: {
-            id: mockEncounter.id,
-            name: mockEncounter.name,
-            description: mockEncounter.description,
-            status: mockEncounter.status,
-            round: mockEncounter.round,
-            turn: mockEncounter.turn,
-            isActive: mockEncounter.isActive,
-            participants: mockEncounter.participants,
-            lairActions: mockEncounter.lairActions,
-            createdAt: mockEncounter.createdAt.toISOString(),
-            updatedAt: mockEncounter.updatedAt.toISOString()
-          }
-        },
-        message: 'Encounter created successfully'
-      });
-
+      expectEncounterCreationResponse(response, mockEncounter);
       expect(encounterServiceMock.createEncounter).toHaveBeenCalledWith(
         'user_123',
         'Test Encounter',
@@ -164,9 +139,7 @@ describe('Encounter Routes', () => {
         .post('/api/encounters')
         .send({ description: 'Test description' });
 
-      expect(response.status).toBe(400);
-      expect(response.body.success).toBe(false);
-      expect(response.body.message).toBe('Validation failed');
+      expectValidationErrorResponse(response);
     });
 
     it('should return 400 for empty name', async () => {
@@ -174,8 +147,7 @@ describe('Encounter Routes', () => {
         .post('/api/encounters')
         .send({ name: '', description: 'Test description' });
 
-      expect(response.status).toBe(400);
-      expect(response.body.success).toBe(false);
+      expectValidationErrorResponse(response);
     });
 
     it('should return 400 for name too long', async () => {
@@ -183,8 +155,7 @@ describe('Encounter Routes', () => {
         .post('/api/encounters')
         .send({ name: 'a'.repeat(101), description: 'Test description' });
 
-      expect(response.status).toBe(400);
-      expect(response.body.success).toBe(false);
+      expectValidationErrorResponse(response);
     });
 
     it('should return 400 for description too long', async () => {
@@ -192,8 +163,7 @@ describe('Encounter Routes', () => {
         .post('/api/encounters')
         .send({ name: 'Test', description: 'a'.repeat(1001) });
 
-      expect(response.status).toBe(400);
-      expect(response.body.success).toBe(false);
+      expectValidationErrorResponse(response);
     });
 
     it('should handle service errors', async () => {
@@ -203,9 +173,7 @@ describe('Encounter Routes', () => {
         .post('/api/encounters')
         .send(validEncounterData);
 
-      expect(response.status).toBe(500);
-      expect(response.body.success).toBe(false);
-      expect(response.body.message).toBe('Internal server error creating encounter');
+      expectErrorResponse(response, 500, 'Internal server error creating encounter');
     });
 
     it('should handle validation errors from service', async () => {
@@ -215,9 +183,7 @@ describe('Encounter Routes', () => {
         .post('/api/encounters')
         .send(validEncounterData);
 
-      expect(response.status).toBe(400);
-      expect(response.body.success).toBe(false);
-      expect(response.body.message).toBe('Encounter name is required');
+      expectErrorResponse(response, 400, 'Encounter name is required');
     });
   });
 
@@ -229,26 +195,7 @@ describe('Encounter Routes', () => {
       const response = await request(app)
         .get('/api/encounters');
 
-      expect(response.status).toBe(200);
-      expect(response.body).toEqual({
-        success: true,
-        data: {
-          encounters: [{
-            id: mockEncounter.id,
-            name: mockEncounter.name,
-            description: mockEncounter.description,
-            status: mockEncounter.status,
-            round: mockEncounter.round,
-            turn: mockEncounter.turn,
-            isActive: mockEncounter.isActive,
-            participants: mockEncounter.participants,
-            lairActions: mockEncounter.lairActions,
-            createdAt: mockEncounter.createdAt.toISOString(),
-            updatedAt: mockEncounter.updatedAt.toISOString()
-          }]
-        }
-      });
-
+      expectEncounterListResponse(response, mockEncounters);
       expect(encounterServiceMock.getUserEncounters).toHaveBeenCalledWith('user_123');
     });
 
@@ -258,9 +205,7 @@ describe('Encounter Routes', () => {
       const response = await request(app)
         .get('/api/encounters');
 
-      expect(response.status).toBe(500);
-      expect(response.body.success).toBe(false);
-      expect(response.body.message).toBe('Internal server error fetching encounters');
+      expectErrorResponse(response, 500, 'Internal server error fetching encounters');
     });
   });
 
@@ -271,26 +216,7 @@ describe('Encounter Routes', () => {
       const response = await request(app)
         .get('/api/encounters/507f1f77bcf86cd799439011');
 
-      expect(response.status).toBe(200);
-      expect(response.body).toEqual({
-        success: true,
-        data: {
-          encounter: {
-            id: mockEncounter.id,
-            name: mockEncounter.name,
-            description: mockEncounter.description,
-            status: mockEncounter.status,
-            round: mockEncounter.round,
-            turn: mockEncounter.turn,
-            isActive: mockEncounter.isActive,
-            participants: mockEncounter.participants,
-            lairActions: mockEncounter.lairActions,
-            createdAt: mockEncounter.createdAt.toISOString(),
-            updatedAt: mockEncounter.updatedAt.toISOString()
-          }
-        }
-      });
-
+      expectEncounterResponse(response, mockEncounter);
       expect(encounterServiceMock.getEncounterById).toHaveBeenCalledWith('507f1f77bcf86cd799439011');
     });
 
@@ -298,9 +224,7 @@ describe('Encounter Routes', () => {
       const response = await request(app)
         .get('/api/encounters/invalid_id');
 
-      expect(response.status).toBe(400);
-      expect(response.body.success).toBe(false);
-      expect(response.body.message).toBe('Validation failed');
+      expectValidationErrorResponse(response);
     });
 
     it('should return 404 when encounter not found', async () => {
@@ -309,9 +233,7 @@ describe('Encounter Routes', () => {
       const response = await request(app)
         .get('/api/encounters/507f1f77bcf86cd799439011');
 
-      expect(response.status).toBe(404);
-      expect(response.body.success).toBe(false);
-      expect(response.body.message).toBe('Encounter not found');
+      expectErrorResponse(response, 404, 'Encounter not found');
     });
 
     it('should return 403 for unauthorized access', async () => {
@@ -321,9 +243,7 @@ describe('Encounter Routes', () => {
       const response = await request(app)
         .get('/api/encounters/507f1f77bcf86cd799439011');
 
-      expect(response.status).toBe(403);
-      expect(response.body.success).toBe(false);
-      expect(response.body.message).toBe('Not authorized to access this encounter');
+      expectErrorResponse(response, 403, 'Not authorized to access this encounter');
     });
   });
 
