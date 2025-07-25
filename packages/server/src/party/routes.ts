@@ -1,8 +1,9 @@
 import { Router, Request, Response } from 'express';
-import { body, validationResult } from 'express-validator';
+import { validationResult } from 'express-validator';
 import { PrismaClient } from '@prisma/client';
 import { PartyService } from '../services/PartyService';
 import { requireAuth } from '../auth/middleware';
+import { validationSets } from '../utils/validationHelpers';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -17,17 +18,7 @@ router.use(requireAuth);
  */
 router.post(
   '/',
-  [
-    body('name')
-      .notEmpty()
-      .withMessage('Party name is required')
-      .isLength({ min: 1, max: 100 })
-      .withMessage('Party name must be between 1 and 100 characters'),
-    body('description')
-      .optional()
-      .isLength({ max: 500 })
-      .withMessage('Description must not exceed 500 characters'),
-  ],
+  validationSets.createParty,
   async (req: Request, res: Response): Promise<void> => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -131,22 +122,7 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
  */
 router.put(
   '/:id',
-  [
-    body('name')
-      .optional()
-      .notEmpty()
-      .withMessage('Party name cannot be empty')
-      .isLength({ min: 1, max: 100 })
-      .withMessage('Party name must be between 1 and 100 characters'),
-    body('description')
-      .optional()
-      .isLength({ max: 500 })
-      .withMessage('Description must not exceed 500 characters'),
-    body('isArchived')
-      .optional()
-      .isBoolean()
-      .withMessage('isArchived must be a boolean'),
-  ],
+  validationSets.updateParty,
   async (req: Request, res: Response): Promise<void> => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
