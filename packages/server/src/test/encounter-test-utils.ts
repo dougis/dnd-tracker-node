@@ -817,8 +817,10 @@ export const createValidationErrorTest = (scenarioType: string, serviceMethod: s
     const scenario = createValidationErrorScenario(scenarioType);
 
     // Act & Assert
-    await expect(service[serviceMethod](...scenario.params))
-      .rejects.toThrow(scenario.expectedError);
+    if (scenario) {
+      await expect(service[serviceMethod](...scenario.params))
+        .rejects.toThrow(scenario.expectedError);
+    }
   };
 };
 
@@ -904,7 +906,7 @@ export const generateServiceErrorTests = (errorScenarios: any) => {
 };
 
 // Helper for creating encounter creation test
-export const createEncounterCreationTestHelper = (scenarioParams: any) => {
+export const createEncounterCreationTestHelper = (scenarioParams: [string, string, string?]) => {
   return async (service: any, mockPrisma: any) => {
     // Arrange
     const scenario = createEncounterCreationScenario(...scenarioParams);
@@ -1289,7 +1291,7 @@ export const createCrudTestSuite = (basePath: string, mockService: any, mockData
 
 // Validation error scenarios
 export const createValidationErrorScenario = (type: string) => {
-  const scenarios = {
+  const scenarios: Record<string, { params: string[], expectedError: string }> = {
     missingUserId: { params: ['', 'Test'], expectedError: 'User ID is required' },
     emptyName: { params: ['user_123', ''], expectedError: 'Encounter name is required' },
     whitespaceName: { params: ['user_123', '   '], expectedError: 'Encounter name is required' },

@@ -62,7 +62,7 @@ export const mockArgon2Verify = true;
 
 // Helper for setting up common Prisma user findUnique calls
 export const setupUserFindUnique = (mockPrisma: any, result: MockUser | null, whereClause?: any, selectClause?: any) => {
-  const call = {
+  const call: any = {
     where: whereClause || expect.any(Object),
   };
   
@@ -75,7 +75,7 @@ export const setupUserFindUnique = (mockPrisma: any, result: MockUser | null, wh
 
 // Helper for expected findUnique calls with ID
 export const expectUserFindUniqueById = (mockPrisma: any, userId: string, selectClause?: any) => {
-  const expectedCall = {
+  const expectedCall: any = {
     where: { id: userId }
   };
   
