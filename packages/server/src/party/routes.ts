@@ -6,10 +6,10 @@ import { validationSets } from '../utils/validationHelpers';
 import { 
   handleValidationErrors, 
   sendSuccessResponse, 
-  sendNotFoundResponse,
-  sendErrorResponse, 
+  sendNotFoundResponse, 
   asyncHandler 
 } from '../utils/routeHelpers';
+import { RouteValidators } from '../utils/routeValidators';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -53,13 +53,10 @@ router.get('/', asyncHandler(async (req: Request, res: Response): Promise<void> 
  * Get a specific party by ID
  */
 router.get('/:id', asyncHandler(async (req: Request, res: Response): Promise<void> => {
-  const { id } = req.params;
-  if (!id) {
-    sendErrorResponse(res, new Error('Party ID is required'), 'Party ID is required', 400);
-    return;
-  }
-  const userId = (req.user as any).id as string;
-  
+  const validation = RouteValidators.validateParamAndUser(req, res, 'id', 'Party');
+  if (!validation) return;
+
+  const { id, userId } = validation;
   const party = await partyService.findById(id, userId);
   if (!party) {
     sendNotFoundResponse(res, 'Party not found');
@@ -78,13 +75,11 @@ router.put(
   validationSets.updateParty,
   asyncHandler(async (req: Request, res: Response): Promise<void> => {
     if (handleValidationErrors(req, res)) return;
+    
+    const validation = RouteValidators.validateParamAndUser(req, res, 'id', 'Party');
+    if (!validation) return;
 
-    const { id } = req.params;
-    if (!id) {
-      sendErrorResponse(res, new Error('Party ID is required'), 'Party ID is required', 400);
-      return;
-    }
-    const userId = (req.user as any).id as string;
+    const { id, userId } = validation;
     const updateData = req.body;
 
     const party = await partyService.update(id, userId, updateData);
@@ -102,13 +97,10 @@ router.put(
  * Delete (archive) a party
  */
 router.delete('/:id', asyncHandler(async (req: Request, res: Response): Promise<void> => {
-  const { id } = req.params;
-  if (!id) {
-    sendErrorResponse(res, new Error('Party ID is required'), 'Party ID is required', 400);
-    return;
-  }
-  const userId = (req.user as any).id as string;
-  
+  const validation = RouteValidators.validateParamAndUser(req, res, 'id', 'Party');
+  if (!validation) return;
+
+  const { id, userId } = validation;
   const deleted = await partyService.delete(id, userId);
   if (!deleted) {
     sendNotFoundResponse(res, 'Party not found');

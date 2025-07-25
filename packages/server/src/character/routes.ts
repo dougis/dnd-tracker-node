@@ -6,10 +6,10 @@ import {
   handleValidationErrors, 
   sendSuccessResponse, 
   sendNotFoundResponse,
-  sendErrorResponse,
   asyncHandler
 } from '../utils/routeHelpers';
 import { validationSets } from '../utils/validationHelpers';
+import { RouteValidators } from '../utils/routeValidators';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -41,13 +41,10 @@ router.post(
  * Get all characters in a party
  */
 router.get('/party/:partyId', asyncHandler(async (req: Request, res: Response): Promise<void> => {
-  const { partyId } = req.params;
-  if (!partyId) {
-    sendErrorResponse(res, new Error('Party ID is required'), 'Party ID is required', 400);
-    return;
-  }
-  const userId = (req.user as any).id as string;
+  const validation = RouteValidators.validateParamAndUser(req, res, 'partyId', 'Party');
+  if (!validation) return;
 
+  const { id: partyId, userId } = validation;
   const characters = await characterService.findByPartyId(partyId, userId);
   sendSuccessResponse(res, characters, 'Characters retrieved successfully');
 }));
@@ -57,13 +54,10 @@ router.get('/party/:partyId', asyncHandler(async (req: Request, res: Response): 
  * Get a specific character by ID
  */
 router.get('/:id', asyncHandler(async (req: Request, res: Response): Promise<void> => {
-  const { id } = req.params;
-  if (!id) {
-    sendErrorResponse(res, new Error('Character ID is required'), 'Character ID is required', 400);
-    return;
-  }
-  const userId = (req.user as any).id as string;
+  const validation = RouteValidators.validateParamAndUser(req, res, 'id', 'Character');
+  if (!validation) return;
 
+  const { id, userId } = validation;
   const character = await characterService.findById(id, userId);
   if (!character) {
     sendNotFoundResponse(res, 'Character not found');
@@ -82,13 +76,11 @@ router.put(
   validationSets.updateCharacter,
   asyncHandler(async (req: Request, res: Response): Promise<void> => {
     if (handleValidationErrors(req, res)) return;
+    
+    const validation = RouteValidators.validateParamAndUser(req, res, 'id', 'Character');
+    if (!validation) return;
 
-    const { id } = req.params;
-    if (!id) {
-      sendErrorResponse(res, new Error('Character ID is required'), 'Character ID is required', 400);
-      return;
-    }
-    const userId = (req.user as any).id as string;
+    const { id, userId } = validation;
     const updateData = req.body;
 
     const character = await characterService.update(id, userId, updateData);
@@ -106,13 +98,10 @@ router.put(
  * Delete a character
  */
 router.delete('/:id', asyncHandler(async (req: Request, res: Response): Promise<void> => {
-  const { id } = req.params;
-  if (!id) {
-    sendErrorResponse(res, new Error('Character ID is required'), 'Character ID is required', 400);
-    return;
-  }
-  const userId = (req.user as any).id as string;
+  const validation = RouteValidators.validateParamAndUser(req, res, 'id', 'Character');
+  if (!validation) return;
 
+  const { id, userId } = validation;
   const deleted = await characterService.delete(id, userId);
   if (!deleted) {
     sendNotFoundResponse(res, 'Character not found');
