@@ -54,6 +54,8 @@ describe('Authentication Middleware', () => {
         id: 'user_123',
         email: 'test@example.com',
         username: 'testuser',
+        failedLoginAttempts: 0,
+        lockedUntil: null,
         createdAt: new Date(),
         updatedAt: new Date()
       };
@@ -77,7 +79,10 @@ describe('Authentication Middleware', () => {
 
       // Assert
       expect(authServiceMock.validateSession).toHaveBeenCalledWith('valid_session_123');
-      expect(mockReq.user).toEqual(mockUser);
+      expect(mockReq.user).toEqual({
+        ...mockUser,
+        tier: 'free'
+      });
       expect(mockNext).toHaveBeenCalled();
       expect(mockRes.status).not.toHaveBeenCalled();
     });
@@ -128,7 +133,7 @@ describe('Authentication Middleware', () => {
       expect(mockRes.status).toHaveBeenCalledWith(500);
       expect(mockRes.json).toHaveBeenCalledWith({
         success: false,
-        message: 'Internal server error'
+        message: 'Authentication error'
       });
       expect(mockNext).not.toHaveBeenCalled();
     });
@@ -141,6 +146,8 @@ describe('Authentication Middleware', () => {
         id: 'user_123',
         email: 'test@example.com',
         username: 'testuser',
+        failedLoginAttempts: 0,
+        lockedUntil: null,
         createdAt: new Date(),
         updatedAt: new Date()
       };
@@ -164,7 +171,10 @@ describe('Authentication Middleware', () => {
 
       // Assert
       expect(authServiceMock.validateSession).toHaveBeenCalledWith('valid_session_123');
-      expect(mockReq.user).toEqual(mockUser);
+      expect(mockReq.user).toEqual({
+        ...mockUser,
+        tier: 'free'
+      });
       expect(mockNext).toHaveBeenCalled();
       expect(mockRes.status).not.toHaveBeenCalled();
     });
