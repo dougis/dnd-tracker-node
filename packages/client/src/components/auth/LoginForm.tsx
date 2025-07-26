@@ -75,7 +75,7 @@ export function LoginForm({ onSubmit, error, isLoading = false, signUpLink }: Lo
 
       {signUpLink && (
         <div className="text-center text-sm text-muted-foreground">
-          Don't have an account? {signUpLink}
+          Don&apos;t have an account? {signUpLink}
         </div>
       )}
     </form>
