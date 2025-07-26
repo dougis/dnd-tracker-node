@@ -11,6 +11,7 @@ import {
   setupSessionErrorMock,
   executeMiddleware,
   setupCookieAuth,
+  expectValidationCall,
   expectStandardErrorResponse,
   createResourceOwnershipScenario,
   createResourceOwnershipBodyScenario,
