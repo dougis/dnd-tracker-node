@@ -1404,6 +1404,7 @@ graph TD
 ### Critical Dependencies {#critical-dependencies}
 
 **🚨 Must Complete Before Any Other Work:**
+
 1. [Monorepo Setup](#day-1-2-project-initialization) - Blocks all development
 2. [Database Schema](#database--orm-setup) - Blocks all features
 3. [Authentication System](#day-3-4-authentication-foundation) - Blocks user features
@@ -1412,6 +1413,7 @@ graph TD
 ### Execution Roadmap {#execution-roadmap}
 
 **⚡ Phase-by-Phase Execution:**
+
 1. **Week 1**: Complete [Foundation](#phase-1-foundation--core-systems) - enables parallel development
 2. **Week 2**: Establish [Real-time Infrastructure](#day-10-11-real-time-infrastructure) - unblocks combat features  
 3. **Week 3-4**: Build [Core Features](#phase-2-core-features-implementation) in parallel streams
@@ -1422,6 +1424,7 @@ graph TD
 ### Cross-Phase Dependencies {#cross-phase-dependencies}
 
 **🔄 Critical Dependency Chains:**
+
 - [Real-time Infrastructure](#day-10-11-real-time-infrastructure) → [Combat System](#week-5-combat-system-core) → [Collaboration Features](#day-45-46-collaboration-features)
 - [User System](#day-15-16-character-system) → [Subscription System](#day-36-37-stripe-integration) → [Feature Gating](#day-38-39-feature-gating--usage-limits)
 - [Security Foundation](#day-3-4-authentication-foundation) → [Payment Integration](#day-36-37-stripe-integration) → [Production Launch](#day-57-58-infrastructure-setup)
