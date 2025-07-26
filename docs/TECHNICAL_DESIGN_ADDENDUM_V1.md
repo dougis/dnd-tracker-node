@@ -18,7 +18,7 @@ A scheduled job will run within the Express server process to periodically check
 
 ### 1.3. Technology
 
--   **Scheduler:** `node-cron` library. A lightweight and reliable task scheduler for Node.js with no external dependencies.
+- **Scheduler:** `node-cron` library. A lightweight and reliable task scheduler for Node.js with no external dependencies.
 
 ### 1.4. Implementation Details
 
@@ -100,13 +100,13 @@ if (process.env.NODE_ENV === 'production') {
 
 ### 1.5. Schema and API Impact
 
--   **Schema:** No changes required. The existing `Usage` and `Subscription` models are sufficient.
--   **API:** No changes required. This is a purely internal, server-side process.
+- **Schema:** No changes required. The existing `Usage` and `Subscription` models are sufficient.
+- **API:** No changes required. This is a purely internal, server-side process.
 
 ### 1.6. Testing Strategy
 
--   **Unit Tests:** Create tests for the `UsageResetJob.run` method to verify its logic using a mocked Prisma client. Test edge cases like no users needing a reset and error handling.
--   **Integration Tests:** In a test environment, manually set a subscription's `currentPeriodEnd` to a past date, trigger the job, and assert that the corresponding `Usage` record is reset in the database.
+- **Unit Tests:** Create tests for the `UsageResetJob.run` method to verify its logic using a mocked Prisma client. Test edge cases like no users needing a reset and error handling.
+- **Integration Tests:** In a test environment, manually set a subscription's `currentPeriodEnd` to a past date, trigger the job, and assert that the corresponding `Usage` record is reset in the database.
 
 ---
 
@@ -166,8 +166,8 @@ async function updateParticipantHP(encounterId: string, participantId: string, n
 
 #### 2.4.2. API and SSE Payloads
 
--   The `GET /encounters/:id` endpoint response must include the `version` number of the encounter.
--   All SSE event data payloads related to an encounter must include the new `version` number after the update.
+- The `GET /encounters/:id` endpoint response must include the `version` number of the encounter.
+- All SSE event data payloads related to an encounter must include the new `version` number after the update.
 
 ```json
 // Example SSE event payload
@@ -247,10 +247,10 @@ export function useSSE(url: string, options: SSEOptions = {}) {
 
 ### 2.6. Testing Strategy
 
--   **E2E Tests (Playwright):**
-    -   Create a test that establishes an SSE connection.
-    -   Simulate a network disconnect by blocking the SSE endpoint URL.
-    -   Perform an action via the API that would normally trigger an SSE event (e.g., deal damage).
-    -   Unblock the SSE endpoint to allow reconnection.
-    -   Assert that the client's UI correctly reflects the state change that occurred during the disconnect, verifying that the reconciliation logic worked.
--   **Unit Tests:** Test the client-side event buffering and version comparison logic in isolation.
+- **E2E Tests (Playwright):**
+  - Create a test that establishes an SSE connection.
+  - Simulate a network disconnect by blocking the SSE endpoint URL.
+  - Perform an action via the API that would normally trigger an SSE event (e.g., deal damage).
+  - Unblock the SSE endpoint to allow reconnection.
+  - Assert that the client's UI correctly reflects the state change that occurred during the disconnect, verifying that the reconciliation logic worked.
+- **Unit Tests:** Test the client-side event buffering and version comparison logic in isolation.

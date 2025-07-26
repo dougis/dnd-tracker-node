@@ -37,6 +37,7 @@ This document outlines the technical architecture for the D&D Encounter Tracker,
 ### Why Not Next.js?
 
 This architecture is specifically designed to avoid common Next.js authentication complexities by providing:
+
 - Direct control over session management
 - Flexible authentication strategies without framework constraints
 - Easier debugging of authentication flows
@@ -2480,9 +2481,9 @@ test.describe('Combat Tracker E2E', () => {
 
 To ensure the application is valuable upon first launch, a database seeding mechanism will be implemented to pre-populate essential data, such as system-wide creature templates.
 
--   **Script Location:** `packages/server/prisma/seed.ts`
--   **Execution:** The script will be executed via a dedicated npm script (e.g., `npm run db:seed`) and integrated into the CI/CD pipeline to run after migrations during deployment.
--   **Logic:** The script will upsert a predefined list of creatures into the `Creature` table where the `userId` is `null`, marking them as system templates.
+- **Script Location:** `packages/server/prisma/seed.ts`
+- **Execution:** The script will be executed via a dedicated npm script (e.g., `npm run db:seed`) and integrated into the CI/CD pipeline to run after migrations during deployment.
+- **Logic:** The script will upsert a predefined list of creatures into the `Creature` table where the `userId` is `null`, marking them as system templates.
 
 ```typescript
 // packages/server/prisma/seed.ts

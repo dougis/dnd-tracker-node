@@ -38,12 +38,14 @@
 This execution plan maps the Implementation Plan to specific GitHub issues and provides a roadmap for coordinating development work across multiple engineers or AI agents. The plan identifies critical dependencies that must be completed sequentially and maximizes opportunities for parallel development.
 
 ### Key Metrics
+
 - **Total Issues:** 81 (35 existing + 15 new + future planning)
 - **Sequential Dependencies:** 5 critical chains identified
 - **Parallel Work Streams:** Up to 4 simultaneous work tracks possible
 - **Estimated Duration:** 10 weeks to production launch
 
 ### Critical Success Factors
+
 1. **Sequential Dependencies** must be respected to avoid merge conflicts → [Dependency Chains](#critical-sequential-dependencies)
 2. **Infrastructure First** - Foundation issues block all feature development → [Phase 1](#phase-1-foundation--core-systems)
 3. **Database Schema** must be complete before API development → [Chain 3](#️-dependency-chain-3-database-foundation)
@@ -52,6 +54,7 @@ This execution plan maps the Implementation Plan to specific GitHub issues and p
 ## Critical Sequential Dependencies
 
 ### ⚠️ DEPENDENCY CHAIN 1: Linting and Code Quality
+
 **Issues must be completed in exact order:**
 
 - [ ] **[#65](https://github.com/dougis/dnd-tracker-node/issues/65)** - Setup Linting tools and automations → [Week 1](#week-1-infrastructure-foundation)
@@ -62,6 +65,7 @@ This execution plan maps the Implementation Plan to specific GitHub issues and p
 **Mitigation:** [Linting Configuration Risk](#linting-configuration-risk-65-42-41)
 
 ### ⚠️ DEPENDENCY CHAIN 2: Authentication Foundation
+
 **Rate limiting must complete before subscription systems:**
 
 - [ ] **[#17](https://github.com/dougis/dnd-tracker-node/issues/17)** - Implement production-ready rate limiting → [Week 1](#parallel-track-c-security-foundation)
@@ -72,6 +76,7 @@ This execution plan maps the Implementation Plan to specific GitHub issues and p
 **Mitigation:** [Authentication System Risk](#authentication-system-risk-17-21)
 
 ### ⚠️ DEPENDENCY CHAIN 3: Database Foundation
+
 **Schema must be established before all API work:**
 
 - [ ] **[#66](https://github.com/dougis/dnd-tracker-node/issues/66)** - Design and implement comprehensive Prisma database schema → [Week 1](#critical-path-sequential)
@@ -82,6 +87,7 @@ This execution plan maps the Implementation Plan to specific GitHub issues and p
 **Mitigation:** [Database Schema Risk](#database-schema-risk-66)
 
 ### ⚠️ DEPENDENCY CHAIN 4: Frontend Foundation
+
 **Base UI components must exist before feature UIs:**
 
 - [ ] **[#21](https://github.com/dougis/dnd-tracker-node/issues/21)** - Build frontend foundation and authentication UI → [Week 1](#parallel-track-c-security-foundation)
@@ -92,6 +98,7 @@ This execution plan maps the Implementation Plan to specific GitHub issues and p
 **Mitigation:** [Authentication System Risk](#authentication-system-risk-17-21)
 
 ### ⚠️ DEPENDENCY CHAIN 5: Payment Integration
+
 **Backend must be working before frontend:**
 
 - [ ] **[#14](https://github.com/dougis/dnd-tracker-node/issues/14)** - Implement comprehensive Stripe integration → [Week 3](#payment-integration-sequential)
@@ -101,46 +108,57 @@ This execution plan maps the Implementation Plan to specific GitHub issues and p
 **Mitigation:** [Payment Integration Risk](#payment-integration-risk)
 
 ## Phase 1: Foundation & Core Systems
+
 **Duration:** Week 1-2 | **Milestone:** 1.1 & 1.2
 
 ### Week 1: Infrastructure Foundation
+
 **Focus:** Secure foundation and development environment
 
 #### Critical Path (Sequential)
+
 - [ ] **#65** - Setup Linting tools and automations ⚠️ (BLOCKS #42)
 - [ ] **#42** - Re-enable ESLint checks and configure properly for monorepo ⚠️ (BLOCKS #41)
 - [ ] **#66** - Design and implement comprehensive Prisma database schema ⚠️ (BLOCKS APIs)
 
 #### Parallel Track A: DevOps & Infrastructure
+
 - [x] **#67** - Setup monorepo with npm workspaces and package structure ✅ **COMPLETED**
 - [ ] **#68** - Setup Docker Compose development environment
 - [ ] **#60** - Update codacy.yaml to the latest version of all tools
 
 #### Parallel Track B: Monitoring & Performance
+
 - [ ] **#69** - Implement structured logging infrastructure with Pino
 - [ ] **#70** - Establish API versioning and response format standards
 - [ ] **#71** - Implement performance monitoring and metrics middleware
 
 #### Parallel Track C: Security Foundation
+
 - [ ] **#17** - Implement production-ready rate limiting ⚠️ (BLOCKS subscriptions)
 - [ ] **#21** - Build frontend foundation and authentication UI ⚠️ (BLOCKS feature UIs)
 
 #### Code Quality (After Linting Chain)
+
 - [ ] **#41** - Set up Code coverage reporting to Codacy (AFTER #42)
 - [ ] **#55** - Address Codacy quality issues and test duplication
 
 ### Week 2: Core MVP Preparation
+
 **Focus:** Feature foundations and API structure
 
 #### Frontend Development (After #21)
+
 - [ ] **#25** - Build frontend for Party and Character Management (AFTER #21)
 - [ ] **#27** - Build Frontend for Combat System MVP (AFTER #25)
 
 #### Backend APIs (After #66)
+
 - [ ] **#24** - Implement Party and Character Management API (AFTER #66)
 - [ ] **#26** - Implement Combat System MVP Backend (AFTER #66)
 
 #### Advanced Features (Parallel)
+
 - [ ] **#72** - Implement character import/export system with D&D Beyond integration
 - [ ] **#73** - Build encounter templates and marketplace foundation
 - [ ] **#74** - Implement initiative calculation engine with dexterity tiebreakers
@@ -148,103 +166,131 @@ This execution plan maps the Implementation Plan to specific GitHub issues and p
 - [ ] **#76** - Implement mobile gesture controls for combat interface
 
 ## Phase 2: Core Features Implementation
+
 **Duration:** Week 3-5 | **Milestones:** 1.3, 2.1, 2.2
 
 ### Week 3: Beta Launch Preparation
+
 **Focus:** Subscription integration and deployment prep
 
 #### Subscription System (After #17)
+
 - [ ] **#28** - Implement Free Tier Subscription Logic (AFTER #17)
 - [ ] **#29** - Build Frontend Usage and Upgrade Prompts (AFTER #17)
 
 #### Payment Integration (Sequential)
+
 - [ ] **#14** - Implement comprehensive Stripe integration ⚠️ (BLOCKS #15)
 - [ ] **#15** - Implement full subscription management UI (AFTER #14)
 
 #### Launch Preparation (Parallel)
+
 - [ ] **#32** - Finalize Beta Deployment and Monitoring Setup
 - [ ] **#34** - Conduct Pre-Launch Polish and Bug Bash
 
 ### Week 4: Beta Feedback & Enhancements
+
 **Focus:** Advanced combat features and real-time systems
 
 #### Advanced Combat (Parallel Development)
+
 - [ ] **#77** - Implement legendary actions automation system
 - [ ] **#12** - Enhance Advanced Lair Actions System
 - [ ] **#13** - Implement Real-time Combat State Synchronization
 
 #### Beta Improvements (Parallel)
+
 - [ ] **#11** - Implement Advanced Combat Analytics Dashboard
 - [ ] **#10** - Enhance Real-time Collaboration Features
 
 ### Week 5: Full Monetization & Real-time
+
 **Focus:** Complete feature set and performance optimization
 
 #### Spell System Integration
+
 - [ ] **#78** - Implement spell slot tracking and management system
 
 #### Real-time Infrastructure
+
 - [ ] **#16** - Enhance SSE with Redis and implement PWA offline support
 
 #### Performance & Testing
+
 - [ ] **#20** - Expand test suite coverage
 
 ## Phase 3: Advanced Features & Monetization
+
 **Duration:** Week 6-7 | **Milestones:** 2.3, 2.4
 
 ### Week 6: Hardening & Final Testing
+
 **Focus:** Security, performance, and quality assurance
 
 #### Security & Performance (Parallel)
+
 - [ ] **#18** - Conduct security hardening and audit
 - [ ] **#19** - Perform load testing
 - [ ] **#81** - Build customer support system with ticketing and priority support
 
 ### Week 7: Production Launch
+
 **Focus:** Go-live preparation and launch execution
 
 #### Production Deployment (Sequential)
+
 - [ ] **#22** - Finalize production deployment and go-live checklist
 - [ ] **#23** - Launch marketing and initial support
 
 ## Phase 4: Production Launch & Optimization
+
 **Duration:** Week 8-10 | **Milestones:** 3.1, 3.2, 3.3
 
 ### Week 8: Growth Features
+
 **Focus:** User engagement and analytics
 
 #### Analytics & Community (Parallel)
+
 - [ ] **#79** - Build combat analytics and performance insights engine
 - [ ] **#30** - Implement advanced combat analytics
 - [ ] **#31** - Develop creature sharing marketplace
 
 ### Week 9: Platform Expansion
+
 **Focus:** Integrations and API ecosystem
 
 #### Integration Development (Parallel)
+
 - [ ] **#33** - Implement D&D Beyond integration
 - [ ] **#35** - Enhance PWA for offline support
 - [ ] **#36** - Develop Third-Party API for Partner Integrations
 - [ ] **#80** - Implement API documentation generation and developer portal
 
 ### Week 10: Future Planning
+
 **Focus:** Scalability and next phase preparation
 
 #### Strategic Planning (Research Phase)
+
 - [ ] **#37** - Evaluate database sharding and microservices
 - [ ] **#38** - Plan next generation technical roadmap
 
 ## Phase 5: Resilience & Continuity
+
 **Duration:** Week 11+ | **Milestone:** 4.1
 
 ### Core System Resilience
+
 **Focus:** Production stability and advanced features
 
 #### Resilience Features (Parallel)
+
 - [ ] **#39** - Implement real-time state reconciliation on reconnect
 - [ ] **#40** - Implement usage limit reset mechanism
 
 #### Code Quality Maintenance (Ongoing)
+
 - [ ] **#58** - Address ESLint `@typescript-eslint/no-explicit-any` warnings
 - [ ] **#59** - Address ESLint `react-refresh/only-export-components` warnings
 
@@ -253,30 +299,40 @@ This execution plan maps the Implementation Plan to specific GitHub issues and p
 ### 🔄 Maximum Parallel Streams: 4 Simultaneous Work Tracks
 
 #### Stream 1: Infrastructure & DevOps
+
 **Team Focus:** Backend infrastructure, deployment, monitoring
+
 - Docker, database, logging, monitoring, CI/CD
 
 #### Stream 2: Authentication & Security  
+
 **Team Focus:** User management, security, rate limiting
+
 - Auth system, security hardening, rate limiting
 
 #### Stream 3: Frontend & UI Development
+
 **Team Focus:** React components, mobile optimization, UX
+
 - Component library, combat UI, mobile gestures
 
 #### Stream 4: Business Logic & Features
+
 **Team Focus:** Game mechanics, combat system, integrations
+
 - Combat logic, character management, D&D integrations
 
 ### ⚡ High-Impact Parallel Opportunities
 
-#### Week 1 Parallel Work (4 streams possible):
+#### Week 1 Parallel Work (4 streams possible)
+
 - **Stream 1:** #67 (Monorepo), #68 (Docker), #60 (Codacy)
 - **Stream 2:** #17 (Rate limiting), #21 (Auth UI)  
 - **Stream 3:** #69 (Logging), #70 (API standards), #71 (Monitoring)
 - **Stream 4:** BLOCKED until #66 (Database schema) completes
 
-#### Week 2 Parallel Work (4 streams possible):
+#### Week 2 Parallel Work (4 streams possible)
+
 - **Stream 1:** #25 (Character UI), #27 (Combat UI)
 - **Stream 2:** #24 (Character API), #26 (Combat API)
 - **Stream 3:** #72 (Import/Export), #73 (Templates)
@@ -287,24 +343,30 @@ This execution plan maps the Implementation Plan to specific GitHub issues and p
 ### 🚨 High-Risk Dependencies
 
 #### Database Schema Risk (#66)
+
 **Risk:** Delays in schema design block 50% of subsequent work
-**Mitigation:** 
+**Mitigation:**
+
 - Assign most experienced database architect
 - Create detailed schema specification document
 - Early validation with stakeholders
 - Parallel development of sample data and migrations
 
 #### Authentication System Risk (#17, #21)
+
 **Risk:** Auth issues affect all user-facing features
 **Mitigation:**
+
 - Start with proven authentication patterns
 - Implement comprehensive test suite
 - Security review before feature integration
 - Fallback authentication methods
 
 #### Linting Configuration Risk (#65, #42, #41)
+
 **Risk:** Build tool conflicts cause development delays
 **Mitigation:**
+
 - Complete linting setup in isolated branch
 - Test configuration with all package types
 - Document configuration decisions
@@ -313,16 +375,20 @@ This execution plan maps the Implementation Plan to specific GitHub issues and p
 ### ⚡ Performance Bottlenecks
 
 #### Real-time System Scaling
+
 **Risk:** SSE/WebSocket systems may not handle load
 **Mitigation:**
+
 - Load testing during Week 6 (#19)
 - Redis clustering preparation
 - Horizontal scaling architecture
 - Performance monitoring integration (#71)
 
 #### Database Performance
+
 **Risk:** MongoDB queries may be slow at scale  
 **Mitigation:**
+
 - Proper indexing strategy in schema (#66)
 - Query performance monitoring (#71)
 - Connection pooling optimization
@@ -331,18 +397,21 @@ This execution plan maps the Implementation Plan to specific GitHub issues and p
 ### 🛡️ Quality Assurance Gates
 
 #### Pre-Development Gates
+
 - [ ] Database schema reviewed and approved
 - [ ] Authentication architecture validated
 - [ ] Linting configuration tested
 - [ ] Development environment functional
 
 #### Mid-Development Gates  
+
 - [ ] Core APIs passing integration tests
 - [ ] Frontend components pass accessibility audit
 - [ ] Real-time system handles 100 concurrent users
 - [ ] Security scan passes without high-severity issues
 
 #### Pre-Launch Gates
+
 - [ ] Load testing passes performance targets
 - [ ] Security audit complete with no critical issues
 - [ ] All subscription tiers functional
@@ -351,18 +420,21 @@ This execution plan maps the Implementation Plan to specific GitHub issues and p
 ## Success Metrics
 
 ### Development Velocity
+
 - **Issue Completion Rate:** >95% of planned issues completed on time
 - **Dependency Violation Rate:** <5% of dependencies not respected
 - **Merge Conflict Rate:** <10% of PRs have merge conflicts
 - **Test Coverage:** >80% across all packages
 
 ### Quality Metrics
+
 - **Bug Escape Rate:** <2% of features have post-launch bugs
 - **Performance Regression:** <5% degradation in response times
 - **Security Vulnerabilities:** 0 high-severity issues at launch
 - **Accessibility Compliance:** >95% WCAG 2.1 AA compliance
 
 ### Business Metrics
+
 - **Launch Timeline:** On-time delivery within 10-week window
 - **Feature Completeness:** 100% of MVP features functional
 - **User Satisfaction:** >4.5/5 rating in beta testing
@@ -377,6 +449,7 @@ This execution plan maps the Implementation Plan to specific GitHub issues and p
 This section provides a comprehensive mapping of all GitHub issues referenced throughout the execution plan, organized by category and execution phase for easy navigation.
 
 **🏗️ Infrastructure & Setup**
+
 - [#65](https://github.com/dougis/dnd-tracker-node/issues/65) - Setup Linting tools and automations → [Chain 1](#️-dependency-chain-1-linting-and-code-quality), [Week 1](#critical-path-sequential)
 - [#42](https://github.com/dougis/dnd-tracker-node/issues/42) - Re-enable ESLint checks and configure properly for monorepo → [Chain 1](#️-dependency-chain-1-linting-and-code-quality), [Week 1](#critical-path-sequential)
 - [#41](https://github.com/dougis/dnd-tracker-node/issues/41) - Set up Code coverage reporting to Codacy → [Chain 1](#️-dependency-chain-1-linting-and-code-quality), [Week 1](#code-quality-after-linting-chain)
@@ -388,21 +461,25 @@ This section provides a comprehensive mapping of all GitHub issues referenced th
 - [#71](https://github.com/dougis/dnd-tracker-node/issues/71) - Implement performance monitoring and metrics → [Week 1](#parallel-track-b-monitoring--performance)
 
 **💾 Database & APIs**
+
 - [#66](https://github.com/dougis/dnd-tracker-node/issues/66) - Design and implement comprehensive Prisma database schema → [Chain 3](#️-dependency-chain-3-database-foundation), [Week 1](#critical-path-sequential)
 - [#24](https://github.com/dougis/dnd-tracker-node/issues/24) - Implement Party and Character Management API → [Chain 3](#️-dependency-chain-3-database-foundation), [Week 2](#backend-apis-after-66)
 - [#26](https://github.com/dougis/dnd-tracker-node/issues/26) - Implement Combat System MVP Backend → [Chain 3](#️-dependency-chain-3-database-foundation), [Week 2](#backend-apis-after-66)
 
 **🔐 Authentication & Security**
+
 - [#17](https://github.com/dougis/dnd-tracker-node/issues/17) - Implement production-ready rate limiting → [Chain 2](#️-dependency-chain-2-authentication-foundation), [Week 1](#parallel-track-c-security-foundation)
 - [#21](https://github.com/dougis/dnd-tracker-node/issues/21) - Build frontend foundation and authentication UI → [Chain 4](#️-dependency-chain-4-frontend-foundation), [Week 1](#parallel-track-c-security-foundation)
 - [#18](https://github.com/dougis/dnd-tracker-node/issues/18) - Conduct security hardening and audit → [Week 6](#security--performance-parallel)
 
 **🎮 Frontend & UI**
+
 - [#25](https://github.com/dougis/dnd-tracker-node/issues/25) - Build frontend for Party and Character Management → [Chain 4](#️-dependency-chain-4-frontend-foundation), [Week 2](#frontend-development-after-21)
 - [#27](https://github.com/dougis/dnd-tracker-node/issues/27) - Build Frontend for Combat System MVP → [Chain 4](#️-dependency-chain-4-frontend-foundation), [Week 2](#frontend-development-after-21)
 - [#76](https://github.com/dougis/dnd-tracker-node/issues/76) - Implement mobile gesture controls → [Week 2](#advanced-features-parallel)
 
 **⚔️ Combat Features**
+
 - [#72](https://github.com/dougis/dnd-tracker-node/issues/72) - Implement character import/export system → [Week 2](#advanced-features-parallel)
 - [#73](https://github.com/dougis/dnd-tracker-node/issues/73) - Build encounter templates and marketplace → [Week 2](#advanced-features-parallel)
 - [#74](https://github.com/dougis/dnd-tracker-node/issues/74) - Implement initiative calculation engine → [Week 2](#advanced-features-parallel)
@@ -413,12 +490,14 @@ This section provides a comprehensive mapping of all GitHub issues referenced th
 - [#78](https://github.com/dougis/dnd-tracker-node/issues/78) - Implement spell slot tracking and management → [Week 5](#spell-system-integration)
 
 **💰 Subscription & Payments**
+
 - [#28](https://github.com/dougis/dnd-tracker-node/issues/28) - Implement Free Tier Subscription Logic → [Chain 2](#️-dependency-chain-2-authentication-foundation), [Week 3](#subscription-system-after-17)
 - [#29](https://github.com/dougis/dnd-tracker-node/issues/29) - Build Frontend Usage and Upgrade Prompts → [Chain 2](#️-dependency-chain-2-authentication-foundation), [Week 3](#subscription-system-after-17)
 - [#14](https://github.com/dougis/dnd-tracker-node/issues/14) - Implement comprehensive Stripe integration → [Chain 5](#️-dependency-chain-5-payment-integration), [Week 3](#payment-integration-sequential)
 - [#15](https://github.com/dougis/dnd-tracker-node/issues/15) - Implement full subscription management UI → [Chain 5](#️-dependency-chain-5-payment-integration), [Week 3](#payment-integration-sequential)
 
 **🚀 Launch & Production**
+
 - [#32](https://github.com/dougis/dnd-tracker-node/issues/32) - Finalize Beta Deployment and Monitoring Setup → [Week 3](#launch-preparation-parallel)
 - [#34](https://github.com/dougis/dnd-tracker-node/issues/34) - Conduct Pre-Launch Polish and Bug Bash → [Week 3](#launch-preparation-parallel)
 - [#19](https://github.com/dougis/dnd-tracker-node/issues/19) - Perform load testing → [Week 6](#security--performance-parallel)
@@ -426,6 +505,7 @@ This section provides a comprehensive mapping of all GitHub issues referenced th
 - [#23](https://github.com/dougis/dnd-tracker-node/issues/23) - Launch marketing and initial support → [Week 7](#production-deployment-sequential)
 
 **📊 Analytics & Optimization**
+
 - [#11](https://github.com/dougis/dnd-tracker-node/issues/11) - Implement Advanced Combat Analytics Dashboard → [Week 4](#beta-improvements-parallel)
 - [#10](https://github.com/dougis/dnd-tracker-node/issues/10) - Enhance Real-time Collaboration Features → [Week 4](#beta-improvements-parallel)
 - [#79](https://github.com/dougis/dnd-tracker-node/issues/79) - Build combat analytics and performance insights → [Week 8](#analytics--community-parallel)
@@ -433,6 +513,7 @@ This section provides a comprehensive mapping of all GitHub issues referenced th
 - [#31](https://github.com/dougis/dnd-tracker-node/issues/31) - Develop creature sharing marketplace → [Week 8](#analytics--community-parallel)
 
 **🔌 Integrations & APIs**
+
 - [#16](https://github.com/dougis/dnd-tracker-node/issues/16) - Enhance SSE with Redis and implement PWA → [Week 5](#real-time-infrastructure)
 - [#20](https://github.com/dougis/dnd-tracker-node/issues/20) - Expand test suite coverage → [Week 5](#performance--testing)
 - [#33](https://github.com/dougis/dnd-tracker-node/issues/33) - Implement D&D Beyond integration → [Week 9](#integration-development-parallel)
@@ -442,6 +523,7 @@ This section provides a comprehensive mapping of all GitHub issues referenced th
 - [#81](https://github.com/dougis/dnd-tracker-node/issues/81) - Build customer support system → [Week 6](#security--performance-parallel)
 
 **🔮 Future Planning**
+
 - [#37](https://github.com/dougis/dnd-tracker-node/issues/37) - Evaluate database sharding and microservices → [Week 10](#strategic-planning-research-phase)
 - [#38](https://github.com/dougis/dnd-tracker-node/issues/38) - Plan next generation technical roadmap → [Week 10](#strategic-planning-research-phase)
 - [#39](https://github.com/dougis/dnd-tracker-node/issues/39) - Implement real-time state reconciliation → [Week 11+](#resilience-features-parallel)
@@ -485,6 +567,7 @@ graph TD
 ```
 
 **Critical Path Analysis:**
+
 1. **Longest Chain**: Linting (3 issues) - Week 1
 2. **Highest Impact**: Database Schema (#66) - Blocks 15+ subsequent issues
 3. **Most Dependencies**: Frontend Foundation (#21) - Required for all UI work
@@ -527,19 +610,25 @@ graph TD
 ## Appendix A: Issue Cross-Reference
 
 ### By Priority Level
+
 **Critical Priority (Must Complete):**
+
 - #65, #42, #66, #17, #21, #24, #26, #27, #28, #32, #41, #18
 
 **High Priority (Phase Blocking):**
+
 - #67, #68, #69, #70, #71, #72, #74, #75, #76, #14, #15, #77, #29
 
 **Medium Priority (Feature Enhancement):**
+
 - #73, #78, #79, #81, #16, #20, #36, #30, #31, #37
 
 **Low Priority (Future Enhancement):**
+
 - #80, #33, #35, #38, #58, #59
 
 ### By Component
+
 **Backend:** #66, #17, #24, #26, #69, #70, #71, #72, #14, #77, #78, #79, #81
 **Frontend:** #21, #25, #27, #76, #15, #29
 **DevOps:** #65, #42, #41, #67, #68, #60, #32, #22, #80
@@ -548,6 +637,7 @@ graph TD
 **Payments:** #14, #15, #28
 
 ### By Milestone
+
 **Week 1 (1.1):** #65, #42, #66, #67, #68, #17, #21, #69, #70, #71, #60, #41
 **Week 2 (1.2):** #25, #27, #24, #26, #72, #73, #74, #75, #76
 **Week 3 (1.3):** #28, #29, #14, #15, #32, #34
