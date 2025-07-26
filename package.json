@@ -13,10 +13,15 @@
     "build": "npm run build --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
     "test:ci": "npm run test:ci --workspaces --if-present",
-    "lint": "npm run lint --workspaces --if-present",
-    "lint:fix": "npm run lint:fix --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present && npm run lint:md",
+    "lint:fix": "npm run lint:fix --workspaces --if-present && npm run lint:md:fix",
+    "lint:md": "markdownlint '**/*.md' --ignore node_modules --ignore '**/node_modules/**'",
+    "lint:md:fix": "markdownlint '**/*.md' --ignore node_modules --ignore '**/node_modules/**' --fix",
+    "lint:eslint": "eslint . --ext .js,.ts,.tsx",
+    "lint:eslint:fix": "eslint . --ext .js,.ts,.tsx --fix",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "clean": "npm run clean --workspaces --if-present",
+    "prepare": "husky",
     "dev:server": "npm run dev --workspace=packages/server",
     "dev:client": "npm run dev --workspace=packages/client",
     "test:server": "npm run test --workspace=packages/server",
@@ -26,8 +31,13 @@
     "build:client": "npm run build --workspace=packages/client"
   },
   "devDependencies": {
+    "@eslint/js": "^9.32.0",
     "@types/node": "^22.15.0",
-    "typescript": "^5.7.3"
+    "eslint": "^9.32.0",
+    "husky": "^9.1.7",
+    "markdownlint-cli": "^0.43.0",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.38.0"
   },
   "engines": {
     "node": ">=22.15.0",

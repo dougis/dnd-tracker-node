@@ -24,6 +24,7 @@ This is a D&D Encounter Tracker - a Node.js/React full-stack web application for
 ### Core Technologies (Latest Stable Versions)
 
 **Backend:**
+
 - Node.js v22.15.0 LTS (Codename: 'Jod')
 - Express.js 4.x (Express 5 still in development)
 - MongoDB 8.0.x with Prisma ORM 6.12.0
@@ -31,6 +32,7 @@ This is a D&D Encounter Tracker - a Node.js/React full-stack web application for
 - TypeScript with ES modules
 
 **Frontend:**
+
 - React v19.1.0 with React Compiler
 - Vite v7.0.6 (requires Node.js 20.19+)
 - TanStack Router v1.129.8 for type-safe routing
@@ -39,17 +41,20 @@ This is a D&D Encounter Tracker - a Node.js/React full-stack web application for
 - shadcn/ui components (React 19 optimized)
 
 **Authentication & Security:**
+
 - @oslojs/jwt 0.3.0 for JWT handling
 - @oslojs/oauth2 0.5.0 for OAuth flows
 - argon2 v0.43.1 for password hashing
 - Session-based authentication with secure cookies
 
 **Testing & Quality:**
+
 - Vitest 3.2.4 for testing
 - Playwright v1.54.1 for E2E testing
 - Zod 3.x for runtime validation
 
 **Infrastructure:**
+
 - Docker Engine v28.2.1
 - @sentry/node v9.42.0 for monitoring
 - rate-limiter-flexible v7.1.1 for rate limiting
@@ -301,6 +306,7 @@ test(character): add comprehensive validation tests
 Once the project is set up, the following commands will be available:
 
 ### Core Development Commands
+
 - `npm run dev` - Start development servers (both client and server)
 - `npm run build` - Build all packages for production
 - `npm run test` - Run all tests
@@ -310,12 +316,14 @@ Once the project is set up, the following commands will be available:
 - `npm run typecheck` - TypeScript type checking
 
 ### Database Commands
+
 - `npm run db:generate` - Generate Prisma client
 - `npm run db:push` - Push schema changes to database
 - `npm run db:migrate` - Run database migrations
 - `npm run db:seed` - Seed database with initial data
 
 ### Package-Specific Commands
+
 - `npm run dev:server` - Start server in development mode
 - `npm run dev:client` - Start client in development mode
 - `npm run test:server` - Run server tests only
@@ -323,19 +331,22 @@ Once the project is set up, the following commands will be available:
 
 ## Development Workflow Requirements
 
-### Before ANY commit:
+### Before ANY commit
+
 1. Run `npm run lint:fix` - Fix all linting issues
 2. Run `npm run typecheck` - Ensure TypeScript compiles
 3. Run `npm run test` - All tests must pass
 4. Run `npm run build` - Production build must succeed
 
-### Pull Request Process:
+### Pull Request Process
+
 - Enable auto-merge on PRs
 - All checks must pass before merge
 - Link GitHub issues in PR description
 - Follow conventional commit messages
 
-### Quality Gates:
+### Quality Gates
+
 - 80%+ test coverage for all new code
 - Zero TypeScript errors
 - All ESLint rules pass
@@ -344,14 +355,16 @@ Once the project is set up, the following commands will be available:
 
 ## Architecture Principles
 
-### Why Express/React over Next.js:
+### Why Express/React over Next.js
+
 - **Explicit Control**: Full control over authentication and session management
 - **Debugging Clarity**: Clear separation between frontend and backend
 - **Performance**: Multi-layer caching and optimized queries
 - **Security**: Session-based auth without framework constraints
 - **Flexibility**: Backend can work with any frontend framework
 
-### Key Design Patterns:
+### Key Design Patterns
+
 - **Service Layer Pattern** with dependency injection
 - **Repository Pattern** for data access
 - **Multi-layer caching** (Memory + Redis)

@@ -1291,6 +1291,7 @@ real-time collaboration.
 This section provides a comprehensive mapping of all GitHub issues referenced throughout the implementation plan, organized by category and phase for easy navigation.
 
 **🏗️ Infrastructure & Setup**
+
 - [#41](https://github.com/dougis/dnd-tracker-node/issues/41) - CI/CD Pipeline & Code Coverage → [Day 1-2](#day-1-2-project-initialization), [Testing Infrastructure](#day-12-14-testing-infrastructure)
 - [#42](https://github.com/dougis/dnd-tracker-node/issues/42) - ESLint Configuration → [Day 1-2](#day-1-2-project-initialization)
 - [#65](https://github.com/dougis/dnd-tracker-node/issues/65) - ESLint Security Rules → [Day 1-2](#day-1-2-project-initialization)
@@ -1301,19 +1302,23 @@ This section provides a comprehensive mapping of all GitHub issues referenced th
 - [#71](https://github.com/dougis/dnd-tracker-node/issues/71) - Performance Monitoring → [Day 5-7](#day-5-7-core-infrastructure), [Performance Optimization](#day-50-52-performance-optimization)
 
 **💾 Database & Data Management**
+
 - [#66](https://github.com/dougis/dnd-tracker-node/issues/66) - Prisma Schema → [Database & ORM Setup](#database--orm-setup)
 - [#72](https://github.com/dougis/dnd-tracker-node/issues/72) - Character Import/Export → [Day 15-16](#day-15-16-character-system), [Day 19-21](#day-19-21-data-import--templates)
 - [#73](https://github.com/dougis/dnd-tracker-node/issues/73) - Creature Templates → [Day 19-21](#day-19-21-data-import--templates)
 
 **🔐 Authentication & Security**
+
 - [#17](https://github.com/dougis/dnd-tracker-node/issues/17) - Redis Rate Limiting → [Day 5-7](#day-5-7-core-infrastructure)
 - [#18](https://github.com/dougis/dnd-tracker-node/issues/18) - OWASP Security → [Day 53-54](#day-53-54-security-hardening)
 
 **⚡ Real-time & Performance**
+
 - [#16](https://github.com/dougis/dnd-tracker-node/issues/16) - Server-Sent Events → [Day 10-11](#day-10-11-real-time-infrastructure)
 - [#35](https://github.com/dougis/dnd-tracker-node/issues/35) - PWA & Offline → [Progressive Web App Setup](#progressive-web-app-setup)
 
 **🎮 Core Features**
+
 - [#12](https://github.com/dougis/dnd-tracker-node/issues/12) - Lair Actions → [Day 32-33](#day-32-33-lair-actions-system)
 - [#21](https://github.com/dougis/dnd-tracker-node/issues/21) - React Setup → [Day 8-9](#day-8-9-react-application-setup)
 - [#24](https://github.com/dougis/dnd-tracker-node/issues/24) - Party Management → [Day 17-18](#day-17-18-party-management)
@@ -1327,6 +1332,7 @@ This section provides a comprehensive mapping of all GitHub issues referenced th
 - [#78](https://github.com/dougis/dnd-tracker-node/issues/78) - Spell Tracking → [Day 43-44](#day-43-44-advanced-combat-features)
 
 **💰 Monetization & Business**
+
 - [#14](https://github.com/dougis/dnd-tracker-node/issues/14) - Stripe Integration → [Day 36-37](#day-36-37-stripe-integration)
 - [#15](https://github.com/dougis/dnd-tracker-node/issues/15) - Subscription Dashboard → [Day 40-42](#day-40-42-premium-features)
 - [#28](https://github.com/dougis/dnd-tracker-node/issues/28) - Feature Gating → [Day 38-39](#day-38-39-feature-gating--usage-limits)
@@ -1336,6 +1342,7 @@ This section provides a comprehensive mapping of all GitHub issues referenced th
 - [#81](https://github.com/dougis/dnd-tracker-node/issues/81) - Customer Support → [Day 40-42](#day-40-42-premium-features)
 
 **🤝 Collaboration & Integration**
+
 - [#33](https://github.com/dougis/dnd-tracker-node/issues/33) - D&D Beyond Integration → [Day 47-49](#day-47-49-export--integration)
 - [#39](https://github.com/dougis/dnd-tracker-node/issues/39) - Real-time Collaboration → [Day 45-46](#day-45-46-collaboration-features)
 
@@ -1378,6 +1385,7 @@ graph TD
 ```
 
 **Critical Path Dependencies:**
+
 1. **Authentication Chain**: Node.js → Express.js → Lucia Auth → Argon2
 2. **Database Chain**: Node.js → Prisma → MongoDB
 3. **Rate Limiting Chain**: Redis → Rate Limiting Middleware → API Security
@@ -1396,6 +1404,7 @@ graph TD
 | 8-10 | [Production](#phase-4-production-launch--optimization) | All previous phases | Launch |
 
 **Key Milestone Dependencies:**
+
 - **Real-time Features** depend on [SSE Infrastructure](#day-10-11-real-time-infrastructure)
 - **Mobile Features** depend on [PWA Setup](#progressive-web-app-setup)
 - **Payment Features** depend on [User System](#day-15-16-character-system) + [Subscription Tiers](#day-38-39-feature-gating--usage-limits)
