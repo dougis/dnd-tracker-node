@@ -35,6 +35,8 @@ This implementation plan outlines the development of a modern D&D Encounter Trac
 ## Project Overview
 
 ### Core Features
+
+
 - **Initiative Tracking**: Advanced turn management with dexterity tiebreakers
 - **HP & AC Management**: Real-time damage/healing tracking with conditions
 - **Character Management**: Support for multiclass characters and detailed stats
@@ -55,6 +57,7 @@ This implementation plan outlines the development of a modern D&D Encounter Trac
 ### Why Express/React Over Next.js
 
 **Express.js Benefits:**
+
 - Complete control over authentication and session management
 - Explicit middleware chain for easier debugging
 - Backend portability - API can serve any frontend framework
@@ -70,6 +73,7 @@ This implementation plan outlines the development of a modern D&D Encounter Trac
 ### Modern Stack Selection
 
 **Backend Technologies:**
+
 - **Express.js 4.x**: Mature, stable API framework
 - **Prisma 6.x**: Type-safe ORM with excellent MongoDB support
 - **Lucia Auth**: Modern session-based authentication
@@ -78,7 +82,7 @@ This implementation plan outlines the development of a modern D&D Encounter Trac
 - **Argon2**: Industry-standard password hashing
 
 **Frontend Technologies:**
-- **React 19.1.x**: Latest stable with React Compiler optimizations
+- **React 19.x**: Latest stable with React Compiler optimizations
 - **Vite 7.x**: Next-generation build tool (requires Node.js 20.19+)
 - **TanStack Router**: Fully type-safe routing with React 19 support
 - **TanStack Query 5.x**: Powerful server state management
@@ -86,7 +90,7 @@ This implementation plan outlines the development of a modern D&D Encounter Trac
 - **shadcn/ui**: Modern, accessible component library
 
 **Infrastructure & DevOps:**
-- **Node.js 22.15.0 LTS**: Maximum compatibility and stability
+- **Node.js 22.x LTS**: Maximum compatibility and stability
 - **Docker 28.x**: Containerization with CDI support
 - **TypeScript 5.x**: Strict mode enabled throughout
 - **Vitest 3.x**: Fast unit testing with Vite integration
@@ -103,6 +107,7 @@ This implementation plan outlines the development of a modern D&D Encounter Trac
 - Comprehensive type coverage (>95%)
 
 **Code Organization:**
+
 - Service layer pattern with dependency injection
 - Repository pattern for data access
 - Clean architecture with proper separation of concerns
@@ -119,6 +124,7 @@ This implementation plan outlines the development of a modern D&D Encounter Trac
 ### Security Standards
 
 **Authentication & Authorization:**
+
 - Session-based authentication with Lucia
 - Argon2 password hashing with recommended parameters
 - Account lockout after 5 failed login attempts
@@ -200,6 +206,7 @@ dnd-tracker-express/
 ### Development Environment Setup
 
 **Prerequisites:**
+
 - Node.js 22.15.0 LTS (via nvm recommended)
 - Docker Desktop for local services
 - MongoDB Atlas account (production) / Local MongoDB (development)
@@ -209,7 +216,7 @@ dnd-tracker-express/
 **Initial Setup Commands:**
 ```bash
 # Clone and setup project
-git clone <repository-url>
+git clone https://github.com/<your-org>/dnd-tracker-express.git
 cd dnd-tracker-express
 npm install
 
@@ -225,6 +232,7 @@ npm run dev
 ```
 
 ## Phase 1: Foundation & Core Systems
+
 **Duration:** Week 1-2  
 **Objective:** Establish robust foundation with security and performance
 
@@ -241,6 +249,7 @@ Infrastructure Tasks:
 - Set up GitHub Actions for CI/CD pipeline
 
 Database & ORM Setup:
+
 - Design and implement complete Prisma schema
 - Create database migration scripts
 - Implement database seeding with creature templates
@@ -257,6 +266,7 @@ Security Implementation:
 - Set up security headers with Helmet.js
 
 Authentication Endpoints:
+
 - `POST /api/v1/auth/register` - User registration with validation
 - `POST /api/v1/auth/login` - Login with lockout protection
 - `POST /api/v1/auth/logout` - Secure session termination
@@ -266,6 +276,7 @@ Authentication Endpoints:
 **Day 5-7: Core Infrastructure**
 
 Rate Limiting & Performance:
+
 - Implement Redis-backed rate limiting with tier support
 - Create multi-layer caching strategy (memory + Redis)
 - Set up structured logging with Pino
@@ -300,6 +311,7 @@ State Management:
 **Day 10-11: Real-time Infrastructure**
 
 Server-Sent Events Implementation:
+
 - Create SSE endpoint for encounter streaming
 - Implement Redis pub/sub for multi-instance support
 - Build connection management with heartbeat
@@ -307,6 +319,7 @@ Server-Sent Events Implementation:
 - Implement event type system for different updates
 
 Progressive Web App Setup:
+
 - Configure service worker with Workbox
 - Implement offline capability for core features
 - Set up background sync for combat actions
@@ -316,6 +329,7 @@ Progressive Web App Setup:
 **Day 12-14: Testing Infrastructure**
 
 Testing Framework Setup:
+
 - Configure Vitest for unit testing with coverage
 - Set up Playwright for E2E testing
 - Create test database and data factories
@@ -323,6 +337,7 @@ Testing Framework Setup:
 - Set up continuous integration testing
 
 Quality Assurance Tools:
+
 - Configure code coverage reporting
 - Set up automated security scanning
 - Implement performance testing framework
@@ -338,6 +353,7 @@ Quality Assurance Tools:
 **Day 15-16: Character System**
 
 Character Model Implementation:
+
 - Create character creation with multiclass support
 - Implement ability score calculation and modifiers
 - Build equipment and spell management
@@ -354,6 +370,7 @@ Character UI Components:
 **Day 17-18: Party Management**
 
 Party System:
+
 - Create party CRUD operations with proper validation
 - Implement party member management
 - Build party templates and duplication
@@ -361,6 +378,7 @@ Party System:
 - Implement party archiving and organization
 
 Party UI Implementation:
+
 - Party dashboard with member overview
 - Drag-and-drop party organization
 - Bulk operations for party management
@@ -370,6 +388,7 @@ Party UI Implementation:
 **Day 19-21: Data Import & Templates**
 
 Import System:
+
 - Create D&D Beyond character import
 - Implement JSON character import/export
 - Build creature template management
@@ -377,6 +396,7 @@ Import System:
 - Implement bulk import capabilities
 
 Template Management:
+
 - System creature templates with seeding
 - User custom creature templates
 - Template sharing and marketplace foundation
@@ -519,7 +539,7 @@ Subscription Tiers Implementation:
 - SEASONED: 3 parties, 15 encounters, cloud sync
 - EXPERT: 10 parties, 50 encounters, collaboration
 - MASTER: 25 parties, 100 encounters, API access
-- GUILD: Unlimited everything, priority support
+- GUILD: Unlimited parties, encounters, & creatures, 50 participants max, priority support
 
 **Day 40-42: Premium Features**
 
@@ -781,8 +801,8 @@ $desktop-large: 1920px; /* Large desktop */
 
 **Adaptive Features:**
 - **Mobile (320-767px)**: Single column, bottom navigation, swipe gestures
-- **Tablet (768-1023px)**: Two column, sidebar navigation, touch optimized
-- **Desktop (1024px+)**: Multi-column, mouse optimization, keyboard shortcuts
+- **Tablet (768-1279px)**: Two column, sidebar navigation, touch optimized
+- **Desktop (1280px+)**: Multi-column, mouse optimization, keyboard shortcuts
 
 ### Offline Experience Design
 
@@ -814,7 +834,7 @@ git --version     # Should be 2.x or higher
 **One-Command Setup:**
 ```bash
 # Clone and setup everything
-git clone <repository-url> dnd-tracker
+git clone https://github.com/<your-org>/dnd-tracker-express.git dnd-tracker
 cd dnd-tracker
 npm run setup:dev
 ```
