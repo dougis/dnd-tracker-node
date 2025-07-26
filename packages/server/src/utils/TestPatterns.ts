@@ -267,6 +267,68 @@ export class TestPatterns {
       expect(mockFn).toHaveBeenCalledWith(expect.any(String), expectedUserId);
     }
   }
+
+  /**
+   * Standard response expectation functions
+   */
+  static expectSuccessResponse(response: any, statusCode = 200, message?: string) {
+    expect(response.status).toBe(statusCode);
+    expect(response.body.success).toBe(true);
+    if (message) {
+      expect(response.body.message).toBe(message);
+    }
+  }
+
+  static expectErrorResponse(response: any, statusCode: number, message?: string) {
+    expect(response.status).toBe(statusCode);
+    expect(response.body.success).toBe(false);
+    if (message) {
+      expect(response.body.message).toBe(message);
+    }
+  }
+
+  static expectSuccessfulResponse(response: any, statusCode = 200, message?: string) {
+    expect(response.status).toBe(statusCode);
+    expect(response.body.success).toBe(true);
+    if (message) {
+      expect(response.body.message).toBe(message);
+    }
+  }
+
+  static expectFailureResponse(response: any, statusCode: number, message?: string) {
+    expect(response.status).toBe(statusCode);
+    expect(response.body.success).toBe(false);
+    if (message) {
+      expect(response.body.message).toBe(message);
+    }
+  }
+
+  static expectValidationError(response: any, errors?: any[]) {
+    expect(response.status).toBe(400);
+    expect(response.body.success).toBe(false);
+    expect(response.body.message).toBe('Validation failed');
+    if (errors) {
+      expect(response.body.errors).toEqual(errors);
+    }
+  }
+
+  /**
+   * Common service mock setup
+   */
+  static setupServiceMock(mockService: any, method: string, returnValue: any) {
+    mockService[method].mockResolvedValue(returnValue);
+  }
+
+  static setupServiceError(mockService: any, method: string, error: Error) {
+    mockService[method].mockRejectedValue(error);
+  }
+
+  /**
+   * Service call expectations
+   */
+  static expectServiceCall(serviceMock: any, method: string, ...args: any[]) {
+    expect(serviceMock[method]).toHaveBeenCalledWith(...args);
+  }
 }
 
 /**
@@ -362,5 +424,20 @@ export class ServiceTestPatterns {
     const result = await service[method](entityId, userId);
 
     expect(result).toBeNull();
+  }
+
+  /**
+   * Common Prisma mock setup
+   */
+  static setupPrismaMock(mockPrisma: any, model: string, method: string, returnValue: any) {
+    mockPrisma[model][method].mockResolvedValue(returnValue);
+  }
+
+  static setupPrismaError(mockPrisma: any, model: string, method: string, error: Error) {
+    mockPrisma[model][method].mockRejectedValue(error);
+  }
+
+  static expectPrismaCall(mockPrisma: any, model: string, method: string, ...args: any[]) {
+    expect(mockPrisma[model][method]).toHaveBeenCalledWith(...args);
   }
 }

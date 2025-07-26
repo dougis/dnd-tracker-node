@@ -99,7 +99,7 @@ export class MockDataFactory {
       turn: 0,
       isActive: false,
       participants: [],
-      lairActions: null,
+      lairActions: [],
       combatLogs: [],
       createdAt: new Date('2025-01-01T00:00:00.000Z'),
       updatedAt: new Date('2025-01-01T00:00:00.000Z'),
@@ -159,4 +159,64 @@ export class MockDataFactory {
     });
     return result;
   }
+
+  /**
+   * API request data factories
+   */
+  static createValidEncounterData() {
+    return {
+      name: 'Test Encounter',
+      description: 'Test description',
+    };
+  }
+
+  static createValidParticipantData() {
+    return {
+      type: 'CHARACTER',
+      name: 'Test Character',
+      initiative: 15,
+      maxHp: 25,
+      currentHp: 25,
+      ac: 15,
+    };
+  }
+
+  static createValidCharacterData() {
+    return {
+      name: 'Test Character',
+      playerName: 'Test Player',
+      race: 'Human',
+      classes: [{ className: 'Fighter', level: 5 }],
+      level: 5,
+      ac: 18,
+      maxHp: 45,
+      currentHp: 45,
+      abilities: { str: 16, dex: 14, con: 15, int: 10, wis: 12, cha: 8 },
+    };
+  }
+
+  static createValidPartyData() {
+    return {
+      name: 'Test Party',
+      description: 'A test adventuring party',
+      maxMembers: 6,
+    };
+  }
+
+  static createValidationError(location: string, msg: string, path: string, value?: any) {
+    return {
+      type: 'field',
+      location,
+      path,
+      value,
+      msg,
+    };
+  }
+
+  /**
+   * Test constants
+   */
+  static readonly VALID_MONGO_ID = '507f1f77bcf86cd799439011';
+  static readonly INVALID_MONGO_ID = 'invalid_id';
+  static readonly TEST_USER_ID = 'user_123';
 }

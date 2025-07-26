@@ -250,9 +250,9 @@ describe('Encounter Routes', () => {
 
     // Use field validation helper for systematic validation tests
     const participantValidationTests = createFieldValidationTests('post', `/api/encounters/${VALID_MONGO_ID}/participants`, validParticipantData, [
-      { field: 'type', value: 'INVALID', expectedError: 'Invalid participant type' },
-      { field: 'initiative', value: -1, expectedError: 'Invalid initiative value' },
-      { field: 'currentHp', value: -1, expectedError: 'Invalid HP values' }
+      { field: 'type', value: 'INVALID', expectedError: 'Type must be CHARACTER or CREATURE' },
+      { field: 'initiative', value: -1, expectedError: 'Initiative must be between 0 and 100' },
+      { field: 'currentHp', value: -1, expectedError: 'Current HP must be a non-negative integer' }
     ]);
 
     participantValidationTests.forEach(({ testName, test }) => {
