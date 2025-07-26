@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { EncounterService } from '../EncounterService';
-import { createMockPrisma } from './EncounterService.helpers';
-import { ServiceTestPatterns } from '../../utils/TestPatterns';
+import { createMockPrisma, testConstants, encounterTestHelpers } from './EncounterService.helpers';
 
 describe('EncounterService - Create Operations', () => {
   let encounterService: EncounterService;
@@ -18,163 +17,86 @@ describe('EncounterService - Create Operations', () => {
   });
 
   describe('createEncounter', () => {
-    const validUserId = 'user123';
-    const validName = 'Epic Boss Fight';
-    const validDescription = 'A challenging encounter';
-    const mockEncounter = {
-      id: 'encounter123',
-      userId: validUserId,
-      name: validName,
-      description: validDescription,
-      status: 'PLANNING',
-      round: 1,
-      turn: 0,
-      isActive: false,
-      participants: [],
-      lairActions: null,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
 
     it('should create encounter successfully with name and description', async () => {
+      const mockEncounter = encounterTestHelpers.createMockEncounter();
       mockPrisma.encounter.create.mockResolvedValue(mockEncounter);
 
-      const result = await encounterService.createEncounter(validUserId, validName, validDescription);
+      const result = await encounterService.createEncounter(
+        testConstants.validUserId, 
+        testConstants.validName, 
+        testConstants.validDescription
+      );
 
       expect(result).toEqual(mockEncounter);
-      expect(mockPrisma.encounter.create).toHaveBeenCalledWith({
-        data: {
-          userId: validUserId,
-          name: validName,
-          description: validDescription,
-          status: 'PLANNING',
-          round: 1,
-          turn: 0,
-          isActive: false,
-        },
-        include: {
-          participants: {
-            include: {
-              character: true,
-              creature: true,
-            },
-          },
-          lairActions: true,
-        },
-      });
+      encounterTestHelpers.expectEncounterCreateCall(
+        mockPrisma, 
+        testConstants.validUserId, 
+        testConstants.validName, 
+        testConstants.validDescription
+      );
     });
 
     it('should create encounter successfully with name only', async () => {
-      const encounterWithoutDescription = { ...mockEncounter, description: null };
+      const encounterWithoutDescription = encounterTestHelpers.createMockEncounter({ description: null });
       mockPrisma.encounter.create.mockResolvedValue(encounterWithoutDescription);
 
-      const result = await encounterService.createEncounter(validUserId, validName);
+      const result = await encounterService.createEncounter(testConstants.validUserId, testConstants.validName);
 
       expect(result).toEqual(encounterWithoutDescription);
-      expect(mockPrisma.encounter.create).toHaveBeenCalledWith({
-        data: {
-          userId: validUserId,
-          name: validName,
-          description: null,
-          status: 'PLANNING',
-          round: 1,
-          turn: 0,
-          isActive: false,
-        },
-        include: {
-          participants: {
-            include: {
-              character: true,
-              creature: true,
-            },
-          },
-          lairActions: true,
-        },
-      });
+      encounterTestHelpers.expectEncounterCreateCall(mockPrisma, testConstants.validUserId, testConstants.validName);
     });
 
     it('should trim name and description whitespace', async () => {
       const nameWithSpaces = '  Epic Boss Fight  ';
       const descriptionWithSpaces = '  A challenging encounter  ';
+      const mockEncounter = encounterTestHelpers.createMockEncounter();
       mockPrisma.encounter.create.mockResolvedValue(mockEncounter);
 
-      await encounterService.createEncounter(validUserId, nameWithSpaces, descriptionWithSpaces);
+      await encounterService.createEncounter(testConstants.validUserId, nameWithSpaces, descriptionWithSpaces);
 
-      expect(mockPrisma.encounter.create).toHaveBeenCalledWith({
-        data: {
-          userId: validUserId,
-          name: 'Epic Boss Fight',
-          description: 'A challenging encounter',
-          status: 'PLANNING',
-          round: 1,
-          turn: 0,
-          isActive: false,
-        },
-        include: {
-          participants: {
-            include: {
-              character: true,
-              creature: true,
-            },
-          },
-          lairActions: true,
-        },
-      });
+      encounterTestHelpers.expectEncounterCreateCall(
+        mockPrisma, 
+        testConstants.validUserId, 
+        testConstants.validName, 
+        testConstants.validDescription
+      );
     });
 
     it('should handle empty description', async () => {
-      const encounterWithoutDescription = { ...mockEncounter, description: null };
+      const encounterWithoutDescription = encounterTestHelpers.createMockEncounter({ description: null });
       mockPrisma.encounter.create.mockResolvedValue(encounterWithoutDescription);
 
-      await encounterService.createEncounter(validUserId, validName, '');
+      await encounterService.createEncounter(testConstants.validUserId, testConstants.validName, '');
 
-      expect(mockPrisma.encounter.create).toHaveBeenCalledWith({
-        data: {
-          userId: validUserId,
-          name: validName,
-          description: null,
-          status: 'PLANNING',
-          round: 1,
-          turn: 0,
-          isActive: false,
-        },
-        include: {
-          participants: {
-            include: {
-              character: true,
-              creature: true,
-            },
-          },
-          lairActions: true,
-        },
-      });
+      encounterTestHelpers.expectEncounterCreateCall(mockPrisma, testConstants.validUserId, testConstants.validName);
     });
 
     it('should reject missing user ID', async () => {
-      await expect(encounterService.createEncounter('', validName, validDescription))
+      await expect(encounterService.createEncounter('', testConstants.validName, testConstants.validDescription))
         .rejects.toThrow('User ID is required');
     });
 
     it('should reject missing name', async () => {
-      await expect(encounterService.createEncounter(validUserId, '', validDescription))
+      await expect(encounterService.createEncounter(testConstants.validUserId, '', testConstants.validDescription))
         .rejects.toThrow('Encounter name is required');
     });
 
     it('should reject whitespace-only name', async () => {
-      await expect(encounterService.createEncounter(validUserId, '   ', validDescription))
+      await expect(encounterService.createEncounter(testConstants.validUserId, '   ', testConstants.validDescription))
         .rejects.toThrow('Encounter name is required');
     });
 
     it('should reject name longer than 100 characters', async () => {
       const longName = 'a'.repeat(101);
-      await expect(encounterService.createEncounter(validUserId, longName, validDescription))
+      await expect(encounterService.createEncounter(testConstants.validUserId, longName, testConstants.validDescription))
         .rejects.toThrow('Encounter name must be 100 characters or less');
     });
 
     it('should handle database error', async () => {
       mockPrisma.encounter.create.mockRejectedValue(new Error('Database error'));
 
-      await expect(encounterService.createEncounter(validUserId, validName, validDescription))
+      await expect(encounterService.createEncounter(testConstants.validUserId, testConstants.validName, testConstants.validDescription))
         .rejects.toThrow('Database error');
     });
   });
