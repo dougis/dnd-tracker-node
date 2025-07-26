@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="2b311ff3-b1d9-482e-9e78-e0000f5f6236" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.codacy/codacy.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/.codacy/codacy.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.eslintrc.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.github/workflows/ci.yml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/CLAUDE.md" beforeDir="false" afterPath="$PROJECT_DIR$/CLAUDE.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config.test.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/TECHNICAL_DESIGN.md" beforeDir="false" afterPath="$PROJECT_DIR$/docs/TECHNICAL_DESIGN.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/client/.eslintrc.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/client/components.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/client/index.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/client/package.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/client/postcss.config.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/client/src/App.test.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/client/src/components/auth/LoginForm.test.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/client/src/components/auth/LoginForm.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/client/src/components/auth/ProtectedRoute.test.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/client/src/components/auth/ProtectedRoute.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/client/src/components/auth/RegisterForm.test.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/client/src/components/auth/RegisterForm.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/client/src/components/ui/button.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/client/src/components/ui/card.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/client/src/components/ui/input.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/client/src/components/ui/label.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/client/src/index.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/client/src/lib/utils.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/client/src/main.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/client/src/routeTree.gen.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/client/src/routes/__root.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/client/src/routes/dashboard.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/client/src/routes/index.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/client/src/routes/login.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/client/src/routes/register.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/client/src/test/auth-form-utils.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/client/src/test/setup.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/client/tailwind.config.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/client/tsconfig.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/client/vite.config.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/server/.env.example" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/server/.eslintrc.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/server/package.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/server/prisma/schema.prisma" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/server/prisma/seed.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/server/src/auth/auth.test.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/server/src/auth/middleware.test.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/server/src/auth/middleware.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/server/src/auth/routes.test.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/server/src/auth/routes.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/server/src/encounters/routes.sse.test.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/server/src/encounters/routes.test.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/server/src/encounters/routes.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/server/src/index.test.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/server/src/index.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/server/src/middleware/rate-limiting.test.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/server/src/middleware/rate-limiting.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/server/src/schema.test.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/server/src/services/AuthService.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/server/src/services/EncounterService.basic.test.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/server/src/services/EncounterService.combat.test.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/server/src/services/EncounterService.participants.test.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/server/src/services/EncounterService.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/server/src/services/UserService.test.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/server/src/services/UserService.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/server/src/startup/checks.test.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/server/src/startup/checks.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/server/src/startup/server-startup.test.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/server/src/test/auth-test-utils.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/server/src/test/encounter-test-utils.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/server/src/test/setup.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/server/src/test/user-test-utils.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/server/tsconfig.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/server/vitest.config.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/shared/.eslintrc.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/shared/package.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/shared/src/index.test.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/shared/src/index.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/shared/tsconfig.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/shared/vitest.config.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tsconfig.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/vitest.config.ts" beforeDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 8
+}</component>
+  <component name="ProjectId" id="30NsotuP4xC36KOhnhhFb2y0oh3" />
+  <component name="ProjectViewState">
+    <option name="autoscrollFromSource" value="true" />
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;clean-reset&quot;,
+    &quot;last_opened_file_path&quot;: &quot;Z:/dev/Code/dnd-tracker-node&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;MTFeaturesSettingsConfigurable&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  }
+}</component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-js-predefined-d6986cc7102b-09060db00ec0-JavaScript-WS-251.26927.40" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="2b311ff3-b1d9-482e-9e78-e0000f5f6236" name="Changes" comment="" />
+      <created>1753479542768</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1753479542768</updated>
+      <workItem from="1753479544037" duration="1533000" />
+      <workItem from="1753542273952" duration="8000" />
+      <workItem from="1753542297042" duration="2694000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+</project>
