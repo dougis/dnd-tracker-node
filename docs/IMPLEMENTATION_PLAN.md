@@ -1,4 +1,5 @@
 # D&D Encounter Tracker Implementation Plan
+
 **Version:** 5.0  
 **Date:** July 2025  
 **Duration:** 10 weeks to production launch  
@@ -23,9 +24,14 @@
 
 ## Executive Summary
 
-This implementation plan outlines the development of a modern D&D Encounter Tracker using Express.js and React, designed as a clean slate implementation that ignores existing code structures. The plan emphasizes modern development practices, comprehensive testing, mobile-first design, and a robust onboarding process for new team members.
+This implementation plan outlines the development of a modern D&D Encounter
+Tracker using Express.js and React, designed as a clean slate implementation
+that ignores existing code structures. The plan emphasizes modern development
+practices, comprehensive testing, mobile-first design, and a robust onboarding
+process for new team members.
 
 ### Key Objectives
+
 - Build a production-ready application with 99.9% uptime capability
 - Implement modern mobile-first design patterns for optimal UX
 - Create comprehensive documentation and onboarding processes
@@ -36,7 +42,6 @@ This implementation plan outlines the development of a modern D&D Encounter Trac
 
 ### Core Features
 
-
 - **Initiative Tracking**: Advanced turn management with dexterity tiebreakers
 - **HP & AC Management**: Real-time damage/healing tracking with conditions
 - **Character Management**: Support for multiclass characters and detailed stats
@@ -46,6 +51,7 @@ This implementation plan outlines the development of a modern D&D Encounter Trac
 - **Subscription Model**: 5-tier freemium monetization strategy
 
 ### Unique Competitive Advantages
+
 1. **Lair Actions Automation**: Only tracker with automated lair action management
 2. **Mobile-First Design**: Optimized for tablet/phone use during sessions
 3. **Real-time Collaboration**: Multiple DMs can co-manage encounters
@@ -65,6 +71,7 @@ This implementation plan outlines the development of a modern D&D Encounter Trac
 - Fine-grained performance optimization control
 
 **React + Vite Benefits:**
+
 - Lightning-fast development experience with HMR
 - Optimal bundle splitting and code optimization
 - Full control over build process and dependencies
@@ -82,6 +89,7 @@ This implementation plan outlines the development of a modern D&D Encounter Trac
 - **Argon2**: Industry-standard password hashing
 
 **Frontend Technologies:**
+
 - **React 19.x**: Latest stable with React Compiler optimizations
 - **Vite 7.x**: Next-generation build tool (requires Node.js 20.19+)
 - **TanStack Router**: Fully type-safe routing with React 19 support
@@ -90,6 +98,7 @@ This implementation plan outlines the development of a modern D&D Encounter Trac
 - **shadcn/ui**: Modern, accessible component library
 
 **Infrastructure & DevOps:**
+
 - **Node.js 22.x LTS**: Maximum compatibility and stability
 - **Docker 28.x**: Containerization with CDI support
 - **TypeScript 5.x**: Strict mode enabled throughout
@@ -101,6 +110,7 @@ This implementation plan outlines the development of a modern D&D Encounter Trac
 ### Code Quality Standards
 
 **TypeScript Configuration:**
+
 - Strict mode enabled across all packages
 - No `any` types allowed in production code
 - Consistent import/export patterns using ES modules
@@ -115,6 +125,7 @@ This implementation plan outlines the development of a modern D&D Encounter Trac
 - Functions limited to 50 lines maximum
 
 **Testing Requirements:**
+
 - 80%+ test coverage for all modified code
 - Test-Driven Development (TDD) for new features
 - Unit tests for business logic
@@ -132,12 +143,14 @@ This implementation plan outlines the development of a modern D&D Encounter Trac
 - Secure session cookies with proper flags
 
 **Rate Limiting:**
+
 - Redis-backed rate limiting (mandatory for production)
 - Tier-based API limits based on subscription
 - Strict IP-based limits for authentication endpoints
 - Application fails on startup if Redis unavailable in production
 
 **Data Protection:**
+
 - Input validation with Zod schemas
 - SQL injection prevention through Prisma
 - XSS protection with proper output encoding
@@ -148,7 +161,7 @@ This implementation plan outlines the development of a modern D&D Encounter Trac
 
 ### Monorepo Structure
 
-```
+```text
 dnd-tracker-express/
 ├── packages/
 │   ├── server/                 # Express backend
@@ -214,6 +227,7 @@ dnd-tracker-express/
 - Stripe account for payment processing
 
 **Initial Setup Commands:**
+
 ```bash
 # Clone and setup project
 git clone https://github.com/<your-org>/dnd-tracker-express.git
@@ -238,9 +252,10 @@ npm run dev
 
 ### Week 1: Project Foundation
 
-**Day 1-2: Project Initialization**
+#### Day 1-2: Project Initialization
 
 Infrastructure Tasks:
+
 - Set up monorepo with npm workspaces
 - Configure TypeScript with strict mode across all packages
 - Set up ESLint with security plugins and consistent rules
@@ -256,9 +271,10 @@ Database & ORM Setup:
 - Set up connection pooling and optimization
 - Configure database monitoring and health checks
 
-**Day 3-4: Authentication Foundation**
+#### Day 3-4: Authentication Foundation
 
 Security Implementation:
+
 - Implement Lucia Auth with secure session management
 - Create password hashing with Argon2
 - Build account lockout mechanism (5 failed attempts)
@@ -273,7 +289,7 @@ Authentication Endpoints:
 - `GET /api/v1/auth/session` - Session validation
 - `POST /api/v1/auth/refresh` - Session refresh logic
 
-**Day 5-7: Core Infrastructure**
+#### Day 5-7: Core Infrastructure
 
 Rate Limiting & Performance:
 
@@ -284,6 +300,7 @@ Rate Limiting & Performance:
 - Configure error handling and reporting
 
 API Foundation:
+
 - Create consistent API response format
 - Implement request validation with Zod
 - Set up route structure and middleware chain
@@ -292,9 +309,10 @@ API Foundation:
 
 ### Week 2: Frontend Foundation & Real-time Infrastructure
 
-**Day 8-9: React Application Setup**
+#### Day 8-9: React Application Setup
 
 Frontend Foundation:
+
 - Set up React with Vite and TypeScript
 - Configure TanStack Router with type-safe routes
 - Implement authentication state management
@@ -302,13 +320,14 @@ Frontend Foundation:
 - Set up dark mode support and theming
 
 State Management:
+
 - Configure Zustand stores for client state
 - Set up TanStack Query for server state
 - Implement optimistic updates for combat actions
 - Create error boundary components
 - Set up loading state management
 
-**Day 10-11: Real-time Infrastructure**
+#### Day 10-11: Real-time Infrastructure
 
 Server-Sent Events Implementation:
 
@@ -326,7 +345,7 @@ Progressive Web App Setup:
 - Create app manifest with proper icons
 - Implement push notification foundation
 
-**Day 12-14: Testing Infrastructure**
+#### Day 12-14: Testing Infrastructure
 
 Testing Framework Setup:
 
@@ -345,12 +364,13 @@ Quality Assurance Tools:
 - Set up dependency vulnerability scanning
 
 ## Phase 2: Core Features Implementation
+
 **Duration:** Week 3-5  
 **Objective:** Build essential D&D encounter management features
 
 ### Week 3: Character & Party Management
 
-**Day 15-16: Character System**
+#### Day 15-16: Character System
 
 Character Model Implementation:
 
@@ -361,13 +381,14 @@ Character Model Implementation:
 - Implement character validation and constraints
 
 Character UI Components:
+
 - Character creation wizard with step-by-step flow
 - Character sheet view with editing capabilities
 - Quick-edit combat stats interface
 - Character list with search and filtering
 - Mobile-optimized character cards
 
-**Day 17-18: Party Management**
+#### Day 17-18: Party Management
 
 Party System:
 
@@ -385,7 +406,7 @@ Party UI Implementation:
 - Party creation wizard
 - Mobile-friendly party management interface
 
-**Day 19-21: Data Import & Templates**
+#### Day 19-21: Data Import & Templates
 
 Import System:
 
@@ -405,9 +426,10 @@ Template Management:
 
 ### Week 4: Encounter Building System
 
-**Day 22-24: Encounter Management**
+#### Day 22-24: Encounter Management
 
 Encounter System:
+
 - Create encounter CRUD with participant management
 - Implement encounter templates and scenarios
 - Build encounter difficulty calculation
@@ -415,15 +437,17 @@ Encounter System:
 - Implement encounter history and analytics
 
 Encounter Builder UI:
+
 - Drag-and-drop encounter builder interface
 - Party integration with one-click addition
 - Creature search and addition system
 - Encounter balance calculator
 - Mobile-optimized encounter creation
 
-**Day 25-26: Participant Management**
+#### Day 25-26: Participant Management
 
 Participant System:
+
 - Create participant model with flexible typing
 - Implement initiative calculation with dex tiebreakers
 - Build condition management system
@@ -431,15 +455,17 @@ Participant System:
 - Implement participant grouping and organization
 
 Participant UI:
+
 - Participant cards with inline editing
 - Bulk operations for participant management
 - Condition application and tracking interface
 - Initiative order visualization
 - Mobile-friendly participant interaction
 
-**Day 27-28: Pre-Combat Features**
+#### Day 27-28: Pre-Combat Features
 
 Pre-Combat Setup:
+
 - Initiative rolling with automatic sorting
 - Pre-combat character preparation
 - Environment and terrain setup
@@ -447,6 +473,7 @@ Pre-Combat Setup:
 - Combat start validation and checks
 
 UI Implementation:
+
 - Initiative rolling interface with animations
 - Pre-combat checklist and validation
 - Combat setup wizard
@@ -455,9 +482,10 @@ UI Implementation:
 
 ### Week 5: Combat System Core
 
-**Day 29-31: Combat Engine**
+#### Day 29-31: Combat Engine
 
 Combat Logic:
+
 - Turn and round management system
 - HP tracking with damage/healing calculations
 - Temporary HP management
@@ -465,15 +493,17 @@ Combat Logic:
 - Combat state persistence and recovery
 
 Real-time Combat Updates:
+
 - Live HP updates across all connected clients
 - Initiative order changes with real-time sync
 - Turn progression with automatic notifications
 - Combat action broadcasting
 - Conflict resolution for simultaneous edits
 
-**Day 32-33: Lair Actions System**
+#### Day 32-33: Lair Actions System
 
 Lair Actions Implementation:
+
 - Automatic initiative-20 lair action prompts
 - Customizable lair action templates
 - Lair action automation and triggers
@@ -481,15 +511,17 @@ Lair Actions Implementation:
 - Lair action history and logging
 
 Lair Actions UI:
+
 - Lair action configuration interface
 - Real-time lair action prompts during combat
 - Lair action template library
 - Mobile-optimized lair action management
 - Accessibility features for lair actions
 
-**Day 34-35: Combat Interface**
+#### Day 34-35: Combat Interface
 
 Combat Tracker UI:
+
 - Initiative tracker with drag-and-drop reordering
 - HP/damage tracking with quick buttons
 - Condition management with visual indicators
@@ -497,6 +529,7 @@ Combat Tracker UI:
 - Combat log with action history
 
 Mobile Combat Interface:
+
 - Touch-optimized combat controls
 - Gesture-based HP adjustment
 - Quick access to common actions
@@ -504,14 +537,16 @@ Mobile Combat Interface:
 - Offline combat capability
 
 ## Phase 3: Advanced Features & Monetization
+
 **Duration:** Week 6-7  
 **Objective:** Implement subscription system and advanced features
 
 ### Week 6: Subscription & Payment System
 
-**Day 36-37: Stripe Integration**
+#### Day 36-37: Stripe Integration
 
 Payment System:
+
 - Stripe checkout session creation
 - Webhook handling with idempotency protection
 - Subscription lifecycle management
@@ -519,15 +554,17 @@ Payment System:
 - Payment failure handling and retry logic
 
 Subscription Management:
+
 - Tier-based feature gating middleware
 - Usage tracking and limit enforcement
 - Subscription upgrade/downgrade flows
 - Billing cycle management with automated resets
 - Grace period handling for failed payments
 
-**Day 38-39: Feature Gating & Usage Limits**
+#### Day 38-39: Feature Gating & Usage Limits
 
 Usage Limit System:
+
 - Daily usage reset job with node-cron
 - Real-time usage tracking and validation
 - Soft and hard limit enforcement
@@ -535,15 +572,18 @@ Usage Limit System:
 - Upgrade prompts and conversion optimization
 
 Subscription Tiers Implementation:
+
 - FREE: 1 party, 3 encounters, 6 participants max
 - SEASONED: 3 parties, 15 encounters, cloud sync
 - EXPERT: 10 parties, 50 encounters, collaboration
 - MASTER: 25 parties, 100 encounters, API access
-- GUILD: Unlimited parties, encounters, & creatures, 50 participants max, priority support
+- GUILD: Unlimited parties, encounters, & creatures, 50 participants max,
+  priority support
 
-**Day 40-42: Premium Features**
+#### Day 40-42: Premium Features
 
 Advanced Features:
+
 - Combat analytics and performance insights
 - Custom themes and branding options
 - Advanced export capabilities (PDF, JSON, etc.)
@@ -551,6 +591,7 @@ Advanced Features:
 - Priority customer support system
 
 Premium UI Components:
+
 - Analytics dashboard with charts and metrics
 - Theme customization interface
 - Export wizard with format options
@@ -559,9 +600,10 @@ Premium UI Components:
 
 ### Week 7: Advanced Combat & Collaboration
 
-**Day 43-44: Advanced Combat Features**
+#### Day 43-44: Advanced Combat Features
 
 Enhanced Combat System:
+
 - Legendary actions with automatic prompts
 - Spell slot tracking and management
 - Advanced condition effects and automation
@@ -569,15 +611,17 @@ Enhanced Combat System:
 - Custom combat rules and house rules support
 
 Combat Analytics:
+
 - Turn duration tracking and analysis
 - Damage dealt/received statistics
 - Combat difficulty post-analysis
 - Player engagement metrics
 - Encounter balance recommendations
 
-**Day 45-46: Collaboration Features**
+#### Day 45-46: Collaboration Features
 
 Real-time Collaboration:
+
 - Shared encounter management
 - Multiple DM support with role management
 - Real-time collaborative editing
@@ -585,15 +629,17 @@ Real-time Collaboration:
 - Activity logging and audit trails
 
 Collaboration UI:
+
 - User presence indicators
 - Collaborative cursors and selections
 - Real-time conflict resolution interface
 - Permission management dashboard
 - Activity feed and notifications
 
-**Day 47-49: Export & Integration**
+#### Day 47-49: Export & Integration
 
 Export System:
+
 - PDF export for encounters and characters
 - JSON export for data portability
 - CSV export for spreadsheet analysis
@@ -601,6 +647,7 @@ Export System:
 - Batch export capabilities
 
 Integration Foundations:
+
 - REST API for third-party access
 - Webhook system for external notifications
 - D&D Beyond integration framework
@@ -608,14 +655,16 @@ Integration Foundations:
 - Roll20 compatibility layer
 
 ## Phase 4: Production Launch & Optimization
+
 **Duration:** Week 8-10  
 **Objective:** Production deployment, performance optimization, and launch
 
 ### Week 8: Performance & Security Hardening
 
-**Day 50-52: Performance Optimization**
+#### Day 50-52: Performance Optimization
 
 Database Optimization:
+
 - Query optimization and indexing strategy
 - Connection pooling configuration
 - Database performance monitoring
@@ -623,15 +672,17 @@ Database Optimization:
 - Cache invalidation strategy refinement
 
 Frontend Optimization:
+
 - Bundle size optimization and analysis
 - Image optimization and lazy loading
 - Code splitting and dynamic imports
 - Service worker optimization
 - Performance monitoring and Core Web Vitals
 
-**Day 53-54: Security Hardening**
+#### Day 53-54: Security Hardening
 
 Security Audit:
+
 - OWASP compliance verification
 - Penetration testing and vulnerability assessment
 - Security header configuration
@@ -639,15 +690,17 @@ Security Audit:
 - Rate limiting effectiveness testing
 
 Monitoring Implementation:
+
 - Comprehensive error tracking with Sentry
 - Performance monitoring and alerting
 - Security incident detection
 - Custom dashboards and metrics
 - Log aggregation and analysis
 
-**Day 55-56: Testing & Quality Assurance**
+#### Day 55-56: Testing & Quality Assurance
 
 Comprehensive Testing:
+
 - Complete E2E test suite with critical user journeys
 - Load testing and stress testing
 - Security testing and vulnerability scans
@@ -655,6 +708,7 @@ Comprehensive Testing:
 - Mobile device testing on real devices
 
 Quality Assurance:
+
 - Accessibility audit and compliance (WCAG 2.1)
 - Performance regression testing
 - User acceptance testing with beta users
@@ -663,9 +717,10 @@ Quality Assurance:
 
 ### Week 9: Production Deployment
 
-**Day 57-58: Infrastructure Setup**
+#### Day 57-58: Infrastructure Setup
 
 Production Environment:
+
 - Production server configuration and deployment
 - SSL certificate setup and HTTPS enforcement
 - CDN configuration for static assets
@@ -673,15 +728,17 @@ Production Environment:
 - Monitoring and alerting configuration
 
 CI/CD Pipeline:
+
 - Automated deployment pipeline
 - Environment-specific configuration management
 - Rollback procedures and disaster recovery
 - Health check automation
 - Performance monitoring integration
 
-**Day 59-60: Launch Preparation**
+#### Day 59-60: Launch Preparation
 
 Go-Live Checklist:
+
 - Production environment validation
 - Payment processing verification
 - Security configuration confirmation
@@ -689,15 +746,17 @@ Go-Live Checklist:
 - Support system preparation
 
 Documentation:
+
 - User documentation and help guides
 - API documentation for developers
 - Administrator documentation
 - Troubleshooting guides
 - FAQ and common issues
 
-**Day 61-63: Soft Launch & Monitoring**
+#### Day 61-63: Soft Launch & Monitoring
 
 Soft Launch:
+
 - Limited user beta with invitation system
 - Real-time monitoring and issue resolution
 - User feedback collection and analysis
@@ -705,6 +764,7 @@ Soft Launch:
 - Bug fixes and immediate improvements
 
 Launch Activities:
+
 - Marketing site updates and SEO optimization
 - Social media presence establishment
 - Community building (Discord, Reddit)
@@ -713,9 +773,10 @@ Launch Activities:
 
 ### Week 10: Full Launch & Growth
 
-**Day 64-66: Public Launch**
+#### Day 64-66: Public Launch
 
 Launch Execution:
+
 - Public launch announcement and marketing campaign
 - User acquisition and onboarding optimization
 - Real-time support and issue resolution
@@ -723,15 +784,17 @@ Launch Execution:
 - Conversion optimization and A/B testing
 
 Growth Features:
+
 - Referral program implementation
 - Social sharing and viral features
 - Community features and user-generated content
 - Integration partnerships and API adoption
 - Content marketing and SEO optimization
 
-**Day 67-70: Post-Launch Optimization**
+#### Day 67-70: Post-Launch Optimization
 
 Analytics & Optimization:
+
 - User behavior analysis and funnel optimization
 - Conversion rate optimization for subscriptions
 - Feature usage analysis and prioritization
@@ -739,6 +802,7 @@ Analytics & Optimization:
 - Growth strategy refinement and scaling preparation
 
 Future Planning:
+
 - Roadmap prioritization based on user data
 - Technical debt assessment and planning
 - Scaling strategy for infrastructure
@@ -750,12 +814,14 @@ Future Planning:
 ### Design Philosophy
 
 **Mobile-First Approach:**
+
 - Design for smallest screen first, then scale up
 - Touch-first interaction patterns
 - Thumb-friendly button placement
 - Optimized for single-hand use during gameplay
 
 **Key Principles:**
+
 - **Accessibility**: WCAG 2.1 AA compliance across all interfaces
 - **Performance**: <3 second load time on 3G networks
 - **Usability**: One-handed operation during D&D sessions
@@ -764,24 +830,28 @@ Future Planning:
 ### Mobile-Specific Patterns
 
 **Navigation Patterns:**
+
 - Bottom tab navigation for primary features
 - Hamburger menu for secondary functions
 - Breadcrumb navigation for deep hierarchy
 - Swipe gestures for common actions
 
 **Combat Interface Patterns:**
+
 - Swipe left/right for HP adjustment
 - Long press for detailed character sheets
 - Pull-to-refresh for real-time updates
 - Drag and drop for initiative reordering
 
 **Form Patterns:**
+
 - Progressive disclosure for complex forms
 - Smart defaults and auto-completion
 - Inline validation with helpful error messages
 - Touch-optimized input controls
 
 **Data Display Patterns:**
+
 - Card-based layouts for scannable information
 - Collapsible sections for optional details
 - Progressive disclosure for advanced features
@@ -800,6 +870,7 @@ $desktop-large: 1920px; /* Large desktop */
 ```
 
 **Adaptive Features:**
+
 - **Mobile (320-767px)**: Single column, bottom navigation, swipe gestures
 - **Tablet (768-1279px)**: Two column, sidebar navigation, touch optimized
 - **Desktop (1280px+)**: Multi-column, mouse optimization, keyboard shortcuts
@@ -807,12 +878,14 @@ $desktop-large: 1920px; /* Large desktop */
 ### Offline Experience Design
 
 **Offline-First Features:**
+
 - Full combat tracking without internet connection
 - Automatic sync when connection restored
 - Clear offline indicators and status
 - Conflict resolution for simultaneous edits
 
 **PWA Implementation:**
+
 - App-like experience with native feel
 - Home screen installation prompts
 - Push notifications for important events
@@ -823,6 +896,7 @@ $desktop-large: 1920px; /* Large desktop */
 ### Quick Start Guide
 
 **Prerequisites Check:**
+
 ```bash
 # Verify required tools
 node --version    # Should be 22.15.0 or higher
@@ -832,6 +906,7 @@ git --version     # Should be 2.x or higher
 ```
 
 **One-Command Setup:**
+
 ```bash
 # Clone and setup everything
 git clone https://github.com/<your-org>/dnd-tracker-express.git dnd-tracker
@@ -840,6 +915,7 @@ npm run setup:dev
 ```
 
 The `setup:dev` script handles:
+
 - Installing all dependencies
 - Starting Docker services
 - Running database migrations
@@ -849,6 +925,7 @@ The `setup:dev` script handles:
 ### Development Workflow
 
 **Daily Development Cycle:**
+
 1. **Start Development**: `npm run dev` - Starts all services
 2. **Run Tests**: `npm run test:watch` - Continuous testing
 3. **Code Quality**: `npm run lint:fix` - Auto-fix issues
@@ -856,6 +933,7 @@ The `setup:dev` script handles:
 5. **Commit**: `npm run commit` - Guided commit with validation
 
 **Feature Development Workflow:**
+
 1. Create feature branch: `git checkout -b feature/your-feature`
 2. Implement with TDD: Write tests first, then implementation
 3. Run quality checks: `npm run quality:check`
@@ -865,12 +943,14 @@ The `setup:dev` script handles:
 ### Codebase Navigation
 
 **Key Directories:**
+
 - `packages/server/src/services/` - Business logic
 - `packages/server/src/repositories/` - Data access
 - `packages/client/src/components/` - UI components
 - `packages/shared/src/types/` - Shared type definitions
 
 **Important Files:**
+
 - `packages/server/src/app.ts` - Express app configuration
 - `packages/client/src/main.tsx` - React app entry point
 - `packages/shared/src/schemas/` - Zod validation schemas
@@ -879,12 +959,14 @@ The `setup:dev` script handles:
 ### Testing Strategy
 
 **Test Types & Requirements:**
+
 - **Unit Tests**: 80%+ coverage, fast execution (<100ms each)
 - **Integration Tests**: API endpoints and database operations
 - **E2E Tests**: Critical user journeys and payment flows
 - **Visual Tests**: Component screenshot comparisons
 
 **Test Naming Convention:**
+
 ```typescript
 // Pattern: [method/feature] should [expected behavior] when [condition]
 describe('CombatService', () => {
@@ -893,7 +975,8 @@ describe('CombatService', () => {
       // Test implementation
     });
     
-    it('should not allow HP below zero when excessive damage applied', async () => {
+    it('should not allow HP below zero when excessive damage applied',
+       async () => {
       // Test implementation
     });
   });
@@ -901,6 +984,7 @@ describe('CombatService', () => {
 ```
 
 **Test Data Management:**
+
 - Use factories for consistent test data
 - Clean database between test suites
 - Mock external services (Stripe, email)
@@ -909,6 +993,7 @@ describe('CombatService', () => {
 ### Common Development Tasks
 
 **Adding a New API Endpoint:**
+
 1. Define Zod schema in `packages/shared/src/schemas/`
 2. Create repository method in `packages/server/src/repositories/`
 3. Implement service logic in `packages/server/src/services/`
@@ -918,6 +1003,7 @@ describe('CombatService', () => {
 7. Update API documentation
 
 **Adding a New UI Component:**
+
 1. Create component in `packages/client/src/components/`
 2. Add to component library exports
 3. Write Storybook stories for all variants
@@ -926,6 +1012,7 @@ describe('CombatService', () => {
 6. Test on multiple devices and browsers
 
 **Database Schema Changes:**
+
 1. Update Prisma schema in `packages/server/prisma/schema.prisma`
 2. Generate migration: `npm run db:migrate:dev`
 3. Update seed data if necessary
@@ -936,18 +1023,21 @@ describe('CombatService', () => {
 ### AI Agent Integration
 
 **AI-Friendly Code Organization:**
+
 - Consistent file structure and naming conventions
 - Comprehensive JSDoc documentation for all functions
 - Clear separation of concerns between layers
 - Standardized error handling patterns
 
 **AI Development Assistance:**
+
 - Context-rich code comments for complex business logic
 - Type definitions serve as documentation
 - Test files provide usage examples
 - API documentation auto-generated from code
 
 **AI Code Generation Guidelines:**
+
 - Follow established patterns in existing codebase
 - Use TypeScript strict mode (no `any` types)
 - Include comprehensive error handling
@@ -959,6 +1049,7 @@ describe('CombatService', () => {
 **Common Setup Issues:**
 
 *Database Connection Failed:*
+
 ```bash
 # Check MongoDB status
 docker-compose ps
@@ -968,6 +1059,7 @@ docker-compose restart mongodb
 ```
 
 *Redis Connection Failed:*
+
 ```bash
 # Check Redis status
 docker-compose ps
@@ -977,6 +1069,7 @@ docker-compose restart redis
 ```
 
 *TypeScript Errors:*
+
 ```bash
 # Clear TypeScript cache
 npm run type-check:clean
@@ -986,6 +1079,7 @@ npm run db:generate
 ```
 
 *Test Failures:*
+
 ```bash
 # Run tests in isolation
 npm run test:unit
@@ -995,6 +1089,7 @@ npm run test:db:reset
 ```
 
 **Performance Debugging:**
+
 - Use built-in performance monitoring middleware
 - Check database query performance with Prisma logging
 - Monitor bundle size with webpack-bundle-analyzer
@@ -1003,18 +1098,21 @@ npm run test:db:reset
 ### Documentation Standards
 
 **Code Documentation:**
+
 - JSDoc for all public functions and classes
 - Inline comments for complex business logic
 - README files for each package
 - API documentation auto-generated from code
 
 **Architecture Documentation:**
+
 - Keep technical design document updated
 - Document architectural decisions and rationale
 - Maintain database schema documentation
 - Update deployment and infrastructure docs
 
 **User Documentation:**
+
 - Feature documentation with screenshots
 - API documentation for developers
 - Troubleshooting guides for common issues
@@ -1022,9 +1120,10 @@ npm run test:db:reset
 
 ## Quality Assurance & Monitoring
 
-### Code Quality Standards
+### Quality Assurance Standards
 
 **Automated Quality Checks:**
+
 - ESLint with TypeScript and security rules
 - Prettier for consistent formatting
 - TypeScript strict mode enforcement
@@ -1032,6 +1131,7 @@ npm run test:db:reset
 - Code coverage reporting (80% minimum)
 
 **Code Review Requirements:**
+
 - All changes require peer review
 - Automated tests must pass
 - Performance impact assessment
@@ -1041,6 +1141,7 @@ npm run test:db:reset
 ### Performance Monitoring
 
 **Frontend Performance:**
+
 - Core Web Vitals monitoring
 - Bundle size tracking and alerts
 - Real User Monitoring (RUM) with analytics
@@ -1048,6 +1149,7 @@ npm run test:db:reset
 - Lighthouse CI integration
 
 **Backend Performance:**
+
 - API response time monitoring
 - Database query performance tracking
 - Memory and CPU usage monitoring
@@ -1057,6 +1159,7 @@ npm run test:db:reset
 ### Security Monitoring
 
 **Continuous Security:**
+
 - Automated dependency scanning
 - OWASP compliance verification
 - Regular security audits
@@ -1064,6 +1167,7 @@ npm run test:db:reset
 - Security incident response plan
 
 **Monitoring & Alerting:**
+
 - Failed authentication attempt monitoring
 - Unusual payment activity detection
 - Performance degradation alerts
@@ -1075,6 +1179,7 @@ npm run test:db:reset
 ### Technical Metrics
 
 **Performance Targets:**
+
 - 99.9% uptime (8.76 hours downtime/year max)
 - <2 second page load time (95th percentile)
 - <500ms API response time (95th percentile)
@@ -1082,6 +1187,7 @@ npm run test:db:reset
 - Zero high-severity security vulnerabilities
 
 **Quality Metrics:**
+
 - Customer satisfaction >4.5/5
 - Bug report rate <1% of user sessions
 - Support ticket resolution <24 hours
@@ -1091,6 +1197,7 @@ npm run test:db:reset
 ### Business Metrics
 
 **User Acquisition:**
+
 - 1,000 registered users within first month
 - 50% activation rate (complete first encounter)
 - 10% conversion rate (free to paid)
@@ -1098,6 +1205,7 @@ npm run test:db:reset
 - >$5,000 MRR within 3 months
 
 **Product-Market Fit Indicators:**
+
 - Net Promoter Score (NPS) >50
 - 40%+ weekly active user retention
 - Average session duration >15 minutes
@@ -1106,28 +1214,32 @@ npm run test:db:reset
 
 ### Launch Milestones
 
-**Week 1-2: Foundation Complete**
+#### Week 1-2: Foundation Complete
+
 - ✅ Secure authentication system
 - ✅ Real-time infrastructure working
 - ✅ Mobile-responsive design
 - ✅ Comprehensive testing suite
 - ✅ Development workflow established
 
-**Week 3-5: Core Features Complete**
+#### Week 3-5: Core Features Complete
+
 - ✅ Character and party management
 - ✅ Encounter building system
 - ✅ Combat tracking with real-time updates
 - ✅ Lair actions automation
 - ✅ Mobile-optimized combat interface
 
-**Week 6-7: Monetization Ready**
+#### Week 6-7: Monetization Ready
+
 - ✅ Stripe payment integration
 - ✅ Subscription tier enforcement
 - ✅ Usage tracking and limits
 - ✅ Premium features implemented
 - ✅ Customer support system
 
-**Week 8-10: Production Launch**
+#### Week 8-10: Production Launch
+
 - ✅ Performance optimization complete
 - ✅ Security hardening verified
 - ✅ Production deployment successful
@@ -1136,8 +1248,20 @@ npm run test:db:reset
 
 ## Conclusion
 
-This comprehensive implementation plan provides a roadmap for building a world-class D&D Encounter Tracker that prioritizes modern development practices, mobile-first design, and seamless onboarding for new team members. The plan emphasizes quality, security, and performance while building a sustainable business model through thoughtful monetization.
+This comprehensive implementation plan provides a roadmap for building a
+world-class D&D Encounter Tracker that prioritizes modern development
+practices, mobile-first design, and seamless onboarding for new team members.
+The plan emphasizes quality, security, and performance while building a
+sustainable business model through thoughtful monetization.
 
-The combination of Express.js and React provides a solid foundation for rapid development while maintaining full control over authentication, performance, and deployment options. The mobile-first design approach ensures the application works excellently during actual D&D sessions, while the comprehensive onboarding process enables rapid team scaling and AI agent integration.
+The combination of Express.js and React provides a solid foundation for rapid
+development while maintaining full control over authentication, performance,
+and deployment options. The mobile-first design approach ensures the
+application works excellently during actual D&D sessions, while the
+comprehensive onboarding process enables rapid team scaling and AI agent
+integration.
 
-Success depends on consistent execution of the development standards, continuous testing and monitoring, and a focus on delivering genuine value to the D&D community through innovative features like automated lair actions and real-time collaboration.
+Success depends on consistent execution of the development standards,
+continuous testing and monitoring, and a focus on delivering genuine value to
+the D&D community through innovative features like automated lair actions and
+real-time collaboration.
