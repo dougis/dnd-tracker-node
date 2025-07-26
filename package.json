@@ -1,0 +1,46 @@
+{
+  "name": "dnd-tracker",
+  "version": "1.0.0",
+  "description": "D&D Encounter Tracker - Node.js/React full-stack web application",
+  "private": true,
+  "workspaces": [
+    "packages/server",
+    "packages/client",
+    "packages/shared"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "test:ci": "npm run test:ci --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "lint:fix": "npm run lint:fix --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "clean": "npm run clean --workspaces --if-present",
+    "dev:server": "npm run dev --workspace=packages/server",
+    "dev:client": "npm run dev --workspace=packages/client",
+    "test:server": "npm run test --workspace=packages/server",
+    "test:client": "npm run test --workspace=packages/client",
+    "build:shared": "npm run build --workspace=packages/shared",
+    "build:server": "npm run build --workspace=packages/server",
+    "build:client": "npm run build --workspace=packages/client"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "typescript": "^5.7.3"
+  },
+  "engines": {
+    "node": ">=22.15.0",
+    "npm": ">=10.0.0"
+  },
+  "author": "D&D Tracker Team",
+  "license": "MIT",
+  "keywords": [
+    "dnd",
+    "dungeons-dragons",
+    "encounter-tracker",
+    "initiative",
+    "combat",
+    "tabletop"
+  ]
+}
