@@ -204,4 +204,61 @@ export const encounterTestHelpers = {
   expectNameValidationError: async (promise: Promise<any>, expectedMessage: string = 'Encounter name is required') => {
     await expect(promise).rejects.toThrow(expectedMessage);
   },
+
+  /**
+   * Create encounter with participants
+   */
+  createEncounterWithParticipants: (participants: any[] = [mockParticipantData]) => ({
+    ...mockEncounterData,
+    participants
+  }),
+
+  /**
+   * Create active encounter
+   */
+  createActiveEncounter: (overrides: any = {}) => ({
+    ...mockEncounterData,
+    status: 'ACTIVE' as const,
+    isActive: true,
+    round: 1,
+    turn: 0,
+    ...overrides
+  }),
+
+  /**
+   * Create completed encounter
+   */
+  createCompletedEncounter: (overrides: any = {}) => ({
+    ...mockEncounterData,
+    status: 'COMPLETED' as const,
+    isActive: false,
+    ...overrides
+  }),
+
+  /**
+   * Create participant with overrides
+   */
+  createParticipant: (overrides: any = {}) => ({
+    ...mockParticipantData,
+    ...overrides
+  }),
+
+  /**
+   * Expect encounter update call with specific structure
+   */
+  expectEncounterUpdate: (mockPrisma: any, encounterId: string, updateData: any) => {
+    expect(mockPrisma.encounter.update).toHaveBeenCalledWith({
+      where: { id: encounterId },
+      data: updateData,
+      include: {
+        participants: {
+          include: {
+            character: true,
+            creature: true,
+          },
+        },
+        lairActions: true,
+      },
+    });
+  },
 };

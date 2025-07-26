@@ -21,45 +21,7 @@ describe('CharacterService - miscellaneous tests', () => {
     vi.resetAllMocks();
   });
 
-  describe('private methods', () => {
-    it('should validate update data correctly', () => {
-      const validData = {
-        name: 'Valid Name',
-        race: 'Valid Race',
-        classes: [{ className: 'Fighter', level: 1 }],
-        currentHp: 10,
-        tempHp: 5
-      };
-
-      // This should not throw
-      expect(() => (characterService as any).validateUpdateData(validData)).not.toThrow();
-    });
-
-    it('should build update data correctly', () => {
-      const inputData: UpdateCharacterData = {
-        name: '  Test Name  ',
-        playerName: '  Test Player  ',
-        race: '  Test Race  ',
-        notes: '  Test Notes  ',
-        level: 5,
-        ac: 16,
-        currentHp: 30
-      };
-
-      const result = (characterService as any).buildUpdateData(inputData);
-
-      expect(result).toEqual({
-        name: 'Test Name',
-        playerName: 'Test Player',
-        race: 'Test Race',
-        notes: 'Test Notes',
-        level: 5,
-        ac: 16,
-        currentHp: 30
-      });
-    });
-
-  });
+  // Note: Private method tests removed as methods were consolidated into main public methods for complexity reduction
 
   describe('edge cases', () => {
     it('should handle undefined values in update data', async () => {

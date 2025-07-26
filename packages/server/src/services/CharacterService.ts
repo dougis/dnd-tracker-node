@@ -60,7 +60,10 @@ export class CharacterService extends BaseService {
    * Create a new character in a party
    */
   async create(userId: string, data: CreateCharacterData): Promise<Character> {
-    this.validateCreateData(data);
+    // Validate required fields
+    this.validateRequiredStringField(data.name, 'Character name is required');
+    this.validateRequiredStringField(data.race, 'Character race is required');
+    this.validateRequiredArrayField(data.classes, 'Character must have at least one class');
 
     return this.executeOperation(async () => {
       await this.verifyEntityOwnership(
@@ -69,96 +72,36 @@ export class CharacterService extends BaseService {
         () => this.prisma.party.findFirst({ where: { id: data.partyId, userId } })
       );
       
-      const characterData = this.buildCharacterData(data);
+      // Build character data with defaults
+      const totalLevel = data.level || data.classes.reduce((sum, cls) => sum + cls.level, 0);
+      const maxHp = data.maxHp || 10;
+      
+      const characterData = {
+        partyId: data.partyId,
+        name: data.name.trim(),
+        playerName: this.processStringField(data.playerName),
+        race: data.race.trim(),
+        classes: data.classes,
+        level: totalLevel,
+        notes: this.processStringField(data.notes),
+        ac: data.ac || 10,
+        maxHp,
+        currentHp: data.currentHp || maxHp,
+        tempHp: data.tempHp || 0,
+        hitDice: data.hitDice || null,
+        speed: data.speed || 30,
+        abilities: data.abilities || {
+          str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10
+        },
+        proficiencyBonus: data.proficiencyBonus || Math.ceil(totalLevel / 4) + 1,
+        features: data.features || [],
+        equipment: data.equipment || [],
+      };
+      
       return await this.prisma.character.create({
         data: characterData,
       });
     }, 'create character');
-  }
-
-  /**
-   * Validate create character data
-   */
-  private validateCreateData(data: CreateCharacterData): void {
-    this.validateRequiredStringField(data.name, 'Character name is required');
-    this.validateRequiredStringField(data.race, 'Character race is required');
-    this.validateRequiredArrayField(data.classes, 'Character must have at least one class');
-  }
-
-
-  /**
-   * Build character data object with defaults
-   */
-  private buildCharacterData(data: CreateCharacterData): any {
-    const totalLevel = this.calculateTotalLevel(data);
-    
-    return {
-      ...this.getBasicCharacterFields(data, totalLevel),
-      ...this.getCharacterDefaults(data, totalLevel),
-    };
-  }
-
-  /**
-   * Get basic character fields
-   */
-  private getBasicCharacterFields(data: CreateCharacterData, totalLevel: number): any {
-    return {
-      partyId: data.partyId,
-      name: data.name.trim(),
-      playerName: this.processStringField(data.playerName),
-      race: data.race.trim(),
-      classes: data.classes,
-      level: totalLevel,
-      notes: this.processStringField(data.notes),
-    };
-  }
-
-  /**
-   * Get default values for character attributes
-   */
-  private getCharacterDefaults(data: CreateCharacterData, totalLevel: number): any {
-    const maxHp = data.maxHp || 10;
-
-    return {
-      ac: data.ac || 10,
-      maxHp,
-      currentHp: data.currentHp || maxHp,
-      tempHp: data.tempHp || 0,
-      hitDice: data.hitDice || null,
-      speed: data.speed || 30,
-      abilities: data.abilities || this.getDefaultAbilities(),
-      proficiencyBonus: data.proficiencyBonus || this.calculateProficiencyBonus(totalLevel),
-      features: data.features || [],
-      equipment: data.equipment || [],
-    };
-  }
-
-  /**
-   * Calculate total character level from classes
-   */
-  private calculateTotalLevel(data: CreateCharacterData): number {
-    return data.level || data.classes.reduce((sum, cls) => sum + cls.level, 0);
-  }
-
-  /**
-   * Get default ability scores
-   */
-  private getDefaultAbilities(): any {
-    return {
-      str: 10,
-      dex: 10,
-      con: 10,
-      int: 10,
-      wis: 10,
-      cha: 10,
-    };
-  }
-
-  /**
-   * Calculate proficiency bonus based on level
-   */
-  private calculateProficiencyBonus(level: number): number {
-    return Math.ceil(level / 4) + 1;
   }
 
   /**
@@ -207,7 +150,12 @@ export class CharacterService extends BaseService {
    * Update a character
    */
   async update(characterId: string, userId: string, data: UpdateCharacterData): Promise<Character | null> {
-    this.validateUpdateData(data);
+    // Validate update data
+    this.validateStringField(data.name, 'Character name cannot be empty');
+    this.validateStringField(data.race, 'Character race cannot be empty');
+    this.validateNonEmptyArrayField(data.classes, 'Character must have at least one class');
+    this.validateNonNegativeField(data.currentHp, 'Current HP cannot be negative');
+    this.validateNonNegativeField(data.tempHp, 'Temporary HP cannot be negative');
 
     return this.executeOperation(async () => {
       // First check if character exists and user has access
@@ -216,57 +164,25 @@ export class CharacterService extends BaseService {
         return null;
       }
 
-      const updateData = this.buildUpdateData(data);
+      // Build update data object
+      const updateData: any = {};
+      
+      // Handle string fields that need processing
+      if (data.name !== undefined) updateData.name = data.name.trim();
+      if (data.race !== undefined) updateData.race = data.race.trim();
+      if (data.playerName !== undefined) updateData.playerName = this.processStringField(data.playerName);
+      if (data.notes !== undefined) updateData.notes = this.processStringField(data.notes);
+      
+      // Handle direct copy fields
+      const directFields = ['classes', 'level', 'ac', 'maxHp', 'currentHp', 'tempHp', 
+                           'hitDice', 'speed', 'abilities', 'proficiencyBonus', 'features', 'equipment'];
+      this.copyDefinedFields(data, updateData, directFields);
 
       return await this.prisma.character.update({
         where: { id: characterId },
         data: updateData,
       });
     }, 'update character');
-  }
-
-  /**
-   * Validate update data for character
-   */
-  private validateUpdateData(data: UpdateCharacterData): void {
-    this.validateStringField(data.name, 'Character name cannot be empty');
-    this.validateStringField(data.race, 'Character race cannot be empty');
-    this.validateNonEmptyArrayField(data.classes, 'Character must have at least one class');
-    this.validateNonNegativeField(data.currentHp, 'Current HP cannot be negative');
-    this.validateNonNegativeField(data.tempHp, 'Temporary HP cannot be negative');
-  }
-
-  /**
-   * Build update data object from partial update data
-   */
-  private buildUpdateData(data: UpdateCharacterData): any {
-    return {
-      ...this.getStringUpdateFields(data),
-      ...this.getDirectUpdateFields(data),
-    };
-  }
-
-  /**
-   * Get string fields that need processing
-   */
-  private getStringUpdateFields(data: UpdateCharacterData): any {
-    const fields: any = {};
-    if (data.name !== undefined) fields.name = data.name.trim();
-    if (data.race !== undefined) fields.race = data.race.trim();
-    if (data.playerName !== undefined) fields.playerName = this.processStringField(data.playerName);
-    if (data.notes !== undefined) fields.notes = this.processStringField(data.notes);
-    return fields;
-  }
-
-  /**
-   * Get direct fields that can be copied as-is
-   */
-  private getDirectUpdateFields(data: UpdateCharacterData): any {
-    const directFields = ['classes', 'level', 'ac', 'maxHp', 'currentHp', 'tempHp', 
-                         'hitDice', 'speed', 'abilities', 'proficiencyBonus', 'features', 'equipment'];
-    const fields: any = {};
-    this.copyDefinedFields(data, fields, directFields);
-    return fields;
   }
 
   /**

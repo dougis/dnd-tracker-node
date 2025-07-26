@@ -66,7 +66,8 @@ export class PartyService extends BaseService {
    * Update a party
    */
   async update(partyId: string, userId: string, data: UpdatePartyData): Promise<Party | null> {
-    this.validateUpdateData(data);
+    // Validate update data
+    this.validateStringField(data.name, 'Party name cannot be empty');
 
     return this.executeOperation(async () => {
       const existingParty = await this.findById(partyId, userId);
@@ -74,48 +75,17 @@ export class PartyService extends BaseService {
         return null;
       }
 
-      const updateData = this.buildUpdateData(data);
+      // Build update data object
+      const updateData: any = {};
+      if (data.name !== undefined) updateData.name = data.name.trim();
+      if (data.description !== undefined) updateData.description = this.processStringField(data.description);
+      this.copyDefinedFields(data, updateData, ['isArchived']);
+      
       return await this.prisma.party.update({
         where: { id: partyId },
         data: updateData,
       });
     }, 'update party');
-  }
-
-  /**
-   * Validate update data for party
-   */
-  private validateUpdateData(data: UpdatePartyData): void {
-    this.validateStringField(data.name, 'Party name cannot be empty');
-  }
-
-  /**
-   * Build update data object from partial update data
-   */
-  private buildUpdateData(data: UpdatePartyData): any {
-    return {
-      ...this.getPartyStringFields(data),
-      ...this.getPartyDirectFields(data),
-    };
-  }
-
-  /**
-   * Get processed string fields for party update
-   */
-  private getPartyStringFields(data: UpdatePartyData): any {
-    const fields: any = {};
-    if (data.name !== undefined) fields.name = data.name.trim();
-    if (data.description !== undefined) fields.description = this.processStringField(data.description);
-    return fields;
-  }
-
-  /**
-   * Get direct fields for party update
-   */
-  private getPartyDirectFields(data: UpdatePartyData): any {
-    const fields: any = {};
-    this.copyDefinedFields(data, fields, ['isArchived']);
-    return fields;
   }
 
   /**
