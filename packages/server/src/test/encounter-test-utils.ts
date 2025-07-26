@@ -4,6 +4,7 @@ import { Encounter, Participant, Character, Creature } from '@prisma/client';
 import { expect } from 'vitest';
 import { MockDataFactory } from '../utils/MockDataFactory';
 import { TestPatterns } from '../utils/TestPatterns';
+import supertest from 'supertest';
 
 export type MockEncounter = Encounter & {
   participants: (Participant & {
@@ -97,7 +98,7 @@ export const createExpectedApiEncounters = (encounters: MockEncounter[]) =>
 
 // Route testing helpers that use consolidated patterns
 export const createTestRequest = (app: any, method: string, path: string, data?: any) => {
-  const request = require('supertest')(app)[method.toLowerCase()](path);
+  const request = supertest(app)[method.toLowerCase()](path);
   return data ? request.send(data) : request;
 };
 
