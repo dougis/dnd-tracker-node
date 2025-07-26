@@ -8,6 +8,7 @@
 ## Table of Contents
 
 ### 🎯 Quick Navigation
+
 - [🚨 Critical Dependencies](#critical-dependencies)
 - [⚡ Phase-by-Phase Execution](#execution-roadmap)
 - [🔄 Cross-Phase Dependencies](#cross-phase-dependencies)
@@ -15,6 +16,7 @@
 - [🔧 Technology Stack Quick Ref](#technology-stack-quick-reference)
 
 ### 📋 Main Sections
+
 1. [Executive Summary](#executive-summary)
 2. [Project Overview](#project-overview)
 3. [Architecture & Technology Decisions](#architecture--technology-decisions)
@@ -31,6 +33,7 @@
 14. [Success Metrics](#success-metrics)
 
 ### 📊 Quick Reference Sections
+
 - [GitHub Issues Index](#github-issues-index)
 - [Technology Dependencies Map](#technology-dependencies-map)
 - [Implementation Timeline](#implementation-timeline)
@@ -1398,7 +1401,7 @@ graph TD
 - **Payment Features** depend on [User System](#day-15-16-character-system) + [Subscription Tiers](#day-38-39-feature-gating--usage-limits)
 - **Launch** depends on [Security Hardening](#day-53-54-security-hardening) + [Performance Optimization](#day-50-52-performance-optimization)
 
-### Critical Dependencies
+### Critical Dependencies {#critical-dependencies}
 
 **🚨 Must Complete Before Any Other Work:**
 1. [Monorepo Setup](#day-1-2-project-initialization) - Blocks all development
@@ -1406,7 +1409,9 @@ graph TD
 3. [Authentication System](#day-3-4-authentication-foundation) - Blocks user features
 4. [Redis Setup](#rate-limiting--performance) - Required for production
 
-**⚡ Execution Roadmap:**
+### Execution Roadmap {#execution-roadmap}
+
+**⚡ Phase-by-Phase Execution:**
 1. **Week 1**: Complete [Foundation](#phase-1-foundation--core-systems) - enables parallel development
 2. **Week 2**: Establish [Real-time Infrastructure](#day-10-11-real-time-infrastructure) - unblocks combat features  
 3. **Week 3-4**: Build [Core Features](#phase-2-core-features-implementation) in parallel streams
@@ -1414,7 +1419,9 @@ graph TD
 5. **Week 6-7**: Layer on [Monetization](#phase-3-advanced-features--monetization) features
 6. **Week 8-10**: [Production hardening](#phase-4-production-launch--optimization) and launch
 
-**🔄 Cross-Phase Dependencies:**
+### Cross-Phase Dependencies {#cross-phase-dependencies}
+
+**🔄 Critical Dependency Chains:**
 - [Real-time Infrastructure](#day-10-11-real-time-infrastructure) → [Combat System](#week-5-combat-system-core) → [Collaboration Features](#day-45-46-collaboration-features)
 - [User System](#day-15-16-character-system) → [Subscription System](#day-36-37-stripe-integration) → [Feature Gating](#day-38-39-feature-gating--usage-limits)
 - [Security Foundation](#day-3-4-authentication-foundation) → [Payment Integration](#day-36-37-stripe-integration) → [Production Launch](#day-57-58-infrastructure-setup)
