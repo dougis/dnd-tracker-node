@@ -73,7 +73,7 @@ describe('GitHub Actions Coverage Integration', () => {
         const coverageFile = join(process.cwd(), 'packages', pkg, 'coverage', 'clover.xml');
         if (existsSync(coverageFile)) {
           const content = readFileSync(coverageFile, 'utf-8');
-          expect(content).toContain('clover version');
+          expect(content).toContain('clover=');
         }
       });
     });
@@ -90,10 +90,12 @@ describe('GitHub Actions Coverage Integration', () => {
           // Verify coverage data structure contains metrics
           Object.values(coverageData).forEach((fileData) => {
             if (fileData && typeof fileData === 'object') {
-              expect(fileData).toHaveProperty('lines');
-              expect(fileData).toHaveProperty('functions');
-              expect(fileData).toHaveProperty('statements');
-              expect(fileData).toHaveProperty('branches');
+              expect(fileData).toHaveProperty('statementMap');
+              expect(fileData).toHaveProperty('s');
+              expect(fileData).toHaveProperty('branchMap');
+              expect(fileData).toHaveProperty('b');
+              expect(fileData).toHaveProperty('fnMap');
+              expect(fileData).toHaveProperty('f');
             }
           });
         }
