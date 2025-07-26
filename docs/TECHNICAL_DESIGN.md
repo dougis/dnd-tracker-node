@@ -112,39 +112,7 @@ dnd-tracker-express/
 
 ## 3. Technology Stack
 
-### Backend
-
-- **Runtime**: Node.js 20 LTS
-- **Framework**: Express.js 4.x with TypeScript
-- **Database**: MongoDB 7.0 with Prisma ORM
-- **Cache**: Redis 7.x for sessions and caching
-- **Authentication**: Lucia Auth (session-based) or PASETO tokens
-- **Real-time**: Server-Sent Events (SSE)
-- **Validation**: Zod for request/response validation
-- **API Documentation**: OpenAPI/Swagger via Zod schemas
-- **Logging**: Pino for structured logging
-- **Testing**: Vitest, Supertest
-
-### Frontend
-
-- **Build Tool**: Vite 5.x for fast development
-- **Framework**: React 18 with TypeScript
-- **Routing**: TanStack Router (type-safe routing)
-- **State Management**: Zustand + TanStack Query
-- **UI Components**: shadcn/ui with Tailwind CSS
-- **Forms**: React Hook Form + Zod
-- **Real-time**: EventSource API for SSE
-- **PWA**: Workbox for offline support
-- **Testing**: Vitest, React Testing Library, Playwright
-
-### Infrastructure
-
-- **Container**: Docker with multi-stage builds
-- **Orchestration**: Docker Compose / Kubernetes
-- **CI/CD**: GitHub Actions with comprehensive linting
-- **Monitoring**: Sentry + StatsD/Grafana
-- **CDN**: Cloudflare for static assets
-- **Load Balancer**: Nginx or Caddy
+Documented in [the tech stack document](TECH_STACK.md)
 
 ## 4. Data Model
 

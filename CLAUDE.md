@@ -20,61 +20,6 @@ HP/AC management, character management, and lair actions support.
 
 ## Technology Stack
 
-**Backend (packages/server):**
-
-- Express.js with TypeScript and ES modules
-- MongoDB with Prisma ORM (not Mongoose)
-- Session-based authentication with Argon2 password hashing
-- Redis-backed rate limiting with tier-based limits
-- Express-validator for input validation
-- Production security middleware stack
-
-**Frontend (packages/client):**
-
-- React 18 with TypeScript
-- TanStack Router for routing
-- TanStack Query for server state management
-- Zustand for client state management
-- Tailwind CSS + shadcn/ui (Radix UI primitives)
-- React Hook Form with Zod validation
-- Vite for build tooling
-
-**Shared (packages/shared):**
-
-- Common types and Zod validation schemas
-- Shared between client and server packages
-
-## Development Commands
-
-**Root level (all packages):**
-
-```bash
-npm run build        # Build all packages
-npm run dev         # Start all packages in development
-npm run test        # Run tests across all packages
-npm run test:ci     # Run tests with coverage
-npm run lint        # Lint all packages
-npm run lint:fix    # Fix linting issues
-npm run typecheck   # TypeScript compilation check
-```
-
-**Individual package commands:**
-
-```bash
-# Server (packages/server)
-npm run dev --workspace=@dnd-tracker/server    # Start Express server with nodemon
-npm run build --workspace=@dnd-tracker/server  # Build TypeScript to dist/
-npm run start --workspace=@dnd-tracker/server  # Start production server
-
-# Client (packages/client)  
-npm run dev --workspace=@dnd-tracker/client    # Start Vite dev server
-npm run build --workspace=@dnd-tracker/client  # Build for production
-npm run preview --workspace=@dnd-tracker/client # Preview production build
-
-# Run single test file
-npm test -- --testPathPatterns="ServiceName.test.ts"
-```
-
 ## Architecture Overview
 
 ### Monorepo Structure
@@ -110,6 +55,9 @@ npm test -- --testPathPatterns="ServiceName.test.ts"
 - **Route-specific limits** - Login, registration, and general API limits
 
 ## Testing Patterns
+
+- **Avoid duplication** Use common helper libraries across the mono repo to avoid logic duplication
+- **High level of coverage** The target for ALL changes is 80%+ coverage
 
 ### Vitest Configuration
 
