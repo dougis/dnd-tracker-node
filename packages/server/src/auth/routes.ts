@@ -1,10 +1,11 @@
 import { Router, Request, Response } from 'express';
-import { body, validationResult } from 'express-validator';
+import { body } from 'express-validator';
 import { PrismaClient } from '@prisma/client';
 import { AuthService } from '../services/AuthService';
 import { UserService } from '../services/UserService';
 import { requireAuth } from './middleware';
 import { loginRateLimit, registerRateLimit, createTierBasedRateLimit } from '../middleware/rate-limiting';
+import { handleValidationErrors } from '../middleware/validation';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -30,18 +31,8 @@ router.post('/register', registerRateLimit, [
   body('password')
     .isLength({ min: 8 })
     .withMessage('Password must be at least 8 characters long')
-], async (req: Request, res: Response): Promise<void> => {
+], handleValidationErrors, async (req: Request, res: Response): Promise<void> => {
   try {
-    // Check validation results
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-        errors: errors.array()
-      });
-      return;
-    }
 
     const { email, username, password } = req.body;
 
@@ -101,18 +92,8 @@ router.post('/login', loginRateLimit, [
   body('password')
     .notEmpty()
     .withMessage('Password is required')
-], async (req: Request, res: Response): Promise<void> => {
+], handleValidationErrors, async (req: Request, res: Response): Promise<void> => {
   try {
-    // Check validation results
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-        errors: errors.array()
-      });
-      return;
-    }
 
     const { email, password } = req.body;
 
@@ -310,18 +291,8 @@ router.put('/profile', tierBasedRateLimit, requireAuth, [
     .isLength({ min: 3, max: 30 })
     .matches(/^[a-zA-Z0-9_-]+$/)
     .withMessage('Username must be 3-30 characters and contain only letters, numbers, underscores, and hyphens')
-], async (req: Request, res: Response): Promise<void> => {
+], handleValidationErrors, async (req: Request, res: Response): Promise<void> => {
   try {
-    // Check validation results
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-        errors: errors.array()
-      });
-      return;
-    }
 
     const userId = req.user!.id;
     const { username } = req.body;

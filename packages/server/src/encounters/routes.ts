@@ -1,9 +1,10 @@
 import { Router, Request, Response } from 'express';
-import { body, param, validationResult } from 'express-validator';
+import { body, param } from 'express-validator';
 import { PrismaClient } from '@prisma/client';
 import { EncounterService } from '../services/EncounterService';
 import { requireAuth } from '../auth/middleware';
 import { createTierBasedRateLimit } from '../middleware/rate-limiting';
+import { handleValidationErrors } from '../middleware/validation';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -26,18 +27,8 @@ router.post('/', tierBasedRateLimit, requireAuth, [
     .isLength({ max: 1000 })
     .trim()
     .withMessage('Description must be 1000 characters or less')
-], async (req: Request, res: Response): Promise<void> => {
+], handleValidationErrors, async (req: Request, res: Response): Promise<void> => {
   try {
-    // Check validation results
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-        errors: errors.array()
-      });
-      return;
-    }
 
     const { name, description } = req.body;
     const userId = req.user!.id;
@@ -126,18 +117,8 @@ router.get('/:id', tierBasedRateLimit, requireAuth, [
   param('id')
     .isMongoId()
     .withMessage('Invalid encounter ID format')
-], async (req: Request, res: Response): Promise<void> => {
+], handleValidationErrors, async (req: Request, res: Response): Promise<void> => {
   try {
-    // Check validation results
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-        errors: errors.array()
-      });
-      return;
-    }
 
     const { id } = req.params;
     const userId = req.user!.id;
@@ -218,18 +199,8 @@ router.put('/:id', tierBasedRateLimit, requireAuth, [
     .optional()
     .isIn(['PLANNING', 'ACTIVE', 'PAUSED', 'COMPLETED'])
     .withMessage('Invalid status')
-], async (req: Request, res: Response): Promise<void> => {
+], handleValidationErrors, async (req: Request, res: Response): Promise<void> => {
   try {
-    // Check validation results
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-        errors: errors.array()
-      });
-      return;
-    }
 
     const { id } = req.params;
     const { name, description, status } = req.body;
@@ -310,18 +281,8 @@ router.delete('/:id', tierBasedRateLimit, requireAuth, [
   param('id')
     .isMongoId()
     .withMessage('Invalid encounter ID format')
-], async (req: Request, res: Response): Promise<void> => {
+], handleValidationErrors, async (req: Request, res: Response): Promise<void> => {
   try {
-    // Check validation results
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-        errors: errors.array()
-      });
-      return;
-    }
 
     const { id } = req.params;
     const userId = req.user!.id;
@@ -413,18 +374,8 @@ router.post('/:id/participants', tierBasedRateLimit, requireAuth, [
     .optional()
     .isLength({ max: 500 })
     .withMessage('Notes must be 500 characters or less')
-], async (req: Request, res: Response): Promise<void> => {
+], handleValidationErrors, async (req: Request, res: Response): Promise<void> => {
   try {
-    // Check validation results
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-        errors: errors.array()
-      });
-      return;
-    }
 
     const { id } = req.params;
     const participantData = req.body;
@@ -493,18 +444,8 @@ router.post('/:id/start', tierBasedRateLimit, requireAuth, [
   param('id')
     .isMongoId()
     .withMessage('Invalid encounter ID format')
-], async (req: Request, res: Response): Promise<void> => {
+], handleValidationErrors, async (req: Request, res: Response): Promise<void> => {
   try {
-    // Check validation results
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-        errors: errors.array()
-      });
-      return;
-    }
 
     const { id } = req.params;
     const userId = req.user!.id;
@@ -580,18 +521,8 @@ router.post('/:id/end', tierBasedRateLimit, requireAuth, [
   param('id')
     .isMongoId()
     .withMessage('Invalid encounter ID format')
-], async (req: Request, res: Response): Promise<void> => {
+], handleValidationErrors, async (req: Request, res: Response): Promise<void> => {
   try {
-    // Check validation results
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-        errors: errors.array()
-      });
-      return;
-    }
 
     const { id } = req.params;
     const userId = req.user!.id;
@@ -659,18 +590,8 @@ router.get('/:id/stream', tierBasedRateLimit, requireAuth, [
   param('id')
     .isMongoId()
     .withMessage('Invalid encounter ID format')
-], async (req: Request, res: Response): Promise<void> => {
+], handleValidationErrors, async (req: Request, res: Response): Promise<void> => {
   try {
-    // Check validation results
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-        errors: errors.array()
-      });
-      return;
-    }
 
     const { id } = req.params;
     const userId = req.user!.id;
