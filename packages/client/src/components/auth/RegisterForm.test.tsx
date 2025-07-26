@@ -106,7 +106,7 @@ describe('RegisterForm', () => {
         email: 'test@example.com',
         password: 'password123',
         confirmPassword: 'password123',
-      }, expect.any(Object));
+      });
     });
   });
 

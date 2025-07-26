@@ -37,13 +37,7 @@ const createMockCharacter = (overrides: any = {}) => ({
   ...overrides
 });
 
-const expectSuccessResponse = (response: any, expectedData: any, expectedStatus = 200) => {
-  TestPatterns.expectSuccessResponse(response, expectedData, expectedStatus);
-};
-
-const expectErrorResponse = (response: any, expectedMessage: string, expectedStatus = 400) => {
-  TestPatterns.expectErrorResponse(response, expectedMessage, expectedStatus);
-};
+// Remove unused helper functions
 
 // Mock the service and middleware using standard patterns
 vi.mock('../services/CharacterService', () => ({

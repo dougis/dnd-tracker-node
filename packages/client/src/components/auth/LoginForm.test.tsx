@@ -64,7 +64,7 @@ describe('LoginForm', () => {
       expectFormSubmission(mockSubmit, {
         email: 'test@example.com',
         password: 'password123',
-      }, expect.any(Object));
+      });
     });
   });
 

@@ -49,7 +49,7 @@ describe('EncounterService - Delete Operations', () => {
       mockPrisma.encounter.findUnique.mockResolvedValue({ userId: 'different-user' });
 
       await expect(encounterService.deleteEncounter(encounterId, userId))
-        .rejects.toThrow('Not authorized to modify this encounter');
+        .rejects.toThrow('Not authorized to delete this encounter');
 
       expect(mockPrisma.encounter.delete).not.toHaveBeenCalled();
     });

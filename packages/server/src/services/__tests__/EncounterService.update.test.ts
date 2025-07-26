@@ -61,7 +61,7 @@ describe('EncounterService - Update Operations', () => {
       const updateData = {
         name: 'New Name',
         description: 'New description',
-        status: 'ACTIVE'
+        status: 'ACTIVE' as const
       };
       const updatedEncounter = { ...mockEncounterData, ...updateData };
       encounterTestHelpers.setupSuccessfulUpdate(mockPrisma, updatedEncounter);
