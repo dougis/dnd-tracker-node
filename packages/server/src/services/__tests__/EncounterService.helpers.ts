@@ -143,4 +143,65 @@ export const encounterTestHelpers = {
   expectUnauthorizedError: async (promise: Promise<any>) => {
     await expect(promise).rejects.toThrow('Not authorized');
   },
+
+  /**
+   * Setup mock for encounter ownership verification (success)
+   */
+  setupOwnershipVerification: (mockPrisma: any, userId: string = testConstants.validUserId) => {
+    mockPrisma.encounter.findUnique.mockResolvedValue({ userId });
+  },
+
+  /**
+   * Setup mock for encounter not found during ownership verification
+   */
+  setupEncounterNotFoundForOwnership: (mockPrisma: any) => {
+    mockPrisma.encounter.findUnique.mockResolvedValue(null);
+  },
+
+  /**
+   * Setup mock for unauthorized access (different user)
+   */
+  setupUnauthorizedAccessForOwnership: (mockPrisma: any, differentUserId: string = testConstants.invalidUserId) => {
+    mockPrisma.encounter.findUnique.mockResolvedValue({ userId: differentUserId });
+  },
+
+  /**
+   * Setup mock for successful encounter update
+   */
+  setupSuccessfulUpdate: (mockPrisma: any, updatedEncounter: any) => {
+    mockPrisma.encounter.update.mockResolvedValue(updatedEncounter);
+  },
+
+  /**
+   * Expect successful encounter update call with standard include
+   */
+  expectEncounterUpdateCallWithInclude: (mockPrisma: any, encounterId: string, updateData: any) => {
+    expect(mockPrisma.encounter.update).toHaveBeenCalledWith({
+      where: { id: encounterId },
+      data: updateData,
+      include: {
+        participants: {
+          include: {
+            character: true,
+            creature: true,
+          },
+        },
+        lairActions: true,
+      },
+    });
+  },
+
+  /**
+   * Expect update not authorized error
+   */
+  expectUpdateNotAuthorizedError: async (promise: Promise<any>) => {
+    await expect(promise).rejects.toThrow('Not authorized to modify this encounter');
+  },
+
+  /**
+   * Expect validation error for encounter name
+   */
+  expectNameValidationError: async (promise: Promise<any>, expectedMessage: string = 'Encounter name is required') => {
+    await expect(promise).rejects.toThrow(expectedMessage);
+  },
 };

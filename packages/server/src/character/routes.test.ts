@@ -12,6 +12,39 @@ const { mockCreate, mockFindByPartyId, mockFindById, mockUpdate, mockDelete } = 
   mockDelete: vi.fn(),
 }));
 
+// Helper functions to reduce duplication
+const createMockCharacter = (overrides: any = {}) => ({
+  id: 'character123',
+  partyId: 'party123',
+  name: 'Gandalf',
+  playerName: 'John Doe',
+  race: 'Human',
+  classes: [{ className: 'Wizard', level: 5 }],
+  level: 5,
+  ac: 15,
+  maxHp: 45,
+  currentHp: 45,
+  tempHp: 0,
+  hitDice: '5d6',
+  speed: 30,
+  abilities: { str: 10, dex: 14, con: 13, int: 16, wis: 12, cha: 15 },
+  proficiencyBonus: 3,
+  features: ['Spellcasting'],
+  equipment: ['Staff', 'Robes'],
+  notes: 'A wise wizard',
+  createdAt: '2025-01-01T00:00:00.000Z',
+  updatedAt: '2025-01-01T00:00:00.000Z',
+  ...overrides
+});
+
+const expectSuccessResponse = (response: any, expectedData: any, expectedStatus = 200) => {
+  TestPatterns.expectSuccessResponse(response, expectedData, expectedStatus);
+};
+
+const expectErrorResponse = (response: any, expectedMessage: string, expectedStatus = 400) => {
+  TestPatterns.expectErrorResponse(response, expectedMessage, expectedStatus);
+};
+
 // Mock the service and middleware using standard patterns
 vi.mock('../services/CharacterService', () => ({
   CharacterService: vi.fn().mockImplementation(() => ({
@@ -49,27 +82,10 @@ describe('Character Routes', () => {
         ac: 15,
         maxHp: 45,
         currentHp: 45,
-        abilities: {
-          str: 10,
-          dex: 14,
-          con: 16,
-          int: 20,
-          wis: 15,
-          cha: 12
-        }
+        abilities: { str: 10, dex: 14, con: 16, int: 20, wis: 15, cha: 12 }
       };
       
-      const expectedResponse = {
-        id: 'char123',
-        ...createData,
-        tempHp: 0,
-        speed: 30,
-        proficiencyBonus: 3,
-        features: [],
-        equipment: [],
-        createdAt: '2025-01-01T00:00:00.000Z',
-        updatedAt: '2025-01-01T00:00:00.000Z'
-      };
+      const expectedResponse = createMockCharacter({ id: 'char123', ...createData });
 
       await TestPatterns.testSuccessfulCreation(
         app, '/api/characters', createData, expectedResponse, mockCreate
@@ -95,25 +111,15 @@ describe('Character Routes', () => {
   describe('GET /api/characters/party/:partyId', () => {
     it('should return all characters for a party', async () => {
       const mockCharacters = [
-        {
-          id: 'char1',
-          partyId: 'party123',
-          name: 'Gandalf',
+        createMockCharacter({ 
+          id: 'char1', 
+          name: 'Gandalf', 
           playerName: 'John',
-          race: 'Human',
-          classes: [{ className: 'Wizard', level: 5 }],
-          level: 5,
-          ac: 15,
-          maxHp: 45,
-          currentHp: 45,
-          abilities: { str: 10, dex: 14, con: 16, int: 20, wis: 15, cha: 12 },
-          createdAt: '2025-01-01T00:00:00.000Z',
-          updatedAt: '2025-01-01T00:00:00.000Z'
-        },
-        {
-          id: 'char2',
-          partyId: 'party123',
-          name: 'Legolas',
+          abilities: { str: 10, dex: 14, con: 16, int: 20, wis: 15, cha: 12 }
+        }),
+        createMockCharacter({ 
+          id: 'char2', 
+          name: 'Legolas', 
           playerName: 'Jane',
           race: 'Elf',
           classes: [{ className: 'Ranger', level: 4 }],
@@ -121,10 +127,8 @@ describe('Character Routes', () => {
           ac: 16,
           maxHp: 32,
           currentHp: 32,
-          abilities: { str: 12, dex: 18, con: 14, int: 13, wis: 16, cha: 11 },
-          createdAt: '2025-01-01T00:00:00.000Z',
-          updatedAt: '2025-01-01T00:00:00.000Z'
-        }
+          abilities: { str: 12, dex: 18, con: 14, int: 13, wis: 16, cha: 11 }
+        })
       ];
 
       await TestPatterns.testGetCollection(
@@ -141,21 +145,10 @@ describe('Character Routes', () => {
 
   describe('GET /api/characters/:id', () => {
     it('should return specific character by id', async () => {
-      const mockCharacter = {
+      const mockCharacter = createMockCharacter({
         id: 'char123',
-        partyId: 'party123',
-        name: 'Gandalf',
-        playerName: 'John',
-        race: 'Human',
-        classes: [{ className: 'Wizard', level: 5 }],
-        level: 5,
-        ac: 15,
-        maxHp: 45,
-        currentHp: 45,
-        abilities: { str: 10, dex: 14, con: 16, int: 20, wis: 15, cha: 12 },
-        createdAt: '2025-01-01T00:00:00.000Z',
-        updatedAt: '2025-01-01T00:00:00.000Z'
-      };
+        abilities: { str: 10, dex: 14, con: 16, int: 20, wis: 15, cha: 12 }
+      });
 
       await TestPatterns.testSuccessfulGetById(
         app, '/api/characters', 'char123', mockCharacter, mockFindById
@@ -177,22 +170,14 @@ describe('Character Routes', () => {
         tempHp: 5
       };
 
-      const mockUpdatedCharacter = {
+      const mockUpdatedCharacter = createMockCharacter({
         id: 'char123',
-        partyId: 'party123',
         name: 'Updated Character Name',
         playerName: 'John',
-        race: 'Human',
-        classes: [{ className: 'Wizard', level: 5 }],
-        level: 5,
-        ac: 15,
-        maxHp: 45,
         currentHp: 30,
         tempHp: 5,
-        abilities: { str: 10, dex: 14, con: 16, int: 20, wis: 15, cha: 12 },
-        createdAt: '2025-01-01T00:00:00.000Z',
-        updatedAt: '2025-01-01T00:00:00.000Z'
-      };
+        abilities: { str: 10, dex: 14, con: 16, int: 20, wis: 15, cha: 12 }
+      });
 
       await TestPatterns.testSuccessfulUpdate(
         app, '/api/characters', 'char123', updateData, mockUpdatedCharacter, mockUpdate
