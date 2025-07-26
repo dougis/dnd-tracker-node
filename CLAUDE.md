@@ -1,13 +1,14 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with
-code in this repository.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project Status
+
+**IMPORTANT**: This project has been completely reset to start clean. The codebase is currently empty and will be built from scratch using the latest technology stack and modern architecture patterns.
 
 ## Project Overview
 
-This is a D&D Encounter Tracker - a Node.js/React full-stack web application
-for Dungeon Masters to manage combat encounters with initiative tracking,
-HP/AC management, character management, and lair actions support.
+This is a D&D Encounter Tracker - a Node.js/React full-stack web application for Dungeon Masters to manage combat encounters with initiative tracking, HP/AC management, character management, and lair actions support.
 
 ### Key Features
 
@@ -20,7 +21,79 @@ HP/AC management, character management, and lair actions support.
 
 ## Technology Stack
 
+### Core Technologies (Latest Stable Versions)
+
+**Backend:**
+- Node.js v22.15.0 LTS (Codename: 'Jod')
+- Express.js 4.x (Express 5 still in development)
+- MongoDB 8.0.x with Prisma ORM 6.12.0
+- Redis 8.0.x for caching and rate limiting
+- TypeScript with ES modules
+
+**Frontend:**
+- React v19.1.0 with React Compiler
+- Vite v7.0.6 (requires Node.js 20.19+)
+- TanStack Router v1.129.8 for type-safe routing
+- TanStack Query v5.83.0 for data management
+- Zustand v5.0.6 for state management
+- shadcn/ui components (React 19 optimized)
+
+**Authentication & Security:**
+- @oslojs/jwt 0.3.0 for JWT handling
+- @oslojs/oauth2 0.5.0 for OAuth flows
+- argon2 v0.43.1 for password hashing
+- Session-based authentication with secure cookies
+
+**Testing & Quality:**
+- Vitest 3.2.4 for testing
+- Playwright v1.54.1 for E2E testing
+- Zod 3.x for runtime validation
+
+**Infrastructure:**
+- Docker Engine v28.2.1
+- @sentry/node v9.42.0 for monitoring
+- rate-limiter-flexible v7.1.1 for rate limiting
+- hot-shots v11.1.0 for StatsD metrics
+
 ## Architecture Overview
+
+### Project Structure (To Be Created)
+
+```
+dnd-tracker-node/
+├── packages/
+│   ├── server/                 # Express backend
+│   │   ├── src/
+│   │   │   ├── config/         # Configuration files
+│   │   │   ├── controllers/    # Request handlers
+│   │   │   ├── services/       # Business logic
+│   │   │   ├── repositories/   # Data access layer
+│   │   │   ├── prisma/         # Prisma schema and migrations
+│   │   │   ├── middleware/     # Express middleware
+│   │   │   ├── routes/         # API routes
+│   │   │   ├── lib/            # Utilities and integrations
+│   │   │   └── app.ts          # Express app setup
+│   │   └── tests/              # Backend tests
+│   │
+│   ├── client/                 # React frontend
+│   │   ├── src/
+│   │   │   ├── components/     # React components
+│   │   │   ├── pages/          # Page components
+│   │   │   ├── hooks/          # Custom hooks
+│   │   │   ├── services/       # API services
+│   │   │   ├── stores/         # Zustand stores
+│   │   │   └── lib/            # Utilities
+│   │   └── public/             # Static assets
+│   │
+│   └── shared/                 # Shared types/utilities
+│       └── src/
+│           ├── types/          # Shared TypeScript types
+│           ├── constants/      # Shared constants
+│           └── schemas/        # Zod validation schemas
+│
+├── scripts/                    # Build/deployment scripts
+└── docker-compose.yml          # Local development
+```
 
 ### Monorepo Structure
 
@@ -214,18 +287,68 @@ test(character): add comprehensive validation tests
 - **Comprehensive logging** and error tracking
 - **Secure deployment** configuration ready
 
-### Workflow Memories
+## Development Commands (To Be Implemented)
 
-- Always check the status of any opened PR and merge if all checks pass
-- Always run `npm run lint:fix` before committing code
-- Always run `npm run lint:fix` and `npm run test:ci` before pushing code to
-  remote, if any test fails it must be fixed
-- **Before pushing commits to remote the following commands must pass with no
-  errors**
-  - npm run lint:fix
-  - npm run test:ci
-  - npm run build
-- if any errors exist in the commands above they must be fixed
+Once the project is set up, the following commands will be available:
 
-This codebase follows modern full-stack patterns with proper separation of
-concerns, comprehensive testing, and production-ready security implementations.
+### Core Development Commands
+- `npm run dev` - Start development servers (both client and server)
+- `npm run build` - Build all packages for production
+- `npm run test` - Run all tests
+- `npm run test:ci` - Run tests in CI mode
+- `npm run lint` - Run linting
+- `npm run lint:fix` - Run linting with auto-fix
+- `npm run typecheck` - TypeScript type checking
+
+### Database Commands
+- `npm run db:generate` - Generate Prisma client
+- `npm run db:push` - Push schema changes to database
+- `npm run db:migrate` - Run database migrations
+- `npm run db:seed` - Seed database with initial data
+
+### Package-Specific Commands
+- `npm run dev:server` - Start server in development mode
+- `npm run dev:client` - Start client in development mode
+- `npm run test:server` - Run server tests only
+- `npm run test:client` - Run client tests only
+
+## Development Workflow Requirements
+
+### Before ANY commit:
+1. Run `npm run lint:fix` - Fix all linting issues
+2. Run `npm run typecheck` - Ensure TypeScript compiles
+3. Run `npm run test` - All tests must pass
+4. Run `npm run build` - Production build must succeed
+
+### Pull Request Process:
+- Enable auto-merge on PRs
+- All checks must pass before merge
+- Link GitHub issues in PR description
+- Follow conventional commit messages
+
+### Quality Gates:
+- 80%+ test coverage for all new code
+- Zero TypeScript errors
+- All ESLint rules pass
+- All tests pass in CI
+- Successful production build
+
+## Architecture Principles
+
+### Why Express/React over Next.js:
+- **Explicit Control**: Full control over authentication and session management
+- **Debugging Clarity**: Clear separation between frontend and backend
+- **Performance**: Multi-layer caching and optimized queries
+- **Security**: Session-based auth without framework constraints
+- **Flexibility**: Backend can work with any frontend framework
+
+### Key Design Patterns:
+- **Service Layer Pattern** with dependency injection
+- **Repository Pattern** for data access
+- **Multi-layer caching** (Memory + Redis)
+- **Session-based authentication** with secure cookies
+- **Feature gating** based on subscription tiers
+- **Real-time updates** via Server-Sent Events
+- **Offline-first PWA** capabilities
+
+This codebase will follow modern full-stack patterns with proper separation of concerns, comprehensive testing, and production-ready security implementations.
