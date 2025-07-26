@@ -98,7 +98,8 @@ export const createExpectedApiEncounters = (encounters: MockEncounter[]) =>
 
 // Route testing helpers that use consolidated patterns
 export const createTestRequest = (app: any, method: string, path: string, data?: any) => {
-  const request = supertest(app)[method.toLowerCase()](path);
+  const supertestInstance = supertest(app);
+  const request = (supertestInstance as any)[method.toLowerCase()](path);
   return data ? request.send(data) : request;
 };
 
