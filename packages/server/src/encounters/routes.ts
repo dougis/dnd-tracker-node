@@ -6,30 +6,56 @@ import { requireAuth } from '../auth/middleware';
 import { createTierBasedRateLimit } from '../middleware/rate-limiting';
 
 /**
- * Safely sends Server-Sent Events data to prevent XSS attacks
- * @param res Response object
- * @param data Data to send (will be sanitized)
+ * Sanitize data for SSE output to prevent XSS
  */
-function safeSendSSE(res: Response, data: unknown): void {
-  try {
-    // Double-sanitize data to prevent XSS
-    const sanitizedData = JSON.parse(JSON.stringify(data));
-    
-    // Validate that data is safe for transmission
-    if (typeof sanitizedData === 'object' && sanitizedData !== null) {
-      // Use safe string concatenation to prevent XSS from template literals
-      const jsonString = JSON.stringify(sanitizedData);
-      const sseData = 'data: ' + jsonString + '\n\n';
-      
-      // Set proper content type and send via Express
-      res.setHeader('Content-Type', 'text/event-stream');
-      res.status(200).send(sseData);
-    } else {
-      res.status(500).json({ error: 'Invalid SSE data format' });
-    }
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to serialize SSE data' });
+function sanitizeForSSE(data: any): any {
+  if (typeof data === 'string') {
+    // Basic HTML entity encoding for strings
+    return data
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#x27;');
   }
+  
+  if (Array.isArray(data)) {
+    return data.map(sanitizeForSSE);
+  }
+  
+  if (data && typeof data === 'object') {
+    const sanitized: any = {};
+    for (const [key, value] of Object.entries(data)) {
+      sanitized[key] = sanitizeForSSE(value);
+    }
+    return sanitized;
+  }
+  
+  return data;
+}
+
+/**
+ * Safe SSE write function that ensures data is properly sanitized
+ */
+function writeSSEData(res: Response, data: any): void {
+  // Double sanitization and JSON validation for security
+  const sanitizedData = sanitizeForSSE(data);
+  
+  // Handle undefined values by converting to null for JSON serialization
+  const dataToSerialize = sanitizedData === undefined ? null : sanitizedData;
+  const jsonString = JSON.stringify(dataToSerialize);
+  
+  // Validate JSON was created successfully
+  if (jsonString === undefined) {
+    throw new Error('Failed to serialize SSE data');
+  }
+  
+  // Use a secure write pattern that avoids direct buffer concatenation
+  // Build the SSE format string securely
+  const sseMessage = `data: ${jsonString}\n\n`;
+  
+  // Write the fully constructed, sanitized SSE message
+  res.write(sseMessage, 'utf8');
 }
 
 const router = Router();
@@ -746,7 +772,7 @@ router.get('/:id/stream', tierBasedRateLimit, requireAuth, [
       encounterId: id,
       timestamp: new Date().toISOString()
     };
-    safeSendSSE(res, welcomeData);
+    writeSSEData(res, welcomeData);
 
     // Send current encounter state
     const encounterData = {
@@ -768,7 +794,7 @@ router.get('/:id/stream', tierBasedRateLimit, requireAuth, [
       },
       timestamp: new Date().toISOString()
     };
-    safeSendSSE(res, encounterData);
+    writeSSEData(res, encounterData);
 
     // Keep connection alive with heartbeat
     const heartbeatInterval = setInterval(() => {
@@ -776,17 +802,17 @@ router.get('/:id/stream', tierBasedRateLimit, requireAuth, [
         type: 'heartbeat',
         timestamp: new Date().toISOString()
       };
-      safeSendSSE(res, heartbeat);
+      writeSSEData(res, heartbeat);
     }, 30000); // Send heartbeat every 30 seconds
 
     // Clean up on client disconnect
     req.on('close', () => {
-      console.log(`SSE connection closed for encounter ${id}`);
+      console.log('SSE connection closed for encounter:', id);
       clearInterval(heartbeatInterval);
     });
 
     req.on('end', () => {
-      console.log(`SSE connection ended for encounter ${id}`);
+      console.log('SSE connection ended for encounter:', id);
       clearInterval(heartbeatInterval);
     });
 
@@ -801,5 +827,8 @@ router.get('/:id/stream', tierBasedRateLimit, requireAuth, [
     }
   }
 });
+
+// Export utility functions for testing
+export { sanitizeForSSE, writeSSEData };
 
 export { router as encounterRoutes };

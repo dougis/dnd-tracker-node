@@ -115,55 +115,6 @@ export class EncounterService {
   /**
    * Validates encounter update data
    */
-  private validateEncounterUpdateData(data: { name?: string; description?: string; status?: EncounterStatus }): void {
-    if (data.name !== undefined) {
-      if (!data.name || data.name.trim().length === 0) {
-        throw new Error('Encounter name is required');
-      }
-      if (data.name.length > 100) {
-        throw new Error('Encounter name must be 100 characters or less');
-      }
-    }
-  }
-
-  /**
-   * Verifies encounter ownership
-   */
-  private async verifyEncounterOwnership(encounterId: string, userId: string): Promise<void> {
-    const encounter = await this.prisma.encounter.findUnique({
-      where: { id: encounterId },
-      select: { userId: true },
-    });
-
-    if (!encounter) {
-      throw new Error('Encounter not found');
-    }
-
-    if (encounter.userId !== userId) {
-      throw new Error('Not authorized to modify this encounter');
-    }
-  }
-
-  /**
-   * Builds update data object
-   */
-  private buildUpdateData(data: { name?: string; description?: string; status?: EncounterStatus }): any {
-    const updateData: any = {};
-    if (data.name !== undefined) {
-      updateData.name = data.name.trim();
-    }
-    if (data.description !== undefined) {
-      updateData.description = data.description.trim() || null;
-    }
-    if (data.status !== undefined) {
-      updateData.status = data.status;
-    }
-    return updateData;
-  }
-
-  /**
-   * Update encounter basic information
-   */
   async updateEncounter(
     encounterId: string,
     userId: string,
@@ -173,7 +124,7 @@ export class EncounterService {
       status?: EncounterStatus;
     }
   ): Promise<EncounterWithDetails> {
-    this.validateEncounterUpdateData(data);
+    this.validateUpdateData(data);
     await this.verifyEncounterOwnership(encounterId, userId);
     const updateData = this.buildUpdateData(data);
 
@@ -193,10 +144,61 @@ export class EncounterService {
   }
 
   /**
+   * Validate encounter update data
+   */
+  private validateUpdateData(data: { name?: string; description?: string; status?: EncounterStatus }): void {
+    if (data.name !== undefined) {
+      if (!data.name || data.name.trim().length === 0) {
+        throw new Error('Encounter name is required');
+      }
+      if (data.name.length > 100) {
+        throw new Error('Encounter name must be 100 characters or less');
+      }
+    }
+  }
+
+  /**
+   * Verify user owns the encounter
+   */
+  private async verifyEncounterOwnership(encounterId: string, userId: string, action: string = 'modify'): Promise<void> {
+    const encounter = await this.prisma.encounter.findUnique({
+      where: { id: encounterId },
+      select: { userId: true },
+    });
+
+    if (!encounter) {
+      throw new Error('Encounter not found');
+    }
+
+    if (encounter.userId !== userId) {
+      throw new Error(`Not authorized to ${action} this encounter`);
+    }
+  }
+
+  /**
+   * Build update data object
+   */
+  private buildUpdateData(data: { name?: string; description?: string; status?: EncounterStatus }): any {
+    const updateData: any = {};
+    
+    if (data.name !== undefined) {
+      updateData.name = data.name.trim();
+    }
+    if (data.description !== undefined) {
+      updateData.description = data.description.trim() || null;
+    }
+    if (data.status !== undefined) {
+      updateData.status = data.status;
+    }
+    
+    return updateData;
+  }
+
+  /**
    * Delete encounter
    */
   async deleteEncounter(encounterId: string, userId: string): Promise<void> {
-    await this.verifyEncounterOwnership(encounterId, userId);
+    await this.verifyEncounterOwnership(encounterId, userId, 'delete');
 
     await this.prisma.encounter.delete({
       where: { id: encounterId },
@@ -213,27 +215,32 @@ export class EncounterService {
   ): Promise<EncounterWithDetails> {
     await this.verifyEncounterOwnership(encounterId, userId);
 
-    // Add participant
     await this.prisma.participant.create({
-      data: {
-        encounterId,
-        type: participantData.type,
-        characterId: participantData.characterId || null,
-        creatureId: participantData.creatureId || null,
-        name: participantData.name,
-        initiative: participantData.initiative,
-        initiativeRoll: participantData.initiativeRoll || null,
-        currentHp: participantData.currentHp,
-        maxHp: participantData.maxHp,
-        tempHp: participantData.tempHp || 0,
-        ac: participantData.ac,
-        conditions: participantData.conditions || [],
-        notes: participantData.notes || null,
-      },
+      data: this.buildParticipantCreateData(encounterId, participantData),
     });
 
-    // Return updated encounter
     return this.getEncounterById(encounterId) as Promise<EncounterWithDetails>;
+  }
+
+  /**
+   * Build participant create data
+   */
+  private buildParticipantCreateData(encounterId: string, participantData: ParticipantCreateData): any {
+    return {
+      encounterId,
+      type: participantData.type,
+      characterId: participantData.characterId || null,
+      creatureId: participantData.creatureId || null,
+      name: participantData.name,
+      initiative: participantData.initiative,
+      initiativeRoll: participantData.initiativeRoll || null,
+      currentHp: participantData.currentHp,
+      maxHp: participantData.maxHp,
+      tempHp: participantData.tempHp || 0,
+      ac: participantData.ac,
+      conditions: participantData.conditions || [],
+      notes: participantData.notes || null,
+    };
   }
 
   /**

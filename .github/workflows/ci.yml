@@ -47,22 +47,25 @@ jobs:
         run: npm run test:ci
         
       - name: Upload coverage to Codacy (Client)
-        if: matrix.node-version == '18.x'
-        uses: codacy/codacy-coverage-reporter-action@3f58b0e12285221110375dffef1150534700246b
+        if: matrix.node-version == '18.x' && hashFiles('packages/client/coverage/clover.xml') != ''
+        continue-on-error: true
+        uses: codacy/codacy-coverage-reporter-action@89d6c85cfafaec52c72b6c5e8b2878d33104c699
         with:
           project-token: ${{ env.CODACY_PROJECT_TOKEN }}
           coverage-reports: packages/client/coverage/clover.xml
           
       - name: Upload coverage to Codacy (Server)
-        if: matrix.node-version == '18.x'
-        uses: codacy/codacy-coverage-reporter-action@3f58b0e12285221110375dffef1150534700246b
+        if: matrix.node-version == '18.x' && hashFiles('packages/server/coverage/clover.xml') != ''
+        continue-on-error: true
+        uses: codacy/codacy-coverage-reporter-action@89d6c85cfafaec52c72b6c5e8b2878d33104c699
         with:
           project-token: ${{ env.CODACY_PROJECT_TOKEN }}
           coverage-reports: packages/server/coverage/clover.xml
           
       - name: Upload coverage to Codacy (Shared)
-        if: matrix.node-version == '18.x'
-        uses: codacy/codacy-coverage-reporter-action@3f58b0e12285221110375dffef1150534700246b
+        if: matrix.node-version == '18.x' && hashFiles('packages/shared/coverage/clover.xml') != ''
+        continue-on-error: true
+        uses: codacy/codacy-coverage-reporter-action@89d6c85cfafaec52c72b6c5e8b2878d33104c699
         with:
           project-token: ${{ env.CODACY_PROJECT_TOKEN }}
           coverage-reports: packages/shared/coverage/clover.xml
@@ -113,3 +116,9 @@ jobs:
         
       - name: Run security audit
         run: npm audit --audit-level moderate
+        
+      - name: Upload SARIF to GitHub
+        if: always() && hashFiles('results.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: results.sarif

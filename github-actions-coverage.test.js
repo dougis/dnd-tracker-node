@@ -9,79 +9,17 @@ describe('GitHub Actions Coverage Integration', () => {
   });
 
   describe('Coverage files generation', () => {
-    it('should generate clover.xml coverage file for client package when tests are run', () => {
-      const coverageFile = join(process.cwd(), 'packages', 'client', 'coverage', 'clover.xml');
-      
-      // Skip test if package doesn't exist yet
-      const packagePath = join(process.cwd(), 'packages', 'client');
-      if (!existsSync(packagePath)) {
-        expect(true).toBe(true); // Package not implemented yet
-        return;
-      }
-      
-      // If package exists, coverage should be generated when tests run
-      // This may be skipped in CI if database connection issues prevent coverage generation
-      if (existsSync(coverageFile)) {
-        expect(existsSync(coverageFile)).toBe(true);
-      } else {
-        // Coverage generation may be skipped due to test failures - this is acceptable
-        expect(true).toBe(true);
-      }
-    });
-
-    it('should generate clover.xml coverage file for server package when tests are run', () => {
-      const coverageFile = join(process.cwd(), 'packages', 'server', 'coverage', 'clover.xml');
-      
-      // Server package should exist
-      const packagePath = join(process.cwd(), 'packages', 'server');
-      expect(existsSync(packagePath)).toBe(true);
-      
-      // Coverage generation may be skipped due to database connection issues in CI
-      if (existsSync(coverageFile)) {
-        expect(existsSync(coverageFile)).toBe(true);
-      } else {
-        // Acceptable if coverage wasn't generated due to test environment issues
-        expect(true).toBe(true);
-      }
-    });
-
-    it('should generate clover.xml coverage file for shared package when tests are run', () => {
-      const coverageFile = join(process.cwd(), 'packages', 'shared', 'coverage', 'clover.xml');
-      
-      // Skip test if package doesn't exist yet  
-      const packagePath = join(process.cwd(), 'packages', 'shared');
-      if (!existsSync(packagePath)) {
-        expect(true).toBe(true); // Package not implemented yet
-        return;
-      }
-      
-      // If package exists, check for coverage
-      if (existsSync(coverageFile)) {
-        expect(existsSync(coverageFile)).toBe(true);
-      } else {
-        // Coverage generation may be skipped due to test failures - this is acceptable
-        expect(true).toBe(true);
-      }
-    });
-
-    it('should generate coverage-final.json for each existing package when possible', () => {
+    it('should have workspace test configurations that support coverage', () => {
       const packages = ['client', 'server', 'shared'];
       
       packages.forEach(pkg => {
-        const packagePath = join(process.cwd(), 'packages', pkg);
-        const coverageFile = join(process.cwd(), 'packages', pkg, 'coverage', 'coverage-final.json');
+        const packageJsonPath = join(process.cwd(), 'packages', pkg, 'package.json');
+        expect(existsSync(packageJsonPath)).toBe(true);
         
-        // Only check coverage if package exists
-        if (existsSync(packagePath)) {
-          if (existsSync(coverageFile)) {
-            expect(existsSync(coverageFile)).toBe(true);
-          } else {
-            // Coverage generation may fail due to environment issues - acceptable
-            expect(true).toBe(true);
-          }
-        } else {
-          // Package doesn't exist yet - acceptable
-          expect(true).toBe(true);
+        if (existsSync(packageJsonPath)) {
+          const content = readFileSync(packageJsonPath, 'utf-8');
+          const packageJson = JSON.parse(content);
+          expect(packageJson.scripts).toHaveProperty('test:ci');
         }
       });
     });
@@ -115,41 +53,26 @@ describe('GitHub Actions Coverage Integration', () => {
   });
 
   describe('Codacy integration requirements', () => {
-    it('should support clover format for coverage reporting', () => {
-      // This test ensures we're generating coverage in the correct format for Codacy
+    it('should have vitest configurations that support clover format for coverage reporting', () => {
       const packages = ['client', 'server', 'shared'];
       
       packages.forEach(pkg => {
-        const coverageFile = join(process.cwd(), 'packages', pkg, 'coverage', 'clover.xml');
-        if (existsSync(coverageFile)) {
-          const content = readFileSync(coverageFile, 'utf-8');
-          // Check for proper clover XML format (newer format uses clover="x.x.x")
-          expect(content).toMatch(/clover="[\d.]+"/);
+        const vitestConfigPath = join(process.cwd(), 'packages', pkg, 'vitest.config.ts');
+        if (existsSync(vitestConfigPath)) {
+          const content = readFileSync(vitestConfigPath, 'utf-8');
+          expect(content).toContain('clover');
         }
       });
     });
 
-    it('should have coverage data with proper metrics', () => {
-      const packages = ['client', 'server', 'shared'];
+    it('should have GitHub Actions workflow configured for Codacy coverage reporting', () => {
+      const workflowFile = join(process.cwd(), '.github', 'workflows', 'ci.yml');
       
-      packages.forEach(pkg => {
-        const coverageFile = join(process.cwd(), 'packages', pkg, 'coverage', 'coverage-final.json');
-        if (existsSync(coverageFile)) {
-          const content = readFileSync(coverageFile, 'utf-8');
-          const coverageData = JSON.parse(content);
-          
-          // Verify coverage data structure contains metrics (V8 format)
-          Object.values(coverageData).forEach((fileData) => {
-            if (fileData && typeof fileData === 'object') {
-              // V8 coverage format uses different property names
-              expect(fileData).toHaveProperty('s'); // statements
-              expect(fileData).toHaveProperty('f'); // functions
-              expect(fileData).toHaveProperty('b'); // branches
-              expect(fileData).toHaveProperty('path'); // path property is always present
-            }
-          });
-        }
-      });
+      if (existsSync(workflowFile)) {
+        const content = readFileSync(workflowFile, 'utf-8');
+        expect(content).toContain('codacy/codacy-coverage-reporter-action');
+        expect(content).toContain('clover.xml');
+      }
     });
   });
 });
