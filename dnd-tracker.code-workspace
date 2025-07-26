@@ -1,0 +1,53 @@
+{
+  "folders": [
+    {
+      "name": "Root",
+      "path": "."
+    },
+    {
+      "name": "Server",
+      "path": "./packages/server"
+    },
+    {
+      "name": "Client", 
+      "path": "./packages/client"
+    },
+    {
+      "name": "Shared",
+      "path": "./packages/shared"
+    }
+  ],
+  "settings": {
+    "typescript.preferences.includePackageJsonAutoImports": "auto",
+    "typescript.enablePromptUseWorkspaceTsdk": true,
+    "typescript.format.semicolons": "remove",
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": "explicit"
+    },
+    "search.exclude": {
+      "**/node_modules": true,
+      "**/dist": true,
+      "**/coverage": true,
+      "**/.next": true
+    },
+    "files.exclude": {
+      "**/node_modules": true,
+      "**/dist": true,
+      "**/coverage": true
+    },
+    "eslint.workingDirectories": [
+      "./packages/server",
+      "./packages/client", 
+      "./packages/shared"
+    ]
+  },
+  "extensions": {
+    "recommendations": [
+      "esbenp.prettier-vscode",
+      "dbaeumer.vscode-eslint",
+      "ms-vscode.vscode-typescript-next",
+      "bradlc.vscode-tailwindcss",
+      "ms-vscode.vscode-json"
+    ]
+  }
+}

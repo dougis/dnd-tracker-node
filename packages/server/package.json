@@ -1,0 +1,54 @@
+{
+  "name": "@dnd-tracker/server",
+  "version": "1.0.0",
+  "description": "Express.js backend server for D&D Tracker",
+  "main": "dist/app.js",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch --clear-screen=false src/app.ts",
+    "build": "tsc",
+    "start": "node dist/app.js",
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ci": "vitest run --coverage",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev",
+    "db:seed": "tsx src/prisma/seed.ts"
+  },
+  "dependencies": {
+    "@dnd-tracker/shared": "file:../shared",
+    "@oslojs/jwt": "^0.3.0",
+    "@oslojs/oauth2": "^0.5.0",
+    "@prisma/client": "^6.12.0",
+    "@sentry/node": "^9.42.0",
+    "argon2": "^0.43.1",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "helmet": "^8.0.0",
+    "hot-shots": "^11.1.0",
+    "rate-limiter-flexible": "^7.1.1",
+    "redis": "^4.7.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.18.0",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.15.0",
+    "@vitest/coverage-v8": "^3.2.4",
+    "eslint": "^9.18.0",
+    "prisma": "^6.12.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.20.0",
+    "vitest": "^3.2.4"
+  },
+  "engines": {
+    "node": ">=22.15.0"
+  }
+}
