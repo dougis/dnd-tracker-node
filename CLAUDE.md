@@ -160,6 +160,15 @@ const userService = new UserService(mockPrisma);
 - **User event testing** with @testing-library/user-event
 - **Component integration tests** rather than unit tests
 
+## Testing Best Practices
+
+- Always reference existing test helper classes to prevent duplication
+- Always use helper functions for setup and teardown to prevent duplication
+- Keep complexity low (use Codacy to ensure)
+- Keep duplication low
+- Refactor as needed
+- Do not rush
+
 ## Security Implementation
 
 - **Helmet.js** for security headers
