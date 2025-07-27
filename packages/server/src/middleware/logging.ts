@@ -70,7 +70,7 @@ function sanitizeBody(body: unknown): unknown {
 export function loggingMiddleware() {
   return (req: Request, res: Response, next: NextFunction): void => {
     const startTime = Date.now();
-    const requestId = req.requestId || res.locals?.requestId || 'unknown';
+    const requestId = (req as Request & { requestId?: string }).requestId || res.locals?.requestId || 'unknown';
 
     // Log incoming request
     logger.info({
@@ -108,8 +108,8 @@ export function loggingMiddleware() {
         contentLength: res.getHeader('content-length')
       }, `${req.method} ${req.url} - ${statusCode} - ${duration}ms`);
 
-        // Call original end method
-        return originalEnd.call(this, chunk, encoding, callback);
+        // Call original end method with proper type casting
+        return originalEnd.call(this, chunk, encoding as BufferEncoding, callback as (() => void) | undefined);
       };
     }
 

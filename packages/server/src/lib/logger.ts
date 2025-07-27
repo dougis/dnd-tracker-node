@@ -17,7 +17,7 @@ const SENSITIVE_FIELDS = [
 ];
 
 // Custom serializer to remove sensitive data
-export function sanitizeObject(obj: unknown): unknown {
+export function sanitizeObject(obj: unknown): Record<string, unknown> | unknown {
   if (!obj || typeof obj !== 'object') {
     return obj;
   }
@@ -88,20 +88,24 @@ export function createLogger(): Logger {
       err: pino.stdSerializers.err
     },
     formatters: {
-      log: (obj: unknown) => {
-        return sanitizeObject(obj);
+      log: (obj: unknown): Record<string, unknown> => {
+        const sanitized = sanitizeObject(obj);
+        return (typeof sanitized === 'object' && sanitized !== null && !Array.isArray(sanitized)) 
+          ? sanitized as Record<string, unknown>
+          : {};
       }
     },
     hooks: {
-      logMethod(inputArgs: unknown[], method: (...args: unknown[]) => void, _level: number) {
+      logMethod(this: Logger, args: [msg: string, ...rest: unknown[]], method: (msg: string, ...args: unknown[]) => void, _level: number) {
         // Sanitize all arguments passed to log methods
-        const sanitizedArgs = inputArgs.map((arg, index) => {
-          if (index === 0 && typeof arg === 'object') {
+        const [msg, ...rest] = args;
+        const sanitizedRest = rest.map((arg) => {
+          if (typeof arg === 'object' && arg !== null) {
             return sanitizeObject(arg);
           }
           return arg;
         });
-        return method.apply(this, sanitizedArgs);
+        return method.call(this, msg, ...sanitizedRest);
       }
     }
   };
@@ -144,11 +148,11 @@ export function createRequestLogger() {
       // Use existing request ID if available
       return (req.requestId as string) || crypto.randomUUID();
     },
-    customLogLevel: (req: Record<string, unknown>, res: Record<string, unknown>, err: Error | null) => {
+    customLogLevel: (_req: Record<string, unknown>, res: Record<string, unknown>, error?: Error) => {
       const statusCode = res.statusCode as number;
       if (statusCode >= 400 && statusCode < 500) {
         return 'warn';
-      } else if (statusCode >= 500 || err) {
+      } else if (statusCode >= 500 || error) {
         return 'error';
       }
       return 'info';
