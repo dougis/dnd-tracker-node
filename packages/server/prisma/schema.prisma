@@ -1,0 +1,523 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+// ===== AUTHENTICATION & USER MODELS =====
+
+model User {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  email           String   @unique
+  username        String   @unique
+  passwordHash    String
+  isEmailVerified Boolean  @default(false)
+  emailToken      String?
+  lockoutCount    Int      @default(0)
+  lockoutUntil    DateTime?
+  
+  // Profile Information
+  displayName     String?
+  avatar          String?
+  timezone        String   @default("UTC")
+  
+  // Subscription Information
+  subscriptionTier SubscriptionTier @default(FREE)
+  subscriptionId   String?
+  customerId       String? // Stripe customer ID
+  
+  // Timestamps
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  lastLoginAt     DateTime?
+  lastActiveAt    DateTime @default(now())
+  
+  // Relations
+  sessions        Session[]
+  stats           UserStats?
+  characters      Character[]
+  parties         Party[]
+  encounters      Encounter[]
+  participations  Participant[]
+  combats         Combat[]
+  
+  @@map("users")
+}
+
+model UserStats {
+  id                 String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId             String   @unique @db.ObjectId
+  
+  // Usage Statistics
+  charactersCreated  Int      @default(0)
+  partiesCreated     Int      @default(0)
+  encountersCreated  Int      @default(0)
+  combatsRun         Int      @default(0)
+  
+  // Monthly Usage Tracking (for tier limits)
+  monthlyEncounters  Int      @default(0)
+  monthlyCharacters  Int      @default(0)
+  monthlyParties     Int      @default(0)
+  
+  // Reset tracking
+  lastMonthlyReset   DateTime @default(now())
+  
+  // Performance Metrics
+  avgCombatDuration  Float?   // in minutes
+  totalPlayTime      Float    @default(0) // in minutes
+  
+  // Timestamps
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  
+  // Relations
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("user_stats")
+}
+
+model Session {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  token     String   @unique
+  userId    String   @db.ObjectId
+  expiresAt DateTime
+  
+  // Session metadata
+  ipAddress String?
+  userAgent String?
+  
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("sessions")
+}
+
+// ===== CHARACTER & PARTY MODELS =====
+
+model Character {
+  id             String          @id @default(auto()) @map("_id") @db.ObjectId
+  name           String
+  creatorId      String          @db.ObjectId
+  
+  // Character Type
+  type           CharacterType   @default(PC)
+  
+  // Basic Stats
+  level          Int             @default(1)
+  classes        CharacterClass[] // Supports multiclass
+  race           String?
+  background     String?
+  
+  // Core Stats
+  hitPoints      Int
+  maxHitPoints   Int
+  armorClass     Int
+  
+  // Ability Scores
+  strength       Int             @default(10)
+  dexterity      Int             @default(10)
+  constitution   Int             @default(10)
+  intelligence   Int             @default(10)
+  wisdom         Int             @default(10)
+  charisma       Int             @default(10)
+  
+  // Derived Stats
+  proficiencyBonus Int           @default(2)
+  passivePerception Int          @default(10)
+  initiative     Int?            // Calculated from dexterity modifier
+  
+  // Spell Information (if applicable)
+  spellSlots     SpellSlot[]
+  spellSaveDC    Int?
+  spellAttackBonus Int?
+  
+  // Equipment & Features
+  equipment      Json?           // Flexible equipment storage
+  features       Json?           // Class features, feats, etc.
+  notes          String?
+  
+  // D&D Beyond Integration
+  dndBeyondId    String?         @unique
+  dndBeyondUrl   String?
+  
+  // Sharing & Visibility
+  isPublic       Boolean         @default(false)
+  isTemplate     Boolean         @default(false)
+  
+  // Timestamps
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  
+  // Relations
+  creator        User            @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  parties        PartyMember[]
+  participations Participant[]
+  
+  @@index([creatorId])
+  @@index([type])
+  @@index([isPublic])
+  @@index([isTemplate])
+  @@map("characters")
+}
+
+model CharacterClass {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  characterId String    @db.ObjectId
+  className   String    // e.g., "Fighter", "Wizard"
+  level       Int       @default(1)
+  subclass    String?   // e.g., "Champion", "School of Evocation"
+  
+  // Relations
+  character   Character @relation(fields: [characterId], references: [id], onDelete: Cascade)
+  
+  @@map("character_classes")
+}
+
+model SpellSlot {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  characterId String    @db.ObjectId
+  level       Int       // Spell slot level (1-9)
+  total       Int       // Total slots available
+  used        Int       @default(0) // Slots used
+  
+  // Relations
+  character   Character @relation(fields: [characterId], references: [id], onDelete: Cascade)
+  
+  @@unique([characterId, level])
+  @@map("spell_slots")
+}
+
+model Party {
+  id          String        @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  description String?
+  creatorId   String        @db.ObjectId
+  
+  // Party Settings
+  isPublic    Boolean       @default(false)
+  inviteCode  String?       @unique // For party invitations
+  
+  // Timestamps
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  
+  // Relations
+  creator     User          @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  members     PartyMember[]
+  encounters  Encounter[]
+  
+  @@index([creatorId])
+  @@index([isPublic])
+  @@map("parties")
+}
+
+model PartyMember {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  partyId     String    @db.ObjectId
+  characterId String    @db.ObjectId
+  role        PartyRole @default(MEMBER)
+  
+  // Timestamps
+  joinedAt    DateTime  @default(now())
+  
+  // Relations
+  party       Party     @relation(fields: [partyId], references: [id], onDelete: Cascade)
+  character   Character @relation(fields: [characterId], references: [id], onDelete: Cascade)
+  
+  @@unique([partyId, characterId])
+  @@map("party_members")
+}
+
+// ===== ENCOUNTER & COMBAT MODELS =====
+
+model Encounter {
+  id                String            @id @default(auto()) @map("_id") @db.ObjectId
+  name              String
+  description       String?
+  creatorId         String            @db.ObjectId
+  partyId           String?           @db.ObjectId
+  
+  // Encounter Configuration
+  difficulty        EncounterDifficulty @default(MEDIUM)
+  environment       String?           // e.g., "Forest", "Dungeon"
+  
+  // Lair Actions (unique competitive advantage)
+  hasLairActions    Boolean           @default(false)
+  lairActions       LairAction[]
+  lairInitiative    Int?              // When lair actions occur in initiative
+  
+  // Encounter Templates
+  isTemplate        Boolean           @default(false)
+  isPublic          Boolean           @default(false)
+  
+  // Usage Tracking
+  timesUsed         Int               @default(0)
+  avgDuration       Float?            // in minutes
+  
+  // Timestamps
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  
+  // Relations
+  creator           User              @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  party             Party?            @relation(fields: [partyId], references: [id], onDelete: SetNull)
+  participants      Participant[]
+  combats           Combat[]
+  
+  @@index([creatorId])
+  @@index([partyId])
+  @@index([isTemplate])
+  @@index([isPublic])
+  @@index([difficulty])
+  @@map("encounters")
+}
+
+model LairAction {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  encounterId   String    @db.ObjectId
+  name          String
+  description   String
+  initiative    Int       // When this action occurs in initiative order
+  isActive      Boolean   @default(true)
+  
+  // Relations
+  encounter     Encounter @relation(fields: [encounterId], references: [id], onDelete: Cascade)
+  
+  @@map("lair_actions")
+}
+
+model Participant {
+  id              String            @id @default(auto()) @map("_id") @db.ObjectId
+  encounterId     String            @db.ObjectId
+  characterId     String?           @db.ObjectId // null for custom creatures
+  creatorId       String            @db.ObjectId // who added this participant
+  
+  // Participant Override Data (for custom creatures or modifications)
+  customName      String?           // Override character name
+  customHp        Int?              // Override max HP
+  customAc        Int?              // Override AC
+  customInitiative Int?             // Override initiative bonus
+  
+  // Encounter-specific data
+  position        Int               @default(0) // Display order
+  notes           String?
+  
+  // Relations
+  encounter       Encounter         @relation(fields: [encounterId], references: [id], onDelete: Cascade)
+  character       Character?        @relation(fields: [characterId], references: [id], onDelete: SetNull)
+  creator         User              @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  combatStates    CombatParticipant[]
+  
+  @@index([encounterId])
+  @@index([characterId])
+  @@map("participants")
+}
+
+model Combat {
+  id              String              @id @default(auto()) @map("_id") @db.ObjectId
+  encounterId     String              @db.ObjectId
+  creatorId       String              @db.ObjectId
+  name            String?             // Optional combat session name
+  
+  // Combat State
+  status          CombatStatus        @default(PREPARING)
+  currentRound    Int                 @default(1)
+  currentTurn     Int                 @default(0) // Index of current participant
+  
+  // Initiative Tracking
+  initiativeRolled Boolean            @default(false)
+  
+  // Timestamps
+  startedAt       DateTime?
+  endedAt         DateTime?
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  
+  // Combat Analytics
+  totalRounds     Int?
+  duration        Float?              // in minutes
+  
+  // Relations
+  encounter       Encounter           @relation(fields: [encounterId], references: [id], onDelete: Cascade)
+  creator         User                @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  participants    CombatParticipant[]
+  logs            CombatLog[]
+  
+  @@index([encounterId])
+  @@index([creatorId])
+  @@index([status])
+  @@map("combats")
+}
+
+model CombatParticipant {
+  id              String              @id @default(auto()) @map("_id") @db.ObjectId
+  combatId        String              @db.ObjectId
+  participantId   String              @db.ObjectId
+  
+  // Initiative & Turn Order
+  initiative      Int                 @default(0)
+  dexterityScore  Int                 @default(10) // For tiebreakers
+  turnOrder       Int                 @default(0)  // Final turn order after sorting
+  
+  // Current Combat State
+  currentHp       Int
+  maxHp           Int
+  armorClass      Int
+  
+  // Conditions & Effects
+  conditions      Condition[]
+  temporaryHp     Int                 @default(0)
+  
+  // Combat Status
+  isConscious     Boolean             @default(true)
+  isDead          Boolean             @default(false)
+  hasActed        Boolean             @default(false) // This turn
+  
+  // Spell Slot Tracking (copied from character at combat start)
+  spellSlots      CombatSpellSlot[]
+  
+  // Relations
+  combat          Combat              @relation(fields: [combatId], references: [id], onDelete: Cascade)
+  participant     Participant         @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  
+  @@unique([combatId, participantId])
+  @@index([combatId])
+  @@index([turnOrder])
+  @@map("combat_participants")
+}
+
+model CombatSpellSlot {
+  id                    String             @id @default(auto()) @map("_id") @db.ObjectId
+  combatParticipantId   String             @db.ObjectId
+  level                 Int                // Spell slot level (1-9)
+  total                 Int                // Total slots available
+  used                  Int                @default(0) // Slots used in this combat
+  
+  // Relations
+  combatParticipant     CombatParticipant  @relation(fields: [combatParticipantId], references: [id], onDelete: Cascade)
+  
+  @@unique([combatParticipantId, level])
+  @@map("combat_spell_slots")
+}
+
+model Condition {
+  id                    String             @id @default(auto()) @map("_id") @db.ObjectId
+  combatParticipantId   String             @db.ObjectId
+  name                  String             // e.g., "Poisoned", "Stunned"
+  description           String?
+  
+  // Duration tracking
+  duration              Int?               // Rounds remaining (null = permanent)
+  saveType              String?            // e.g., "Constitution", "Wisdom"
+  saveDC                Int?               // Save DC if applicable
+  
+  // Source tracking
+  source                String?            // What caused this condition
+  appliedBy             String?            // Which participant applied it
+  
+  // Timestamps
+  appliedAt             DateTime           @default(now())
+  
+  // Relations
+  combatParticipant     CombatParticipant  @relation(fields: [combatParticipantId], references: [id], onDelete: Cascade)
+  
+  @@map("conditions")
+}
+
+model CombatLog {
+  id        String      @id @default(auto()) @map("_id") @db.ObjectId
+  combatId  String      @db.ObjectId
+  round     Int
+  turn      Int
+  action    CombatAction
+  
+  // Action Details
+  actor     String?     // Participant name
+  target    String?     // Target name (if applicable)
+  details   Json        // Flexible action details
+  
+  // Damage/Healing Information
+  damage    Int?
+  damageType String?
+  healing   Int?
+  
+  // Timestamp
+  timestamp DateTime    @default(now())
+  
+  // Relations
+  combat    Combat      @relation(fields: [combatId], references: [id], onDelete: Cascade)
+  
+  @@index([combatId])
+  @@index([round])
+  @@map("combat_logs")
+}
+
+// ===== ENUMS =====
+
+enum SubscriptionTier {
+  FREE
+  BASIC
+  STANDARD
+  PREMIUM
+  UNLIMITED
+}
+
+enum CharacterType {
+  PC    // Player Character
+  NPC   // Non-Player Character
+  MONSTER
+}
+
+enum PartyRole {
+  OWNER
+  CO_DM
+  MEMBER
+}
+
+enum EncounterDifficulty {
+  TRIVIAL
+  EASY
+  MEDIUM
+  HARD
+  DEADLY
+  LEGENDARY
+}
+
+enum CombatStatus {
+  PREPARING    // Setting up combat
+  ACTIVE       // Combat in progress
+  PAUSED       // Combat paused
+  COMPLETED    // Combat finished
+  CANCELLED    // Combat cancelled
+}
+
+enum CombatAction {
+  INITIATIVE_ROLLED
+  TURN_START
+  TURN_END
+  ATTACK
+  DAMAGE_TAKEN
+  DAMAGE_DEALT
+  HEALING_RECEIVED
+  CONDITION_APPLIED
+  CONDITION_REMOVED
+  SPELL_CAST
+  SPELL_SLOT_USED
+  LAIR_ACTION
+  LEGENDARY_ACTION
+  DEATH_SAVE
+  STABILIZED
+  DIED
+  REVIVED
+  CUSTOM_ACTION
+}
