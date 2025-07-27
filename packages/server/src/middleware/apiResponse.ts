@@ -22,9 +22,9 @@ declare module 'express-serve-static-core' {
  */
 export function successResponse<T>(
   data: T, 
-  message: string = 'Success',
+  message = 'Success',
   pagination?: PaginationMetadata
-): StandardSuccessResponse<T> | PaginatedApiResponse<T> {
+) {
   const baseResponse: StandardSuccessResponse<T> = {
     success: true,
     data,

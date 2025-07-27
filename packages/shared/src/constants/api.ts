@@ -22,7 +22,7 @@ export const API_VERSION = {
 } as const;
 
 export const API_VERSION_HEADER = 'API-Version' as const;
-export const API_VERSION_RESPONSE_HEADER = 'api-version' as const;
+export const API_VERSION_RESPONSE_HEADER = 'api-version';
 
 // Versioned API endpoints
 export const API_ENDPOINTS = {

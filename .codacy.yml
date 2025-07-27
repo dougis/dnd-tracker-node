@@ -16,8 +16,23 @@ engines:
         enabled: false
       - id: "ESLint8_es-x_no-trailing-commas"
         enabled: false
+      - id: "ESLint8_es-x_no-template-literals"
+        enabled: false
+      - id: "ESLint8_es-x_no-property-shorthands"
+        enabled: false
       # Disable spell checking for technical terms (tseslint, vitest, etc.)
       - id: "ESLint8_spellcheck_spell-checker"
+        enabled: false
+      # Disable import resolution rules that don't work with monorepo workspaces
+      - id: "ESLint8_import_no-unresolved"
+        enabled: false
+      - id: "ESLint8_n_no-missing-import"
+        enabled: false
+      # Disable filename pattern rule that doesn't match our conventions
+      - id: "ESLint8_cdk_filename-match-regex"
+        enabled: false
+      # Disable import alias rule that conflicts with workspace imports
+      - id: "ESLint8_import-alias_import-alias"
         enabled: false
 
 exclude_paths:
