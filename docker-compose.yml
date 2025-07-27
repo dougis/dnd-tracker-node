@@ -1,0 +1,187 @@
+version: '3.8'
+
+services:
+  # MongoDB Database
+  mongodb:
+    image: mongo:8.0
+    container_name: dnd-tracker-mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-password}
+      MONGO_INITDB_DATABASE: ${MONGO_DB_NAME:-dnd_tracker}
+    ports:
+      - "${MONGO_PORT:-27017}:27017"
+    volumes:
+      - mongodb_data:/data/db
+      - mongodb_config:/data/configdb
+      - ./scripts/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    networks:
+      - dnd-tracker-network
+    command: 
+      - mongod
+      - --replSet
+      - rs0
+      - --bind_ip_all
+    healthcheck:
+      test: |
+        mongosh --eval "
+          try {
+            if (rs.status().ok) {
+              db.adminCommand('ping')
+            } else {
+              rs.initiate({
+                _id: 'rs0',
+                members: [{ _id: 0, host: 'localhost:27017' }]
+              })
+            }
+          } catch (err) {
+            rs.initiate({
+              _id: 'rs0', 
+              members: [{ _id: 0, host: 'localhost:27017' }]
+            })
+          }
+        "
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  # Redis Cache and Session Store
+  redis:
+    image: redis:8.0-alpine
+    container_name: dnd-tracker-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+      - ./config/redis.conf:/etc/redis/redis.conf:ro
+    networks:
+      - dnd-tracker-network
+    command: redis-server /etc/redis/redis.conf
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  # MongoDB Admin Interface (Development Only)
+  mongo-express:
+    image: mongo-express:1.0.2
+    container_name: dnd-tracker-mongo-express
+    restart: unless-stopped
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_ROOT_USERNAME:-admin}
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_ROOT_PASSWORD:-password}
+      ME_CONFIG_MONGODB_URL: mongodb://${MONGO_ROOT_USERNAME:-admin}:${MONGO_ROOT_PASSWORD:-password}@mongodb:27017/
+      ME_CONFIG_BASICAUTH_USERNAME: ${MONGO_EXPRESS_USERNAME:-admin}
+      ME_CONFIG_BASICAUTH_PASSWORD: ${MONGO_EXPRESS_PASSWORD:-password}
+      ME_CONFIG_MONGODB_ENABLE_ADMIN: "true"
+    ports:
+      - "${MONGO_EXPRESS_PORT:-8081}:8081"
+    networks:
+      - dnd-tracker-network
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    profiles:
+      - dev
+      - development
+
+  # Redis Admin Interface (Development Only)
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: dnd-tracker-redis-commander
+    restart: unless-stopped
+    environment:
+      REDIS_HOSTS: local:redis:6379
+      HTTP_USER: ${REDIS_COMMANDER_USERNAME:-admin}
+      HTTP_PASSWORD: ${REDIS_COMMANDER_PASSWORD:-password}
+    ports:
+      - "${REDIS_COMMANDER_PORT:-8082}:8081"
+    networks:
+      - dnd-tracker-network
+    depends_on:
+      redis:
+        condition: service_healthy
+    profiles:
+      - dev
+      - development
+
+  # Application Server (when running in Docker)
+  server:
+    build:
+      context: .
+      dockerfile: packages/server/Dockerfile
+      target: development
+    container_name: dnd-tracker-server
+    restart: unless-stopped
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      DATABASE_URL: mongodb://${MONGO_ROOT_USERNAME:-admin}:${MONGO_ROOT_PASSWORD:-password}@mongodb:27017/${MONGO_DB_NAME:-dnd_tracker}?authSource=admin&replicaSet=rs0
+      REDIS_URL: redis://redis:6379
+      PORT: ${SERVER_PORT:-3000}
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-in-production}
+      DOCKER_ENV: "true"
+    ports:
+      - "${SERVER_PORT:-3000}:3000"
+    volumes:
+      - ./packages/server:/app/packages/server
+      - ./packages/shared:/app/packages/shared
+      - /app/packages/server/node_modules
+      - /app/packages/shared/node_modules
+    networks:
+      - dnd-tracker-network
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    profiles:
+      - app
+      - full
+
+  # Frontend Client (when running in Docker)
+  client:
+    build:
+      context: .
+      dockerfile: packages/client/Dockerfile
+      target: development
+    container_name: dnd-tracker-client
+    restart: unless-stopped
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:3000}
+      DOCKER_ENV: "true"
+    ports:
+      - "${CLIENT_PORT:-5173}:5173"
+    volumes:
+      - ./packages/client:/app/packages/client
+      - ./packages/shared:/app/packages/shared
+      - /app/packages/client/node_modules
+      - /app/packages/shared/node_modules
+    networks:
+      - dnd-tracker-network
+    depends_on:
+      - server
+    profiles:
+      - app
+      - full
+
+volumes:
+  mongodb_data:
+    driver: local
+    name: dnd-tracker-mongodb-data
+  mongodb_config:
+    driver: local
+    name: dnd-tracker-mongodb-config
+  redis_data:
+    driver: local
+    name: dnd-tracker-redis-data
+
+networks:
+  dnd-tracker-network:
+    driver: bridge
+    name: dnd-tracker-network
