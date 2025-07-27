@@ -2,6 +2,7 @@
   "name": "dnd-tracker",
   "version": "1.0.0",
   "description": "D&D Encounter Tracker - Node.js/React full-stack web application",
+  "type": "module",
   "private": true,
   "workspaces": [
     "packages/server",
@@ -17,8 +18,8 @@
     "lint:fix": "npm run lint:fix --workspaces --if-present && npm run lint:md:fix",
     "lint:md": "markdownlint '**/*.md' --ignore node_modules --ignore '**/node_modules/**'",
     "lint:md:fix": "markdownlint '**/*.md' --ignore node_modules --ignore '**/node_modules/**' --fix",
-    "lint:eslint": "eslint . --ext .js,.ts,.tsx",
-    "lint:eslint:fix": "eslint . --ext .js,.ts,.tsx --fix",
+    "lint:eslint": "eslint .",
+    "lint:eslint:fix": "eslint . --fix",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "clean": "npm run clean --workspaces --if-present",
     "prepare": "husky",
