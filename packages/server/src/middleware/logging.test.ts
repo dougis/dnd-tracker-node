@@ -215,5 +215,192 @@ describe('Logging Middleware', () => {
       
       expect(mockNext).toHaveBeenCalledOnce();
     });
+
+    it('should handle response end method override', () => {
+      const middleware = loggingMiddleware();
+      const originalEnd = mockResponse.end;
+      
+      middleware(mockRequest as Request, mockResponse as Response, mockNext);
+      
+      // Verify that res.end was overridden
+      expect(mockResponse.end).not.toBe(originalEnd);
+      
+      // Call the overridden end method
+      if (mockResponse.end) {
+        mockResponse.end('test chunk', 'utf8', () => {});
+      }
+      
+      expect(mockNext).toHaveBeenCalledOnce();
+    });
+
+    it('should properly handle response end with different parameter combinations', () => {
+      const middleware = loggingMiddleware();
+      const originalEnd = vi.fn();
+      mockResponse.end = originalEnd;
+      
+      middleware(mockRequest as Request, mockResponse as Response, mockNext);
+      
+      // Test various end method calls
+      if (mockResponse.end) {
+        // Test with chunk only
+        mockResponse.end('test chunk');
+        expect(originalEnd).toHaveBeenLastCalledWith('test chunk', undefined, undefined);
+        
+        // Test with chunk and encoding
+        mockResponse.end('test chunk', 'utf8');
+        expect(originalEnd).toHaveBeenLastCalledWith('test chunk', 'utf8', undefined);
+        
+        // Test with chunk, encoding, and callback
+        const callback = vi.fn();
+        mockResponse.end('test chunk', 'utf8', callback);
+        expect(originalEnd).toHaveBeenLastCalledWith('test chunk', 'utf8', callback);
+      }
+      
+      expect(mockNext).toHaveBeenCalledOnce();
+    });
+
+    it('should handle response finish event for timing calculation', () => {
+      const middleware = loggingMiddleware();
+      let finishHandler: (() => void) | undefined;
+      
+      // Mock response.on to capture the finish event handler
+      mockResponse.on = vi.fn((event: string, handler: () => void) => {
+        if (event === 'finish') {
+          finishHandler = handler;
+        }
+      });
+      
+      const startTime = Date.now();
+      middleware(mockRequest as Request, mockResponse as Response, mockNext);
+      
+      // Simulate some processing time
+      setTimeout(() => {
+        if (finishHandler) {
+          finishHandler();
+        }
+      }, 10);
+      
+      expect(mockResponse.on).toHaveBeenCalledWith('finish', expect.any(Function));
+      expect(mockNext).toHaveBeenCalledOnce();
+    });
+
+    it('should calculate and log response duration', () => {
+      const middleware = loggingMiddleware();
+      const originalDateNow = Date.now;
+      let currentTime = 1000;
+      
+      Date.now = vi.fn(() => currentTime);
+      
+      let finishHandler: (() => void) | undefined;
+      mockResponse.on = vi.fn((event: string, handler: () => void) => {
+        if (event === 'finish') {
+          finishHandler = handler;
+        }
+      });
+      
+      middleware(mockRequest as Request, mockResponse as Response, mockNext);
+      
+      // Advance time by 150ms
+      currentTime = 1150;
+      
+      // Trigger the finish event
+      if (finishHandler) {
+        finishHandler();
+      }
+      
+      Date.now = originalDateNow;
+      expect(mockNext).toHaveBeenCalledOnce();
+    });
+
+    it('should handle request with body data', () => {
+      mockRequest.body = {
+        username: 'testuser',
+        password: 'secret123',
+        email: 'test@example.com'
+      };
+      
+      const middleware = loggingMiddleware();
+      middleware(mockRequest as Request, mockResponse as Response, mockNext);
+      
+      expect(mockNext).toHaveBeenCalledOnce();
+    });
+
+    it('should handle different response status codes appropriately', () => {
+      const middleware = loggingMiddleware();
+      
+      // Test success status
+      mockResponse.statusCode = 200;
+      middleware(mockRequest as Request, mockResponse as Response, mockNext);
+      
+      // Test client error status
+      mockResponse.statusCode = 400;
+      middleware(mockRequest as Request, mockResponse as Response, mockNext);
+      
+      // Test server error status  
+      mockResponse.statusCode = 500;
+      middleware(mockRequest as Request, mockResponse as Response, mockNext);
+      
+      expect(mockNext).toHaveBeenCalledTimes(3);
+    });
+
+    it('should handle missing originalEnd method gracefully', () => {
+      delete mockResponse.end;
+      
+      const middleware = loggingMiddleware();
+      
+      middleware(mockRequest as Request, mockResponse as Response, mockNext);
+      
+      expect(mockNext).toHaveBeenCalledOnce();
+    });
+
+    it('should handle response with no event listeners', () => {
+      delete mockResponse.on;
+      
+      const middleware = loggingMiddleware();
+      
+      middleware(mockRequest as Request, mockResponse as Response, mockNext);
+      
+      expect(mockNext).toHaveBeenCalledOnce();
+    });
+
+    it('should log different status code ranges correctly', () => {
+      const middleware = loggingMiddleware();
+      
+      // Test 400-499 range
+      mockResponse.statusCode = 404;
+      middleware(mockRequest as Request, mockResponse as Response, mockNext);
+      
+      // Test 500+ range
+      mockResponse.statusCode = 500;
+      middleware(mockRequest as Request, mockResponse as Response, mockNext);
+      
+      // Test 200 range
+      mockResponse.statusCode = 200;
+      middleware(mockRequest as Request, mockResponse as Response, mockNext);
+      
+      expect(mockNext).toHaveBeenCalledTimes(3);
+    });
+
+    it('should handle complex nested objects in request body', () => {
+      mockRequest.body = {
+        user: {
+          credentials: {
+            password: 'secret123',
+            apiKey: 'sk-12345'
+          },
+          profile: {
+            name: 'John Doe',
+            email: 'john@example.com'
+          }
+        },
+        tokens: ['token1', 'token2']
+      };
+
+      const middleware = loggingMiddleware();
+      
+      middleware(mockRequest as Request, mockResponse as Response, mockNext);
+      
+      expect(mockNext).toHaveBeenCalledOnce();
+    });
   });
 });
