@@ -17,6 +17,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
+          ref: ${{ github.head_ref }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -51,4 +52,4 @@ jobs:
           git config --local user.name "GitHub Action"
           git add .
           git commit -m "GitHub action corrected formatting"
-          git push
+          git push origin HEAD:${{ github.head_ref }}
