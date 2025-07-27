@@ -28,6 +28,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Build shared package first
+        run: npm run build --workspace=@dnd-tracker/shared
+
+      - name: Build remaining packages
+        run: npm run build --workspace=@dnd-tracker/server --workspace=@dnd-tracker/client --if-present
+
       - name: Run tests with coverage
         run: npm run test:ci
 
