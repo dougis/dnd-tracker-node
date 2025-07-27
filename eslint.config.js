@@ -7,6 +7,8 @@ export default tseslint.config(
   {
     files: ['**/*.{js,ts,tsx}'],
     languageOptions: {
+      ecmaVersion: 'latest',
+      sourceType: 'module',
       globals: {
         process: 'readonly',
         console: 'readonly'

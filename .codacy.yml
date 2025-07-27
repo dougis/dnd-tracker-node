@@ -1,0 +1,31 @@
+---
+# Codacy configuration to support ES6 modules while maintaining code quality
+engines:
+  eslint:
+    enabled: true
+    patterns:
+      # CRITICAL: Disable ES6 syntax prohibition rules to resolve issue #93
+      # These rules incorrectly flag modern JavaScript as forbidden despite package.json "type": "module"
+      - id: "ESLint8_es-x_no-modules"
+        enabled: false
+      - id: "ESLint8_es-x_no-spread-elements" 
+        enabled: false
+      - id: "ESLint8_es-x_no-arrow-functions"
+        enabled: false
+      - id: "ESLint8_es-x_no-block-scoped-variables"
+        enabled: false
+      - id: "ESLint8_es-x_no-trailing-commas"
+        enabled: false
+      # Disable spell checking for technical terms (tseslint, vitest, etc.)
+      - id: "ESLint8_spellcheck_spell-checker"
+        enabled: false
+
+exclude_paths:
+  - "node_modules/**"
+  - "**/node_modules/**" 
+  - "dist/**"
+  - "**/dist/**"
+  - "coverage/**"
+  - "**/coverage/**"
+  - "scripts/mongo-init.js"  # MongoDB script with environment-specific globals
+  - "github-actions-coverage.test.js"  # Test file with specific requirements
