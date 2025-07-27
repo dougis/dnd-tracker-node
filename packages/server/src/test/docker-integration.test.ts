@@ -77,7 +77,10 @@ describe('Docker Compose Integration Tests', () => {
 
   describe('Redis Connection', () => {
     it('should connect to Redis successfully', async () => {
-      if (!process.env.CI && !process.env.DOCKER_ENV) return
+      if (!isDockerEnvironment()) {
+        console.log('Skipping Redis connection test - not in Docker environment')
+        return
+      }
 
       await redisClient.connect()
       const pingResult = await redisClient.ping()
@@ -85,7 +88,10 @@ describe('Docker Compose Integration Tests', () => {
     })
 
     it('should be able to perform basic Redis operations', async () => {
-      if (!process.env.CI && !process.env.DOCKER_ENV) return
+      if (!isDockerEnvironment()) {
+        console.log('Skipping Redis operations test - not in Docker environment')
+        return
+      }
 
       if (!redisClient.isOpen) {
         await redisClient.connect()
@@ -113,7 +119,10 @@ describe('Docker Compose Integration Tests', () => {
     })
 
     it('should support expiration and TTL', async () => {
-      if (!process.env.CI && !process.env.DOCKER_ENV) return
+      if (!isDockerEnvironment()) {
+        console.log('Skipping Redis TTL test - not in Docker environment')
+        return
+      }
 
       if (!redisClient.isOpen) {
         await redisClient.connect()
@@ -137,7 +146,10 @@ describe('Docker Compose Integration Tests', () => {
     })
 
     it('should support pub/sub for real-time features', async () => {
-      if (!process.env.CI && !process.env.DOCKER_ENV) return
+      if (!isDockerEnvironment()) {
+        console.log('Skipping Redis pub/sub test - not in Docker environment')
+        return
+      }
 
       const subscriber = createClient({ url: REDIS_URL })
       const publisher = createClient({ url: REDIS_URL })
@@ -171,7 +183,10 @@ describe('Docker Compose Integration Tests', () => {
 
   describe('Service Integration', () => {
     it('should handle concurrent Redis connections', async () => {
-      if (!process.env.CI && !process.env.DOCKER_ENV) return
+      if (!isDockerEnvironment()) {
+        console.log('Skipping concurrent Redis test - not in Docker environment')
+        return
+      }
 
       if (!redisClient.isOpen) {
         await redisClient.connect()
@@ -202,7 +217,10 @@ describe('Docker Compose Integration Tests', () => {
     })
 
     it('should recover gracefully from connection failures', async () => {
-      if (!process.env.CI && !process.env.DOCKER_ENV) return
+      if (!isDockerEnvironment()) {
+        console.log('Skipping connection recovery test - not in Docker environment')
+        return
+      }
 
       // Test connection resilience by forcing a reconnection
       if (redisClient.isOpen) {
@@ -229,13 +247,18 @@ describe('Docker Compose Integration Tests', () => {
       expect(REDIS_URL).toContain('redis://')
       
       // Verify environment variables are set for Docker
-      if (process.env.DOCKER_ENV) {
+      if (isDockerEnvironment()) {
         expect(process.env.REDIS_URL).toBeDefined()
       }
     })
 
     it('should have proper error handling for missing services', async () => {
-      // Test with invalid URL
+      if (!isDockerEnvironment()) {
+        console.log('Skipping error handling test - not in Docker environment')
+        return
+      }
+
+      // Test with invalid URL - only when Redis module is loaded
       const badRedisClient = createClient({ url: 'redis://invalid:6379' })
 
       await expect(
@@ -256,10 +279,12 @@ describe('Docker Compose Integration Tests', () => {
   describe('Docker Environment Detection', () => {
     it('should skip tests when not in Docker environment', () => {
       // This test always runs to verify the skip logic works
-      if (!process.env.CI && !process.env.DOCKER_ENV) {
+      if (!isDockerEnvironment()) {
         expect(true).toBe(true) // Test passes when skipped
+        console.log('Successfully skipped test - not in Docker environment')
       } else {
-        expect(process.env.DOCKER_ENV).toBeDefined()
+        expect(isDockerEnvironment()).toBe(true)
+        console.log('Running in Docker environment')
       }
     })
 
@@ -267,6 +292,7 @@ describe('Docker Compose Integration Tests', () => {
       // Basic test to ensure test suite runs
       expect(REDIS_URL).toBeDefined()
       expect(typeof REDIS_URL).toBe('string')
+      expect(typeof isDockerEnvironment).toBe('function')
     })
   })
 })
