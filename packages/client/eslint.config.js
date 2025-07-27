@@ -8,6 +8,10 @@ export default tseslint.config(
   ...tseslint.configs.recommended,
   {
     files: ['src/**/*.{ts,tsx}'],
+    languageOptions: {
+      ecmaVersion: 'latest',
+      sourceType: 'module'
+    },
     plugins: {
       'react-hooks': reactHooks,
       'react-refresh': reactRefresh,

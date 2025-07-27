@@ -1,0 +1,53 @@
+---
+engines:
+  eslint:
+    enabled: true
+    exclude_paths:
+      - "node_modules/**"
+      - "**/node_modules/**"
+      - "dist/**"
+      - "**/dist/**"
+      - "coverage/**"
+      - "**/coverage/**"
+    patterns:
+      # Disable rules that forbid ES6 modules and modern syntax
+      - id: "ESLint8_es-x_no-modules"
+        enabled: false
+      - id: "ESLint8_es-x_no-spread-elements"
+        enabled: false
+      - id: "ESLint8_es-x_no-arrow-functions"
+        enabled: false
+      - id: "ESLint8_es-x_no-block-scoped-variables"
+        enabled: false
+      - id: "ESLint8_es-x_no-array-prototype-foreach"
+        enabled: false
+      - id: "ESLint8_es-x_no-trailing-commas"
+        enabled: false
+      # Allow modern import/export syntax
+      - id: "ESLint8_import_no-unresolved"
+        enabled: false
+      - id: "ESLint8_import_named"
+        enabled: false
+      - id: "ESLint8_n_no-unpublished-import"
+        enabled: false
+      # Allow spell checker to be more lenient with technical terms
+      - id: "ESLint8_spellcheck_spell-checker"
+        enabled: false
+
+  stylelint:
+    enabled: true
+    exclude_paths:
+      - "node_modules/**"
+      - "**/node_modules/**"
+      - "dist/**"
+      - "**/dist/**"
+
+exclude_paths:
+  - "node_modules/**"
+  - "**/node_modules/**"
+  - "dist/**"
+  - "**/dist/**"
+  - "coverage/**"
+  - "**/coverage/**"
+  - "scripts/mongo-init.js"  # MongoDB script with specific environment
+  - "github-actions-coverage.test.js"  # Test file with specific requirements
