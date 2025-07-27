@@ -1,11 +1,11 @@
-import { PrismaClient, SubscriptionTier, CharacterType, EncounterDifficulty, CombatStatus } from '@prisma/client';
+import { PrismaClient, SubscriptionTier, CharacterType, EncounterDifficulty, CombatStatus, User, Character, Party, Encounter, Combat } from '@prisma/client';
 import { hash } from 'argon2';
 
 const prisma = new PrismaClient();
 
 interface SampleUsers {
-  demoUser: any;
-  dmUser: any;
+  demoUser: User;
+  dmUser: User;
 }
 
 
@@ -52,7 +52,7 @@ async function createSampleUsers(): Promise<SampleUsers> {
   return { demoUser, dmUser };
 }
 
-async function createPlayerCharacters(userId: string): Promise<any[]> {
+async function createPlayerCharacters(userId: string): Promise<Character[]> {
   const fighter = await prisma.character.create({
     data: {
       name: 'Sir Roland',
@@ -191,7 +191,7 @@ async function createPlayerCharacters(userId: string): Promise<any[]> {
   return [fighter, wizard, rogue];
 }
 
-async function createMonsterTemplates(userId: string): Promise<any[]> {
+async function createMonsterTemplates(userId: string): Promise<Character[]> {
   const goblin = await prisma.character.create({
     data: {
       name: 'Goblin',
@@ -296,7 +296,7 @@ async function createMonsterTemplates(userId: string): Promise<any[]> {
   return [goblin, orc, youngRedDragon];
 }
 
-async function createSampleParty(userId: string, characters: any[]): Promise<any> {
+async function createSampleParty(userId: string, characters: Character[]): Promise<Party> {
   const adventurers = await prisma.party.create({
     data: {
       name: 'The Brave Adventurers',
@@ -330,8 +330,8 @@ async function createSampleParty(userId: string, characters: any[]): Promise<any
 async function createSampleEncounters(
   dmUserId: string,
   partyId: string,
-  monsters: any[]
-): Promise<any[]> {
+  monsters: Character[]
+): Promise<Encounter[]> {
   const goblinAmbush = await prisma.encounter.create({
     data: {
       name: 'Goblin Ambush',
@@ -403,7 +403,7 @@ async function createSampleEncounters(
   return [goblinAmbush, dragonLair];
 }
 
-async function createSampleCombat(dmUserId: string, encounter: any): Promise<any> {
+async function createSampleCombat(dmUserId: string, encounter: Encounter & { participants: { id: string }[] }): Promise<Combat> {
   const combat = await prisma.combat.create({
     data: {
       encounterId: encounter.id,
@@ -539,7 +539,16 @@ async function main(): Promise<void> {
   const monsters = await createMonsterTemplates(users.dmUser.id);
   const party = await createSampleParty(users.demoUser.id, playerCharacters);
   const encounters = await createSampleEncounters(users.dmUser.id, party.id, monsters);
-  await createSampleCombat(users.dmUser.id, encounters[0]);
+  
+  // Get encounter with participants for combat creation
+  const encounterWithParticipants = await prisma.encounter.findUnique({
+    where: { id: encounters[0].id },
+    include: { participants: true }
+  });
+  
+  if (encounterWithParticipants) {
+    await createSampleCombat(users.dmUser.id, encounterWithParticipants);
+  }
   await updateUserStats(users);
   await printSummary();
 }
