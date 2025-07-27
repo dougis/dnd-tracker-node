@@ -458,6 +458,7 @@ This section provides a comprehensive mapping of all GitHub issues referenced th
 - [#42](https://github.com/dougis/dnd-tracker-node/issues/42) - Re-enable ESLint checks and configure properly for monorepo → ✅ **COMPLETED** [Chain 1](#️-dependency-chain-1-linting-and-code-quality), [Week 1](#critical-path-sequential)
 - [#41](https://github.com/dougis/dnd-tracker-node/issues/41) - Set up Code coverage reporting to Codacy → ✅ **COMPLETED** [Chain 1](#️-dependency-chain-1-linting-and-code-quality), [Week 1](#code-quality-after-linting-chain)
 - [#67](https://github.com/dougis/dnd-tracker-node/issues/67) - Setup monorepo with npm workspaces → ✅ **COMPLETED** [Week 1](#parallel-track-a-devops--infrastructure)
+- [#96](https://github.com/dougis/dnd-tracker-node/issues/96) - Fix GitHub lint and fix action detached head error → ✅ **COMPLETED** [DevOps](#parallel-track-a-devops--infrastructure)
 - [#68](https://github.com/dougis/dnd-tracker-node/issues/68) - Setup Docker Compose development environment → [Week 1](#parallel-track-a-devops--infrastructure)
 - [#60](https://github.com/dougis/dnd-tracker-node/issues/60) - Update codacy.yaml to the latest version → [Week 1](#parallel-track-a-devops--infrastructure)
 - [#69](https://github.com/dougis/dnd-tracker-node/issues/69) - Implement structured logging infrastructure → [Week 1](#parallel-track-b-monitoring--performance)
@@ -636,7 +637,7 @@ graph TD
 
 **Backend:** #66, #17, #24, #26, #69, #70, #71, #72, #14, #77, #78, #79, #81
 **Frontend:** #21, #25, #27, #76, #15, #29
-**DevOps:** #65, #42, #41, #67, #68, #60, #32, #22, #80
+**DevOps:** #65, #42, #41, #67, #96, #68, #60, #32, #22, #80
 **Mobile:** #76
 **Analytics:** #79, #30
 **Payments:** #14, #15, #28
