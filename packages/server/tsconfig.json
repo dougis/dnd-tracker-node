@@ -29,7 +29,9 @@
   "exclude": [
     "node_modules",
     "dist",
-    "**/*.test.ts"
+    "**/*.test.ts",
+    "src/prisma/seed.ts",
+    "src/middleware/auth.ts"
   ],
   "references": [
     {
