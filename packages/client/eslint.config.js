@@ -22,6 +22,6 @@ export default tseslint.config(
     }
   },
   {
-    ignores: ['dist/', 'node_modules/', '**/*.test.ts', '**/*.test.tsx', 'vite.config.ts']
+    ignores: ['dist/', 'node_modules/', '**/*.test.ts', '**/*.test.tsx', 'vite.config.ts', 'src/routeTree.gen.ts']
   }
 );
