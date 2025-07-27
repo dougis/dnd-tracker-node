@@ -59,7 +59,7 @@ This execution plan maps the Implementation Plan to specific GitHub issues and p
 
 - [x] **[#65](https://github.com/dougis/dnd-tracker-node/issues/65)** - Setup Linting tools and automations ✅ **COMPLETED** → [Week 1](#week-1-infrastructure-foundation)
 - [x] **[#42](https://github.com/dougis/dnd-tracker-node/issues/42)** - Re-enable ESLint checks and configure properly for monorepo ✅ **COMPLETED** → [Week 1](#week-1-infrastructure-foundation)
-- [ ] **[#41](https://github.com/dougis/dnd-tracker-node/issues/41)** - Set up Code coverage reporting to Codacy → [Code Quality](#code-quality-after-linting-chain)
+- [x] **[#41](https://github.com/dougis/dnd-tracker-node/issues/41)** - Set up Code coverage reporting to Codacy ✅ **COMPLETED** → [Code Quality](#code-quality-after-linting-chain)
 
 **Risk:** All three modify core build configuration. Parallel work will cause merge conflicts.
 **Mitigation:** [Linting Configuration Risk](#linting-configuration-risk-65-42-41)
@@ -140,7 +140,7 @@ This execution plan maps the Implementation Plan to specific GitHub issues and p
 
 #### Code Quality (After Linting Chain)
 
-- [ ] **#41** - Set up Code coverage reporting to Codacy (AFTER #42)
+- [x] **#41** - Set up Code coverage reporting to Codacy ✅ **COMPLETED** (AFTER #42)
 - [ ] **#55** - Address Codacy quality issues and test duplication
 
 ### Week 2: Core MVP Preparation
@@ -456,7 +456,7 @@ This section provides a comprehensive mapping of all GitHub issues referenced th
 
 - [#65](https://github.com/dougis/dnd-tracker-node/issues/65) - Setup Linting tools and automations → ✅ **COMPLETED** [Chain 1](#️-dependency-chain-1-linting-and-code-quality), [Week 1](#critical-path-sequential)
 - [#42](https://github.com/dougis/dnd-tracker-node/issues/42) - Re-enable ESLint checks and configure properly for monorepo → ✅ **COMPLETED** [Chain 1](#️-dependency-chain-1-linting-and-code-quality), [Week 1](#critical-path-sequential)
-- [#41](https://github.com/dougis/dnd-tracker-node/issues/41) - Set up Code coverage reporting to Codacy → [Chain 1](#️-dependency-chain-1-linting-and-code-quality), [Week 1](#code-quality-after-linting-chain)
+- [#41](https://github.com/dougis/dnd-tracker-node/issues/41) - Set up Code coverage reporting to Codacy → ✅ **COMPLETED** [Chain 1](#️-dependency-chain-1-linting-and-code-quality), [Week 1](#code-quality-after-linting-chain)
 - [#67](https://github.com/dougis/dnd-tracker-node/issues/67) - Setup monorepo with npm workspaces → ✅ **COMPLETED** [Week 1](#parallel-track-a-devops--infrastructure)
 - [#68](https://github.com/dougis/dnd-tracker-node/issues/68) - Setup Docker Compose development environment → [Week 1](#parallel-track-a-devops--infrastructure)
 - [#60](https://github.com/dougis/dnd-tracker-node/issues/60) - Update codacy.yaml to the latest version → [Week 1](#parallel-track-a-devops--infrastructure)
@@ -543,7 +543,7 @@ This visual map shows the critical dependency chains and their relationships:
 ```mermaid
 graph TD
     A[#65 Linting Setup] --> B[#42 ESLint Config]
-    B --> C[#41 Coverage]
+    B --> C[#41 Coverage ✅]
     
     D[#66 Database Schema] --> E[#24 Character API]
     D --> F[#26 Combat API]
