@@ -166,6 +166,7 @@ This execution plan maps the Implementation Plan to specific GitHub issues and p
 - [ ] **#76** - Implement mobile gesture controls for combat interface
 
 #### Database Testing Infrastructure (After #66)
+
 - [ ] **#89** - Implement comprehensive database integration tests with test containers (AFTER #66)
 
 ## Phase 2: Core Features Implementation
