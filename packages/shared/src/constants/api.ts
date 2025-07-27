@@ -13,7 +13,53 @@ export const HTTP_STATUS = {
   INTERNAL_SERVER_ERROR: 500
 } as const;
 
+// API Versioning constants
+export const API_VERSION = {
+  V1: 'v1',
+  CURRENT: 'v1',
+  SUPPORTED: ['v1'],
+  DEFAULT: 'v1'
+} as const;
+
+export const API_VERSION_HEADER = 'API-Version' as const;
+export const API_VERSION_RESPONSE_HEADER = 'api-version' as const;
+
+// Versioned API endpoints
 export const API_ENDPOINTS = {
+  V1: {
+    AUTH: {
+      LOGIN: '/api/v1/auth/login',
+      LOGOUT: '/api/v1/auth/logout',
+      REGISTER: '/api/v1/auth/register',
+      REFRESH: '/api/v1/auth/refresh',
+      PROFILE: '/api/v1/auth/profile'
+    },
+    USERS: {
+      BASE: '/api/v1/users',
+      BY_ID: (id: string) => `/api/v1/users/${id}`,
+      STATS: (id: string) => `/api/v1/users/${id}/stats`
+    },
+    CHARACTERS: {
+      BASE: '/api/v1/characters',
+      BY_ID: (id: string) => `/api/v1/characters/${id}`
+    },
+    ENCOUNTERS: {
+      BASE: '/api/v1/encounters',
+      BY_ID: (id: string) => `/api/v1/encounters/${id}`,
+      PARTICIPANTS: (id: string) => `/api/v1/encounters/${id}/participants`,
+      DAMAGE: (id: string) => `/api/v1/encounters/${id}/damage`,
+      HEAL: (id: string) => `/api/v1/encounters/${id}/heal`,
+      NEXT_TURN: (id: string) => `/api/v1/encounters/${id}/next-turn`
+    }
+  }
+} as const;
+
+// Current version endpoints (points to latest stable version)
+export const CURRENT_API_ENDPOINTS = API_ENDPOINTS.V1;
+
+// Legacy endpoints (deprecated - use versioned endpoints instead)
+/** @deprecated Use API_ENDPOINTS.V1 or CURRENT_API_ENDPOINTS instead */
+export const LEGACY_API_ENDPOINTS = {
   AUTH: {
     LOGIN: '/api/auth/login',
     LOGOUT: '/api/auth/logout',
