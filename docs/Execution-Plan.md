@@ -165,6 +165,9 @@ This execution plan maps the Implementation Plan to specific GitHub issues and p
 - [ ] **#75** - Implement comprehensive condition management system
 - [ ] **#76** - Implement mobile gesture controls for combat interface
 
+#### Database Testing Infrastructure (After #66)
+- [ ] **#89** - Implement comprehensive database integration tests with test containers (AFTER #66)
+
 ## Phase 2: Core Features Implementation
 
 **Duration:** Week 3-5 | **Milestones:** 1.3, 2.1, 2.2
@@ -465,6 +468,7 @@ This section provides a comprehensive mapping of all GitHub issues referenced th
 - [#66](https://github.com/dougis/dnd-tracker-node/issues/66) - Design and implement comprehensive Prisma database schema → [Chain 3](#️-dependency-chain-3-database-foundation), [Week 1](#critical-path-sequential)
 - [#24](https://github.com/dougis/dnd-tracker-node/issues/24) - Implement Party and Character Management API → [Chain 3](#️-dependency-chain-3-database-foundation), [Week 2](#backend-apis-after-66)
 - [#26](https://github.com/dougis/dnd-tracker-node/issues/26) - Implement Combat System MVP Backend → [Chain 3](#️-dependency-chain-3-database-foundation), [Week 2](#backend-apis-after-66)
+- [#89](https://github.com/dougis/dnd-tracker-node/issues/89) - Implement comprehensive database integration tests → [Week 2](#database-testing-infrastructure-after-66)
 
 **🔐 Authentication & Security**
 
@@ -639,7 +643,7 @@ graph TD
 ### By Milestone
 
 **Week 1 (1.1):** #65, #42, #66, #67, #68, #17, #21, #69, #70, #71, #60, #41
-**Week 2 (1.2):** #25, #27, #24, #26, #72, #73, #74, #75, #76
+**Week 2 (1.2):** #25, #27, #24, #26, #72, #73, #74, #75, #76, #89
 **Week 3 (1.3):** #28, #29, #14, #15, #32, #34
 **Week 4 (2.1):** #77, #12, #13, #11, #10
 **Week 5 (2.2):** #78, #16, #20
