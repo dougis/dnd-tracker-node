@@ -31,6 +31,9 @@
     "express": "^4.21.2",
     "helmet": "^8.0.0",
     "hot-shots": "^11.1.0",
+    "pino": "^9.7.0",
+    "pino-http": "^10.5.0",
+    "pino-pretty": "^13.0.0",
     "rate-limiter-flexible": "^7.1.1",
     "redis": "^4.7.0",
     "zod": "^3.24.1"
