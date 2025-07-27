@@ -3,9 +3,10 @@ import {
   StandardSuccessResponse, 
   StandardErrorResponse, 
   PaginatedApiResponse,
-  PaginationMetadata 
-} from '@dnd-tracker/shared/types';
-import { API_VERSION, HTTP_STATUS } from '@dnd-tracker/shared/constants';
+  PaginationMetadata,
+  API_VERSION, 
+  HTTP_STATUS 
+} from '@dnd-tracker/shared';
 
 // Extend Express Response to include response helpers
 declare module 'express-serve-static-core' {

@@ -4,7 +4,7 @@ import {
   API_VERSION_HEADER, 
   API_VERSION_RESPONSE_HEADER,
   HTTP_STATUS 
-} from '@dnd-tracker/shared/constants';
+} from '@dnd-tracker/shared';
 
 // Extend Express Request to include apiVersion
 declare module 'express-serve-static-core' {

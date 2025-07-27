@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import request from 'supertest';
 import express from 'express';
-import { HTTP_STATUS, API_VERSION } from '@dnd-tracker/shared/constants';
+import { HTTP_STATUS, API_VERSION } from '@dnd-tracker/shared';
 
 // Import app components to create a test version
 import { apiVersioningMiddleware } from './middleware/apiVersioning.js';

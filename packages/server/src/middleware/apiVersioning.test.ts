@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import request from 'supertest';
 import express from 'express';
 import { apiVersioningMiddleware, extractVersion, validateVersion } from './apiVersioning.js';
-import { HTTP_STATUS, API_VERSION } from '@dnd-tracker/shared/constants';
+import { HTTP_STATUS, API_VERSION } from '@dnd-tracker/shared';
 
 describe('API Versioning Middleware', () => {
   let app: express.Application;
