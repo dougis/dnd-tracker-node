@@ -3,10 +3,13 @@ import { hash } from 'argon2';
 
 const prisma = new PrismaClient();
 
-async function main() {
-  console.log('🌱 Starting database seed...');
+interface SampleUsers {
+  demoUser: any;
+  dmUser: any;
+}
 
-  // Create sample users
+
+async function createSampleUsers(): Promise<SampleUsers> {
   const demoUser = await prisma.user.create({
     data: {
       email: 'demo@dndtracker.com',
@@ -46,12 +49,14 @@ async function main() {
   });
 
   console.log('✅ Created sample users');
+  return { demoUser, dmUser };
+}
 
-  // Create sample player characters
+async function createPlayerCharacters(userId: string): Promise<any[]> {
   const fighter = await prisma.character.create({
     data: {
       name: 'Sir Roland',
-      creatorId: demoUser.id,
+      creatorId: userId,
       type: CharacterType.PC,
       level: 5,
       race: 'Human',
@@ -92,7 +97,7 @@ async function main() {
   const wizard = await prisma.character.create({
     data: {
       name: 'Elara Moonwhisper',
-      creatorId: demoUser.id,
+      creatorId: userId,
       type: CharacterType.PC,
       level: 5,
       race: 'Elf',
@@ -143,7 +148,7 @@ async function main() {
   const rogue = await prisma.character.create({
     data: {
       name: 'Shadows McKnifey',
-      creatorId: demoUser.id,
+      creatorId: userId,
       type: CharacterType.PC,
       level: 4,
       race: 'Halfling',
@@ -183,12 +188,14 @@ async function main() {
   });
 
   console.log('✅ Created sample player characters');
+  return [fighter, wizard, rogue];
+}
 
-  // Create sample monsters
+async function createMonsterTemplates(userId: string): Promise<any[]> {
   const goblin = await prisma.character.create({
     data: {
       name: 'Goblin',
-      creatorId: dmUser.id,
+      creatorId: userId,
       type: CharacterType.MONSTER,
       level: 1,
       race: 'Goblin',
@@ -220,7 +227,7 @@ async function main() {
   const orc = await prisma.character.create({
     data: {
       name: 'Orc',
-      creatorId: dmUser.id,
+      creatorId: userId,
       type: CharacterType.MONSTER,
       level: 1,
       race: 'Orc',
@@ -252,7 +259,7 @@ async function main() {
   const youngRedDragon = await prisma.character.create({
     data: {
       name: 'Young Red Dragon',
-      creatorId: dmUser.id,
+      creatorId: userId,
       type: CharacterType.MONSTER,
       level: 10,
       race: 'Dragon',
@@ -286,26 +293,29 @@ async function main() {
   console.log(`   • Orc template: ${orc.id}`);
   console.log(`   • Young Red Dragon template: ${youngRedDragon.id}`);
 
-  // Create a sample party
+  return [goblin, orc, youngRedDragon];
+}
+
+async function createSampleParty(userId: string, characters: any[]): Promise<any> {
   const adventurers = await prisma.party.create({
     data: {
       name: 'The Brave Adventurers',
       description: 'A group of heroes ready to save the world',
-      creatorId: demoUser.id,
+      creatorId: userId,
       isPublic: false,
       inviteCode: 'HEROES2024',
       members: {
         create: [
           {
-            characterId: fighter.id,
+            characterId: characters[0].id,
             role: 'OWNER'
           },
           {
-            characterId: wizard.id,
+            characterId: characters[1].id,
             role: 'MEMBER'
           },
           {
-            characterId: rogue.id,
+            characterId: characters[2].id,
             role: 'MEMBER'
           }
         ]
@@ -314,14 +324,20 @@ async function main() {
   });
 
   console.log('✅ Created sample party');
+  return adventurers;
+}
 
-  // Create sample encounters
+async function createSampleEncounters(
+  dmUserId: string,
+  partyId: string,
+  monsters: any[]
+): Promise<any[]> {
   const goblinAmbush = await prisma.encounter.create({
     data: {
       name: 'Goblin Ambush',
       description: 'A group of goblins attacks the party on the forest road',
-      creatorId: dmUser.id,
-      partyId: adventurers.id,
+      creatorId: dmUserId,
+      partyId: partyId,
       difficulty: EncounterDifficulty.EASY,
       environment: 'Forest Road',
       hasLairActions: false,
@@ -329,9 +345,19 @@ async function main() {
       isPublic: true,
       participants: {
         create: [
-          { characterId: goblin.id, creatorId: dmUser.id, position: 0 },
-          { characterId: goblin.id, creatorId: dmUser.id, position: 1, customName: 'Goblin Scout' },
-          { characterId: goblin.id, creatorId: dmUser.id, position: 2, customName: 'Goblin Leader' }
+          { characterId: monsters[0].id, creatorId: dmUserId, position: 0 },
+          { 
+            characterId: monsters[0].id, 
+            creatorId: dmUserId, 
+            position: 1, 
+            customName: 'Goblin Scout' 
+          },
+          { 
+            characterId: monsters[0].id, 
+            creatorId: dmUserId, 
+            position: 2, 
+            customName: 'Goblin Leader' 
+          }
         ]
       }
     },
@@ -341,7 +367,7 @@ async function main() {
     data: {
       name: 'Dragon\'s Lair',
       description: 'The heroes face a young red dragon in its volcanic lair',
-      creatorId: dmUser.id,
+      creatorId: dmUserId,
       difficulty: EncounterDifficulty.DEADLY,
       environment: 'Volcanic Cave',
       hasLairActions: true,
@@ -352,7 +378,7 @@ async function main() {
         create: [
           {
             name: 'Volcanic Fissure',
-            description: 'A fissure opens in the ground, dealing fire damage to creatures in the area',
+            description: 'A fissure opens, dealing fire damage to creatures in the area',
             initiative: 20
           },
           {
@@ -364,7 +390,7 @@ async function main() {
       },
       participants: {
         create: [
-          { characterId: youngRedDragon.id, creatorId: dmUser.id, position: 0 }
+          { characterId: monsters[2].id, creatorId: dmUserId, position: 0 }
         ]
       }
     },
@@ -374,24 +400,27 @@ async function main() {
   console.log(`   • Goblin Ambush: ${goblinAmbush.id}`);
   console.log(`   • Dragon Lair: ${dragonLair.id}`);
 
-  // Create a sample combat session
+  return [goblinAmbush, dragonLair];
+}
+
+async function createSampleCombat(dmUserId: string, encounter: any): Promise<any> {
   const combat = await prisma.combat.create({
     data: {
-      encounterId: goblinAmbush.id,
-      creatorId: dmUser.id,
+      encounterId: encounter.id,
+      creatorId: dmUserId,
       name: 'Forest Road Ambush - Session 1',
       status: CombatStatus.COMPLETED,
       currentRound: 3,
       currentTurn: 0,
       initiativeRolled: true,
-      startedAt: new Date(Date.now() - 25 * 60 * 1000), // 25 minutes ago
+      startedAt: new Date(Date.now() - 25 * 60 * 1000),
       endedAt: new Date(),
       totalRounds: 3,
       duration: 25,
       participants: {
         create: [
           {
-            participantId: goblinAmbush.participants[0].id,
+            participantId: encounter.participants[0].id,
             initiative: 15,
             dexterityScore: 14,
             turnOrder: 0,
@@ -403,7 +432,7 @@ async function main() {
             hasActed: true
           },
           {
-            participantId: goblinAmbush.participants[1].id,
+            participantId: encounter.participants[1].id,
             initiative: 12,
             dexterityScore: 14,
             turnOrder: 1,
@@ -415,7 +444,7 @@ async function main() {
             hasActed: true
           },
           {
-            participantId: goblinAmbush.participants[2].id,
+            participantId: encounter.participants[2].id,
             initiative: 8,
             dexterityScore: 14,
             turnOrder: 2,
@@ -462,9 +491,12 @@ async function main() {
   console.log('✅ Created sample combat session');
   console.log(`   • Combat session: ${combat.id}`);
 
-  // Update user stats
+  return combat;
+}
+
+async function updateUserStats(users: SampleUsers): Promise<void> {
   await prisma.userStats.update({
-    where: { userId: demoUser.id },
+    where: { userId: users.demoUser.id },
     data: {
       charactersCreated: 3,
       partiesCreated: 1,
@@ -474,7 +506,7 @@ async function main() {
   });
 
   await prisma.userStats.update({
-    where: { userId: dmUser.id },
+    where: { userId: users.dmUser.id },
     data: {
       charactersCreated: 4,
       partiesCreated: 0,
@@ -484,7 +516,9 @@ async function main() {
   });
 
   console.log('✅ Updated user statistics');
+}
 
+async function printSummary(): Promise<void> {
   console.log('🎉 Database seed completed successfully!');
   console.log('📊 Summary:');
   console.log(`   • Users: ${await prisma.user.count()}`);
@@ -495,6 +529,19 @@ async function main() {
   console.log('\n💡 Demo credentials:');
   console.log('   • Email: demo@dndtracker.com | Password: DemoPassword123!');
   console.log('   • Email: dm@dndtracker.com | Password: DMPassword123!');
+}
+
+async function main(): Promise<void> {
+  console.log('🌱 Starting database seed...');
+
+  const users = await createSampleUsers();
+  const playerCharacters = await createPlayerCharacters(users.demoUser.id);
+  const monsters = await createMonsterTemplates(users.dmUser.id);
+  const party = await createSampleParty(users.demoUser.id, playerCharacters);
+  const encounters = await createSampleEncounters(users.dmUser.id, party.id, monsters);
+  await createSampleCombat(users.dmUser.id, encounters[0]);
+  await updateUserStats(users);
+  await printSummary();
 }
 
 main()
